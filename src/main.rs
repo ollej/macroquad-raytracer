@@ -1,8 +1,10 @@
+use macroquad::prelude::*;
+
 struct Tuple {
-    x: f64,
-    y: f64,
-    z: f64,
-    w: f64,
+    x: f32,
+    y: f32,
+    z: f32,
+    w: f32,
 }
 
 impl Tuple {
@@ -13,14 +15,23 @@ impl Tuple {
     fn is_point(&self) -> bool {
         self.w == 1.0
     }
+
+    fn as_color(&self) -> Color {
+        Color {
+            r: self.x,
+            g: self.y,
+            b: self.z,
+            a: self.w,
+        }
+    }
 }
 
-fn tuple(x: f64, y: f64, z: f64, w: f64) -> Tuple {
+fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
     Tuple { x, y, z, w }
 }
 
 #[cfg(test)]
-mod tests {
+mod test_tuple {
     use super::*;
 
     #[test]
@@ -35,6 +46,28 @@ mod tests {
     }
 }
 
-fn main() {
-    println!("Hello, world!");
+#[macroquad::main("Macroquad Ray Tracer")]
+async fn main() {
+    let width = 80;
+    let height = 40;
+    let mut image = Image::gen_image_color(width, height, WHITE);
+    image.set_pixel(40, 20, tuple(1.0, 0.5, 0.5, 1.0).as_color());
+    let texture = Texture2D::from_image(&image);
+    texture.set_filter(FilterMode::Nearest);
+
+    loop {
+        set_default_camera();
+        clear_background(PURPLE);
+        draw_texture_ex(
+            &texture,
+            0.,
+            0.,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(screen_width(), screen_height())),
+                ..Default::default()
+            },
+        );
+        next_frame().await
+    }
 }
