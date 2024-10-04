@@ -1,29 +1,41 @@
 use macroquad::prelude::*;
 use std::ops;
 
-const EPSILON: FloatingPoint = 0.00001;
+const EPSILON: float = 0.00001;
 
-type FloatingPoint = f32;
+type float = f32;
 
-trait FloatingPointExt {
-    fn equals(&self, other: &FloatingPoint) -> bool;
+trait floatExt {
+    fn equals(&self, other: &float) -> bool;
 }
 
-impl FloatingPointExt for FloatingPoint {
-    fn equals(&self, other: &FloatingPoint) -> bool {
+impl floatExt for float {
+    fn equals(&self, other: &float) -> bool {
         (self - other).abs() < EPSILON
     }
 }
 
 #[derive(Debug)]
 struct Tuple {
-    x: FloatingPoint,
-    y: FloatingPoint,
-    z: FloatingPoint,
-    w: FloatingPoint,
+    x: float,
+    y: float,
+    z: float,
+    w: float,
 }
 
 impl Tuple {
+    fn new(x: float, y: float, z: float, w: float) -> Tuple {
+        Tuple { x, y, z, w }
+    }
+
+    fn point(x: float, y: float, z: float) -> Tuple {
+        Tuple { x, y, z, w: 1.0 }
+    }
+
+    fn vector(x: float, y: float, z: float) -> Tuple {
+        Tuple { x, y, z, w: 0.0 }
+    }
+
     fn is_vector(&self) -> bool {
         self.w == 0.0
     }
@@ -32,7 +44,7 @@ impl Tuple {
         self.w == 1.0
     }
 
-    fn magnitude(&self) -> FloatingPoint {
+    fn magnitude(&self) -> float {
         (self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0) + self.w.powf(2.0)).sqrt()
     }
 
@@ -43,6 +55,18 @@ impl Tuple {
             z: self.z / self.magnitude(),
             w: self.w / self.magnitude(),
         }
+    }
+
+    fn dot(&self, other: &Self) -> float {
+        self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
+    }
+
+    fn cross(&self, other: &Self) -> Self {
+        Self::vector(
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x,
+        )
     }
 
     fn as_color(&self) -> Color {
@@ -103,10 +127,10 @@ impl ops::Neg for Tuple {
     }
 }
 
-impl ops::Mul<FloatingPoint> for Tuple {
+impl ops::Mul<float> for Tuple {
     type Output = Tuple;
 
-    fn mul(self, other: FloatingPoint) -> Tuple {
+    fn mul(self, other: float) -> Tuple {
         Tuple {
             x: self.x * other,
             y: self.y * other,
@@ -116,10 +140,10 @@ impl ops::Mul<FloatingPoint> for Tuple {
     }
 }
 
-impl ops::Div<FloatingPoint> for Tuple {
+impl ops::Div<float> for Tuple {
     type Output = Tuple;
 
-    fn div(self, other: FloatingPoint) -> Tuple {
+    fn div(self, other: float) -> Tuple {
         Tuple {
             x: self.x / other,
             y: self.y / other,
@@ -129,16 +153,16 @@ impl ops::Div<FloatingPoint> for Tuple {
     }
 }
 
-fn tuple(x: FloatingPoint, y: FloatingPoint, z: FloatingPoint, w: FloatingPoint) -> Tuple {
-    Tuple { x, y, z, w }
+fn tuple(x: float, y: float, z: float, w: float) -> Tuple {
+    Tuple::new(x, y, z, w)
 }
 
-fn point(x: FloatingPoint, y: FloatingPoint, z: FloatingPoint) -> Tuple {
-    Tuple { x, y, z, w: 1.0 }
+fn point(x: float, y: float, z: float) -> Tuple {
+    Tuple::point(x, y, z)
 }
 
-fn vector(x: FloatingPoint, y: FloatingPoint, z: FloatingPoint) -> Tuple {
-    Tuple { x, y, z, w: 0.0 }
+fn vector(x: float, y: float, z: float) -> Tuple {
+    Tuple::vector(x, y, z)
 }
 
 #[cfg(test)]
@@ -302,6 +326,21 @@ mod test_tuple {
         let v = vector(1.0, 2.0, 3.0);
         let norm = v.normalize();
         assert_eq_float!(norm.magnitude(), 1.0);
+    }
+
+    #[test]
+    fn the_dot_product_of_two_tuples() {
+        let a = vector(1.0, 2.0, 3.0);
+        let b = vector(2.0, 3.0, 4.0);
+        assert_eq_float!(a.dot(&b), 20.0);
+    }
+
+    #[test]
+    fn the_cross_product_of_two_vectors() {
+        let a = vector(1.0, 2.0, 3.0);
+        let b = vector(2.0, 3.0, 4.0);
+        assert_eq!(a.cross(&b), vector(-1.0, 2.0, -1.0));
+        assert_eq!(b.cross(&a), vector(1.0, -2.0, 1.0));
     }
 }
 
