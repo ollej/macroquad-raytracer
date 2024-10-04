@@ -25,6 +25,7 @@ struct Tuple {
 
 type Vector = Tuple;
 type Point = Tuple;
+type Color = Tuple;
 
 impl Tuple {
     fn new(x: Float, y: Float, z: Float, w: Float) -> Tuple {
@@ -37,6 +38,27 @@ impl Tuple {
 
     fn vector(x: Float, y: Float, z: Float) -> Vector {
         Tuple { x, y, z, w: 0.0 }
+    }
+
+    fn color(red: Float, green: Float, blue: Float) -> Color {
+        Tuple {
+            x: red,
+            y: green,
+            z: blue,
+            w: 0.0,
+        }
+    }
+
+    fn red(&self) -> Float {
+        self.x
+    }
+
+    fn green(&self) -> Float {
+        self.y
+    }
+
+    fn blue(&self) -> Float {
+        self.z
     }
 
     fn is_vector(&self) -> bool {
@@ -72,8 +94,8 @@ impl Tuple {
         )
     }
 
-    fn as_color(&self) -> Color {
-        Color {
+    fn as_color(&self) -> macroquad::color::Color {
+        macroquad::color::Color {
             r: self.x,
             g: self.y,
             b: self.z,
@@ -172,6 +194,14 @@ impl ops::Div<Float> for Tuple {
     }
 }
 
+impl ops::Mul<Color> for Color {
+    type Output = Color;
+
+    fn mul(self, other: Color) -> Self::Output {
+        Color::color(self.x * other.x, self.y * other.y, self.z * other.z)
+    }
+}
+
 fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
     Tuple::new(x, y, z, w)
 }
@@ -182,6 +212,10 @@ fn point(x: Float, y: Float, z: Float) -> Tuple {
 
 fn vector(x: Float, y: Float, z: Float) -> Tuple {
     Tuple::vector(x, y, z)
+}
+
+fn color(red: Float, green: Float, blue: Float) -> Tuple {
+    Tuple::color(red, green, blue)
 }
 
 #[derive(Debug)]
@@ -218,26 +252,26 @@ impl Environment {
     }
 }
 
-#[cfg(test)]
-mod test_tuple {
-    use super::*;
-
-    macro_rules! assert_eq_float {
-        ($left:expr, $right:expr) => {{
-            match (&$left, &$right) {
-                (left_val, right_val) => {
-                    if !(left_val.equals(right_val)) {
-                        panic!(
-                            r#"assertion failed: `(left == right)`
-      left: `{:?}`,
-     right: `{:?}`"#,
-                            left_val, right_val
-                        )
-                    }
+macro_rules! assert_eq_float {
+    ($left:expr, $right:expr) => {{
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if !(left_val.equals(right_val)) {
+                    panic!(
+                        r#"assertion failed: `(left == right)`
+  left: `{:?}`,
+ right: `{:?}`"#,
+                        left_val, right_val
+                    )
                 }
             }
-        }};
-    }
+        }
+    }};
+}
+
+#[cfg(test)]
+mod test_chapter_1 {
+    use super::*;
 
     #[test]
     fn a_tupe_with_w_0_is_a_point() {
@@ -411,6 +445,46 @@ mod test_tuple {
         }
         println!("Reached ground after #{ticks} ticks.");
         assert_eq!(ticks, 17);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_2 {
+    use super::*;
+
+    #[test]
+    fn colors_are_red_green_blue_tuples() {
+        let c = color(-0.5, 0.4, 1.7);
+        assert_eq!(c.red(), -0.5);
+        assert_eq!(c.green(), 0.4);
+        assert_eq!(c.blue(), 1.7);
+    }
+
+    #[test]
+    fn adding_colors() {
+        let c1 = color(0.9, 0.6, 0.75);
+        let c2 = color(0.7, 0.1, 0.25);
+        assert_eq!(c1 + c2, color(1.6, 0.7, 1.0));
+    }
+
+    #[test]
+    fn subtracting_colors() {
+        let c1 = color(0.9, 0.6, 0.75);
+        let c2 = color(0.7, 0.1, 0.25);
+        assert_eq!(c1 - c2, color(0.2, 0.5, 0.5));
+    }
+
+    #[test]
+    fn multiplying_a_color_by_a_scalar() {
+        let c = color(0.2, 0.3, 0.4);
+        assert_eq!(c * 2.0, color(0.4, 0.6, 0.8));
+    }
+
+    #[test]
+    fn multiplying_colors() {
+        let c1 = color(1.0, 0.2, 0.4);
+        let c2 = color(0.9, 1.0, 0.1);
+        assert_eq!(c1 * c2, color(0.9, 0.2, 0.04));
     }
 }
 
