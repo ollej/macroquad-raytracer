@@ -104,6 +104,15 @@ impl Tuple {
     }
 }
 
+impl Color {
+    fn as_byte_strings(&self) -> [String; 3] {
+        let red = (self.x * 255.0).round().clamp(0.0, 255.0) as u8;
+        let green = (self.y * 255.0).round().clamp(0.0, 255.0) as u8;
+        let blue = (self.z * 255.0).round().clamp(0.0, 255.0) as u8;
+        [red.to_string(), green.to_string(), blue.to_string()]
+    }
+}
+
 impl PartialEq<Tuple> for Tuple {
     fn eq(&self, other: &Tuple) -> bool {
         (self.x - other.x).abs() < EPSILON
@@ -218,12 +227,58 @@ impl Canvas {
         }
     }
 
-    fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
-        self.pixels[x * y] = color;
+    fn write_pixel(&mut self, x: usize, y: usize, color: &Color) {
+        self.pixels[y * self.width + x] = color.to_owned();
     }
 
-    fn pixel_at(&mut self, x: usize, y: usize) -> Color {
-        self.pixels[x * y]
+    fn pixel_at(&self, x: usize, y: usize) -> Color {
+        self.pixels[y * self.width + x]
+    }
+
+    fn fill(&mut self, color: &Color) {
+        for i in 0..self.width {
+            for j in 0..self.height {
+                self.write_pixel(i, j, color);
+            }
+        }
+    }
+
+    fn as_ppm(&self) -> String {
+        let width = self.width;
+        let height = self.height;
+        let mut output = String::new();
+        output.push_str(&format!(
+            "P3\n\
+            {width} {height}\n\
+            255\n"
+        ));
+
+        let mut line = String::new();
+        for (index, c) in self
+            .pixels
+            .iter()
+            .flat_map(|p| p.as_byte_strings().to_vec())
+            .enumerate()
+        {
+            if line.len() + c.len() >= 70 {
+                output.push_str(&line);
+                output.push_str("\n");
+                line = c;
+            } else if (index + 1) % (self.width * 3) == 0 {
+                line.push_str(" ");
+                line.push_str(&c);
+                output.push_str(&line);
+                output.push_str("\n");
+                line = String::new()
+            } else {
+                if index % (self.width * 3) != 0 {
+                    line.push_str(" ");
+                }
+                line.push_str(&c);
+            }
+        }
+        output.push_str(&line);
+        output
     }
 }
 
@@ -536,9 +591,66 @@ mod test_chapter_2_canvas {
     fn writing_pixels_to_a_canvas() {
         let mut c = canvas(10, 20);
         let red = color(1.0, 0.0, 0.0);
-        c.write_pixel(2, 3, red);
+        c.write_pixel(2, 3, &red);
 
         assert_eq!(c.pixel_at(2, 3), red);
+    }
+
+    #[test]
+    fn constructing_the_ppm_header() {
+        let c = canvas(5, 3);
+        let ppm = c.as_ppm();
+
+        assert_eq!(
+            ppm.lines().take(3).collect::<Vec<&str>>(),
+            ["P3", "5 3", "255"]
+        );
+    }
+
+    #[test]
+    fn constructing_the_ppm_pixel_data() {
+        let mut c = canvas(5, 3);
+        let c1 = color(1.5, 0.0, 0.0);
+        let c2 = color(0.0, 0.5, 0.0);
+        let c3 = color(-0.5, 0.0, 1.0);
+        c.write_pixel(0, 0, &c1);
+        c.write_pixel(2, 1, &c2);
+        c.write_pixel(4, 2, &c3);
+        let ppm = c.as_ppm();
+
+        assert_eq!(
+            ppm.lines().skip(3).take(3).collect::<Vec<&str>>(),
+            [
+                "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+                "0 0 0 0 0 0 0 128 0 0 0 0 0 0 0",
+                "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255"
+            ]
+        );
+    }
+
+    #[test]
+    fn splitting_long_lines_in_ppm_files() {
+        let mut c = canvas(10, 2);
+        c.fill(&color(1.0, 0.8, 0.6));
+        let ppm = c.as_ppm();
+
+        assert_eq!(
+            ppm.lines().skip(3).take(4).collect::<Vec<&str>>(),
+            [
+                "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
+                "153 255 204 153 255 204 153 255 204 153 255 204 153",
+                "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
+                "153 255 204 153 255 204 153 255 204 153 255 204 153"
+            ]
+        );
+    }
+
+    #[test]
+    fn ppm_files_are_terminated_by_a_newline_character() {
+        let c = canvas(5, 3);
+        let ppm = c.as_ppm();
+
+        assert_eq!(ppm.chars().last().unwrap(), '\n');
     }
 }
 
