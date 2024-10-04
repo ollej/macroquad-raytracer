@@ -15,7 +15,7 @@ impl FloatExt for Float {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Tuple {
     x: Float,
     y: Float,
@@ -202,6 +202,31 @@ impl ops::Mul<Color> for Color {
     }
 }
 
+struct Canvas {
+    width: usize,
+    height: usize,
+    pixels: Vec<Color>,
+}
+
+impl Canvas {
+    fn new(width: usize, height: usize) -> Self {
+        let pixels = vec![color(0.0, 0.0, 0.0); width * height];
+        Self {
+            width,
+            height,
+            pixels,
+        }
+    }
+
+    fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
+        self.pixels[x * y] = color;
+    }
+
+    fn pixel_at(&mut self, x: usize, y: usize) -> Color {
+        self.pixels[x * y]
+    }
+}
+
 fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
     Tuple::new(x, y, z, w)
 }
@@ -216,6 +241,10 @@ fn vector(x: Float, y: Float, z: Float) -> Tuple {
 
 fn color(red: Float, green: Float, blue: Float) -> Tuple {
     Tuple::color(red, green, blue)
+}
+
+fn canvas(width: usize, height: usize) -> Canvas {
+    Canvas::new(width, height)
 }
 
 #[derive(Debug)]
@@ -270,7 +299,7 @@ macro_rules! assert_eq_float {
 }
 
 #[cfg(test)]
-mod test_chapter_1 {
+mod test_chapter_1_maths {
     use super::*;
 
     #[test]
@@ -449,7 +478,7 @@ mod test_chapter_1 {
 }
 
 #[cfg(test)]
-mod test_chapter_2 {
+mod test_chapter_2_colors {
     use super::*;
 
     #[test]
@@ -485,6 +514,31 @@ mod test_chapter_2 {
         let c1 = color(1.0, 0.2, 0.4);
         let c2 = color(0.9, 1.0, 0.1);
         assert_eq!(c1 * c2, color(0.9, 0.2, 0.04));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_2_canvas {
+    use super::*;
+
+    #[test]
+    fn creating_a_canvas() {
+        let c = canvas(10, 20);
+
+        assert_eq!(c.width, 10);
+        assert_eq!(c.height, 20);
+        for pixel in c.pixels {
+            assert_eq!(pixel, color(0.0, 0.0, 0.0));
+        }
+    }
+
+    #[test]
+    fn writing_pixels_to_a_canvas() {
+        let mut c = canvas(10, 20);
+        let red = color(1.0, 0.0, 0.0);
+        c.write_pixel(2, 3, red);
+
+        assert_eq!(c.pixel_at(2, 3), red);
     }
 }
 
