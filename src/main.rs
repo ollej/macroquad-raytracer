@@ -1,4 +1,6 @@
 use macroquad::prelude::*;
+use std::fs::File;
+use std::io::{Error, Write};
 use std::ops;
 
 const EPSILON: Float = 0.00001;
@@ -651,6 +653,31 @@ mod test_chapter_2_canvas {
         let ppm = c.as_ppm();
 
         assert_eq!(ppm.chars().last().unwrap(), '\n');
+    }
+
+    #[test]
+    fn generate_trajectory() {
+        let start = point(0.0, 1.0, 0.0);
+        let velocity = vector(1.0, 1.8, 0.0).normalize() * 11.25;
+        let mut p = Projectile::new(start, velocity);
+        let gravity = vector(0.0, -0.1, 0.0);
+        let wind = vector(-0.01, 0.0, 0.0);
+        let e = Environment::new(gravity, wind);
+        let mut c = canvas(900, 550);
+        let red = color(1.0, 0.0, 0.0);
+
+        while !p.has_landed() {
+            p = e.tick(p);
+            let x = p.position.x.round() as usize;
+            let y = p.position.y.round() as usize;
+            let yprim = c.height - y - 1;
+            println!("x: {}, y: {} yprim: {}", x, y, yprim);
+            c.write_pixel(x, yprim, &red);
+        }
+
+        let ppm = c.as_ppm();
+        let mut output = File::create("image.ppm").unwrap();
+        write!(output, "{}", ppm).unwrap();
     }
 }
 
