@@ -1,38 +1,41 @@
 use macroquad::prelude::*;
 use std::ops;
 
-const EPSILON: float = 0.00001;
+const EPSILON: Float = 0.00001;
 
-type float = f32;
+type Float = f32;
 
-trait floatExt {
-    fn equals(&self, other: &float) -> bool;
+trait FloatExt {
+    fn equals(&self, other: &Float) -> bool;
 }
 
-impl floatExt for float {
-    fn equals(&self, other: &float) -> bool {
+impl FloatExt for Float {
+    fn equals(&self, other: &Float) -> bool {
         (self - other).abs() < EPSILON
     }
 }
 
 #[derive(Debug)]
 struct Tuple {
-    x: float,
-    y: float,
-    z: float,
-    w: float,
+    x: Float,
+    y: Float,
+    z: Float,
+    w: Float,
 }
 
+type Vector = Tuple;
+type Point = Tuple;
+
 impl Tuple {
-    fn new(x: float, y: float, z: float, w: float) -> Tuple {
+    fn new(x: Float, y: Float, z: Float, w: Float) -> Tuple {
         Tuple { x, y, z, w }
     }
 
-    fn point(x: float, y: float, z: float) -> Tuple {
+    fn point(x: Float, y: Float, z: Float) -> Point {
         Tuple { x, y, z, w: 1.0 }
     }
 
-    fn vector(x: float, y: float, z: float) -> Tuple {
+    fn vector(x: Float, y: Float, z: Float) -> Vector {
         Tuple { x, y, z, w: 0.0 }
     }
 
@@ -44,7 +47,7 @@ impl Tuple {
         self.w == 1.0
     }
 
-    fn magnitude(&self) -> float {
+    fn magnitude(&self) -> Float {
         (self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0) + self.w.powf(2.0)).sqrt()
     }
 
@@ -57,7 +60,7 @@ impl Tuple {
         }
     }
 
-    fn dot(&self, other: &Self) -> float {
+    fn dot(&self, other: &Self) -> Float {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
@@ -88,10 +91,10 @@ impl PartialEq<Tuple> for Tuple {
     }
 }
 
-impl ops::Add<Tuple> for Tuple {
+impl ops::Add<&Tuple> for Tuple {
     type Output = Tuple;
 
-    fn add(self, other: Tuple) -> Tuple {
+    fn add(self, other: &Tuple) -> Self::Output {
         Tuple {
             x: self.x + other.x,
             y: self.y + other.y,
@@ -101,10 +104,18 @@ impl ops::Add<Tuple> for Tuple {
     }
 }
 
-impl ops::Sub<Tuple> for Tuple {
+impl ops::Add<Tuple> for Tuple {
     type Output = Tuple;
 
-    fn sub(self, other: Tuple) -> Tuple {
+    fn add(self, other: Tuple) -> Self::Output {
+        self.add(&other)
+    }
+}
+
+impl ops::Sub<&Tuple> for Tuple {
+    type Output = Tuple;
+
+    fn sub(self, other: &Tuple) -> Self::Output {
         Tuple {
             x: self.x - other.x,
             y: self.y - other.y,
@@ -114,10 +125,18 @@ impl ops::Sub<Tuple> for Tuple {
     }
 }
 
+impl ops::Sub<Tuple> for Tuple {
+    type Output = Tuple;
+
+    fn sub(self, other: Tuple) -> Self::Output {
+        self.sub(&other)
+    }
+}
+
 impl ops::Neg for Tuple {
     type Output = Tuple;
 
-    fn neg(self) -> Tuple {
+    fn neg(self) -> Self::Output {
         Tuple {
             x: -self.x,
             y: -self.y,
@@ -127,10 +146,10 @@ impl ops::Neg for Tuple {
     }
 }
 
-impl ops::Mul<float> for Tuple {
+impl ops::Mul<Float> for Tuple {
     type Output = Tuple;
 
-    fn mul(self, other: float) -> Tuple {
+    fn mul(self, other: Float) -> Self::Output {
         Tuple {
             x: self.x * other,
             y: self.y * other,
@@ -140,10 +159,10 @@ impl ops::Mul<float> for Tuple {
     }
 }
 
-impl ops::Div<float> for Tuple {
+impl ops::Div<Float> for Tuple {
     type Output = Tuple;
 
-    fn div(self, other: float) -> Tuple {
+    fn div(self, other: Float) -> Self::Output {
         Tuple {
             x: self.x / other,
             y: self.y / other,
@@ -153,16 +172,50 @@ impl ops::Div<float> for Tuple {
     }
 }
 
-fn tuple(x: float, y: float, z: float, w: float) -> Tuple {
+fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
     Tuple::new(x, y, z, w)
 }
 
-fn point(x: float, y: float, z: float) -> Tuple {
+fn point(x: Float, y: Float, z: Float) -> Tuple {
     Tuple::point(x, y, z)
 }
 
-fn vector(x: float, y: float, z: float) -> Tuple {
+fn vector(x: Float, y: Float, z: Float) -> Tuple {
     Tuple::vector(x, y, z)
+}
+
+#[derive(Debug)]
+struct Projectile {
+    position: Point,
+    velocity: Vector,
+}
+
+impl Projectile {
+    fn new(position: Point, velocity: Vector) -> Self {
+        Self { position, velocity }
+    }
+
+    fn has_landed(&self) -> bool {
+        self.position.y <= 0.0
+    }
+}
+
+#[derive(Debug)]
+struct Environment {
+    gravity: Vector,
+    wind: Vector,
+}
+
+impl Environment {
+    fn new(gravity: Vector, wind: Vector) -> Self {
+        Self { gravity, wind }
+    }
+
+    fn tick(&self, projectile: Projectile) -> Projectile {
+        let position = projectile.position + &projectile.velocity;
+        let velocity = projectile.velocity + &self.gravity + &self.wind;
+        return Projectile::new(position, velocity);
+    }
 }
 
 #[cfg(test)]
@@ -341,6 +394,23 @@ mod test_tuple {
         let b = vector(2.0, 3.0, 4.0);
         assert_eq!(a.cross(&b), vector(-1.0, 2.0, -1.0));
         assert_eq!(b.cross(&a), vector(1.0, -2.0, 1.0));
+    }
+
+    #[test]
+    fn shooting_a_projectile() {
+        // projectile starts one unit above the origin.
+        // velocity is normalized to 1 unit/tick.
+        let mut p = Projectile::new(point(0.0, 1.0, 0.0), vector(1.0, 1.0, 0.0).normalize());
+        // gravity -0.1 unit/tick, and wind is -0.01 unit/tick.
+        let e = Environment::new(vector(0.0, -0.1, 0.0), vector(-0.01, 0.0, 0.0));
+        let mut ticks = 0;
+        while !p.has_landed() {
+            println!("#{p:?}");
+            p = e.tick(p);
+            ticks = ticks + 1;
+        }
+        println!("Reached ground after #{ticks} ticks.");
+        assert_eq!(ticks, 17);
     }
 }
 
