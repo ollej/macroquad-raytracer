@@ -1,12 +1,26 @@
 use macroquad::prelude::*;
 use std::ops;
 
-#[derive(Debug, PartialEq)]
+const EPSILON: FloatingPoint = 0.00001;
+
+type FloatingPoint = f32;
+
+trait FloatingPointExt {
+    fn equals(&self, other: &FloatingPoint) -> bool;
+}
+
+impl FloatingPointExt for FloatingPoint {
+    fn equals(&self, other: &FloatingPoint) -> bool {
+        (self - other).abs() < EPSILON
+    }
+}
+
+#[derive(Debug)]
 struct Tuple {
-    x: f32,
-    y: f32,
-    z: f32,
-    w: f32,
+    x: FloatingPoint,
+    y: FloatingPoint,
+    z: FloatingPoint,
+    w: FloatingPoint,
 }
 
 impl Tuple {
@@ -18,8 +32,17 @@ impl Tuple {
         self.w == 1.0
     }
 
-    fn magnitude(&self) -> f32 {
+    fn magnitude(&self) -> FloatingPoint {
         (self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0) + self.w.powf(2.0)).sqrt()
+    }
+
+    fn normalize(&self) -> Tuple {
+        Tuple {
+            x: self.x / self.magnitude(),
+            y: self.y / self.magnitude(),
+            z: self.z / self.magnitude(),
+            w: self.w / self.magnitude(),
+        }
     }
 
     fn as_color(&self) -> Color {
@@ -32,15 +55,24 @@ impl Tuple {
     }
 }
 
+impl PartialEq<Tuple> for Tuple {
+    fn eq(&self, other: &Tuple) -> bool {
+        (self.x - other.x).abs() < EPSILON
+            && (self.y - other.y).abs() < EPSILON
+            && (self.z - other.z).abs() < EPSILON
+            && (self.w - other.w).abs() < EPSILON
+    }
+}
+
 impl ops::Add<Tuple> for Tuple {
     type Output = Tuple;
 
-    fn add(self, rhs: Tuple) -> Tuple {
+    fn add(self, other: Tuple) -> Tuple {
         Tuple {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+            w: self.w + other.w,
         }
     }
 }
@@ -48,12 +80,12 @@ impl ops::Add<Tuple> for Tuple {
 impl ops::Sub<Tuple> for Tuple {
     type Output = Tuple;
 
-    fn sub(self, rhs: Tuple) -> Tuple {
+    fn sub(self, other: Tuple) -> Tuple {
         Tuple {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+            w: self.w - other.w,
         }
     }
 }
@@ -71,47 +103,64 @@ impl ops::Neg for Tuple {
     }
 }
 
-impl ops::Mul<f32> for Tuple {
+impl ops::Mul<FloatingPoint> for Tuple {
     type Output = Tuple;
 
-    fn mul(self, rhs: f32) -> Tuple {
+    fn mul(self, other: FloatingPoint) -> Tuple {
         Tuple {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
+            x: self.x * other,
+            y: self.y * other,
+            z: self.z * other,
+            w: self.w * other,
         }
     }
 }
 
-impl ops::Div<f32> for Tuple {
+impl ops::Div<FloatingPoint> for Tuple {
     type Output = Tuple;
 
-    fn div(self, rhs: f32) -> Tuple {
+    fn div(self, other: FloatingPoint) -> Tuple {
         Tuple {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
+            w: self.w / other,
         }
     }
 }
 
-fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+fn tuple(x: FloatingPoint, y: FloatingPoint, z: FloatingPoint, w: FloatingPoint) -> Tuple {
     Tuple { x, y, z, w }
 }
 
-fn point(x: f32, y: f32, z: f32) -> Tuple {
+fn point(x: FloatingPoint, y: FloatingPoint, z: FloatingPoint) -> Tuple {
     Tuple { x, y, z, w: 1.0 }
 }
 
-fn vector(x: f32, y: f32, z: f32) -> Tuple {
+fn vector(x: FloatingPoint, y: FloatingPoint, z: FloatingPoint) -> Tuple {
     Tuple { x, y, z, w: 0.0 }
 }
 
 #[cfg(test)]
 mod test_tuple {
     use super::*;
+
+    macro_rules! assert_eq_float {
+        ($left:expr, $right:expr) => {{
+            match (&$left, &$right) {
+                (left_val, right_val) => {
+                    if !(left_val.equals(right_val)) {
+                        panic!(
+                            r#"assertion failed: `(left == right)`
+      left: `{:?}`,
+     right: `{:?}`"#,
+                            left_val, right_val
+                        )
+                    }
+                }
+            }
+        }};
+    }
 
     #[test]
     fn a_tupe_with_w_0_is_a_point() {
@@ -231,9 +280,28 @@ mod test_tuple {
     }
 
     #[test]
-    fn computing_the_magnitude_of_vector_1_2_3_with_negativ_values() {
+    fn computing_the_magnitude_of_vector_1_2_3_with_negative_values() {
         let v = vector(-1.0, -2.0, -3.0);
         assert_eq!(v.magnitude(), 14.0_f32.sqrt());
+    }
+
+    #[test]
+    fn normalizing_vector_4_0_0_gives_1_0_0() {
+        let v = vector(4.0, 0.0, 0.0);
+        assert_eq!(v.normalize(), vector(1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn normalizing_vector_1_2_3() {
+        let v = vector(1.0, 2.0, 3.0);
+        assert_eq!(v.normalize(), vector(0.26726, 0.53452, 0.80178));
+    }
+
+    #[test]
+    fn the_magnitude_of_a_normalized_vector() {
+        let v = vector(1.0, 2.0, 3.0);
+        let norm = v.normalize();
+        assert_eq_float!(norm.magnitude(), 1.0);
     }
 }
 
