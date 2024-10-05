@@ -69,11 +69,11 @@ mod test_chapter_1_maths {
         let e = Environment::new(vector(0.0, -0.1, 0.0), vector(-0.01, 0.0, 0.0));
         let mut ticks = 0;
         while !p.has_landed() {
-            println!("#{p:?}");
+            //println!("#{p:?}");
             p = e.tick(p);
             ticks = ticks + 1;
         }
-        println!("Reached ground after #{ticks} ticks.");
+        //println!("Reached ground after #{ticks} ticks.");
         assert_eq!(ticks, 17);
     }
 }

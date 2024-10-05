@@ -12,6 +12,7 @@ impl FloatExt for Float {
     }
 }
 
+#[cfg(test)]
 macro_rules! assert_eq_float {
     ($left:expr, $right:expr) => {{
         match (&$left, &$right) {
@@ -28,3 +29,6 @@ macro_rules! assert_eq_float {
         }
     }};
 }
+
+#[cfg(test)]
+pub(crate) use assert_eq_float;

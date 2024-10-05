@@ -81,12 +81,103 @@ impl Canvas {
         for x in 0..self.width {
             for y in 0..self.height {
                 let p = self.pixels[y * self.width + x];
-                if p.red() > 0.0 {
-                    println!("x: {}, y: {}, p: {:?}", x, y, p);
-                }
                 image.set_pixel(x as u32, y as u32, p.as_color());
             }
         }
         image
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_2_canvas {
+    use super::*;
+
+    #[test]
+    fn creating_a_canvas() {
+        let c = canvas(10, 20);
+
+        assert_eq!(c.width, 10);
+        assert_eq!(c.height, 20);
+        for pixel in c.pixels {
+            assert_eq!(pixel, color(0.0, 0.0, 0.0));
+        }
+    }
+
+    #[test]
+    fn writing_pixels_to_a_canvas() {
+        let mut c = canvas(10, 20);
+        let red = color(1.0, 0.0, 0.0);
+        c.write_pixel(2, 3, &red);
+
+        assert_eq!(c.pixel_at(2, 3), red);
+    }
+
+    #[test]
+    fn constructing_the_ppm_header() {
+        let c = canvas(5, 3);
+        let ppm = c.as_ppm();
+
+        assert_eq!(
+            ppm.lines().take(3).collect::<Vec<&str>>(),
+            ["P3", "5 3", "255"]
+        );
+    }
+
+    #[test]
+    fn constructing_the_ppm_pixel_data() {
+        let mut c = canvas(5, 3);
+        let c1 = color(1.5, 0.0, 0.0);
+        let c2 = color(0.0, 0.5, 0.0);
+        let c3 = color(-0.5, 0.0, 1.0);
+        c.write_pixel(0, 0, &c1);
+        c.write_pixel(2, 1, &c2);
+        c.write_pixel(4, 2, &c3);
+        let ppm = c.as_ppm();
+
+        assert_eq!(
+            ppm.lines().skip(3).take(3).collect::<Vec<&str>>(),
+            [
+                "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+                "0 0 0 0 0 0 0 128 0 0 0 0 0 0 0",
+                "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255"
+            ]
+        );
+    }
+
+    #[test]
+    fn splitting_long_lines_in_ppm_files() {
+        let mut c = canvas(10, 2);
+        c.fill(&color(1.0, 0.8, 0.6));
+        let ppm = c.as_ppm();
+
+        assert_eq!(
+            ppm.lines().skip(3).take(4).collect::<Vec<&str>>(),
+            [
+                "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
+                "153 255 204 153 255 204 153 255 204 153 255 204 153",
+                "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
+                "153 255 204 153 255 204 153 255 204 153 255 204 153"
+            ]
+        );
+    }
+
+    #[test]
+    fn ppm_files_are_terminated_by_a_newline_character() {
+        let c = canvas(5, 3);
+        let ppm = c.as_ppm();
+
+        assert_eq!(ppm.chars().last().unwrap(), '\n');
+    }
+
+    #[test]
+    fn test_generate_trajectory() {
+        use std::fs::File;
+        use std::io::Write;
+
+        let c = generate_trajectory();
+
+        let ppm = c.as_ppm();
+        let mut output = File::create("image.ppm").unwrap();
+        write!(output, "{}", ppm).unwrap();
     }
 }

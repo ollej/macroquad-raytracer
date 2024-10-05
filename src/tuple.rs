@@ -1,5 +1,6 @@
 use std::ops;
 
+use crate::color::*;
 use crate::float::*;
 
 pub fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
@@ -14,10 +15,6 @@ pub fn vector(x: Float, y: Float, z: Float) -> Tuple {
     Tuple::vector(x, y, z)
 }
 
-pub fn color(red: Float, green: Float, blue: Float) -> Tuple {
-    Tuple::color(red, green, blue)
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct Tuple {
     pub x: Float,
@@ -28,7 +25,6 @@ pub struct Tuple {
 
 pub type Vector = Tuple;
 pub type Point = Tuple;
-pub type Color = Tuple;
 
 impl Tuple {
     pub fn new(x: Float, y: Float, z: Float, w: Float) -> Tuple {
@@ -50,18 +46,6 @@ impl Tuple {
             z: blue,
             w: 0.0,
         }
-    }
-
-    pub fn red(&self) -> Float {
-        self.x
-    }
-
-    pub fn green(&self) -> Float {
-        self.y
-    }
-
-    pub fn blue(&self) -> Float {
-        self.z
     }
 
     pub fn is_vector(&self) -> bool {
@@ -104,15 +88,6 @@ impl Tuple {
             b: self.z,
             a: 1.0,
         }
-    }
-}
-
-impl Color {
-    pub fn as_byte_strings(&self) -> [String; 3] {
-        let red = (self.x * 255.0).round().clamp(0.0, 255.0) as u8;
-        let green = (self.y * 255.0).round().clamp(0.0, 255.0) as u8;
-        let blue = (self.z * 255.0).round().clamp(0.0, 255.0) as u8;
-        [red.to_string(), green.to_string(), blue.to_string()]
     }
 }
 
@@ -204,31 +179,6 @@ impl ops::Div<Float> for Tuple {
             w: self.w / other,
         }
     }
-}
-
-impl ops::Mul<Color> for Color {
-    type Output = Color;
-
-    fn mul(self, other: Color) -> Self::Output {
-        Color::color(self.x * other.x, self.y * other.y, self.z * other.z)
-    }
-}
-
-macro_rules! assert_eq_float {
-    ($left:expr, $right:expr) => {{
-        match (&$left, &$right) {
-            (left_val, right_val) => {
-                if !(left_val.equals(right_val)) {
-                    panic!(
-                        r#"assertion failed: `(left == right)`
-  left: `{:?}`,
- right: `{:?}`"#,
-                        left_val, right_val
-                    )
-                }
-            }
-        }
-    }};
 }
 
 #[cfg(test)]
