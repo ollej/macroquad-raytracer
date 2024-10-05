@@ -6,3 +6,11 @@ publish = ["git"]
 
 [dependencies]
 macroquad = "0.4.13"
+
+[lib]
+name = "macroquad_raytracer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "macroquad_raytracer"
+path = "src/main.rs"

@@ -11,3 +11,20 @@ impl FloatExt for Float {
         (self - other).abs() < EPSILON
     }
 }
+
+macro_rules! assert_eq_float {
+    ($left:expr, $right:expr) => {{
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if !(left_val.equals(right_val)) {
+                    panic!(
+                        r#"assertion failed: `(left == right)`
+  left: `{:?}`,
+ right: `{:?}`"#,
+                        left_val, right_val
+                    )
+                }
+            }
+        }
+    }};
+}
