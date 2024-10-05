@@ -2,7 +2,7 @@ use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
 
-#[macroquad::main("Macroquad Ray Tracer")]
+#[macroquad::main(window_conf())]
 async fn main() {
     let options = AppOptions::parse();
 
