@@ -14,6 +14,7 @@ pub fn window_conf() -> Conf {
 pub async fn display_image(image: &Image) {
     let texture = Texture2D::from_image(&image);
     texture.set_filter(FilterMode::Nearest);
+    let image_ratio = image.height as f32 / image.width as f32;
 
     loop {
         #[cfg(not(target_arch = "wasm32"))]
@@ -21,15 +22,21 @@ pub async fn display_image(image: &Image) {
             break;
         }
 
+        let width = screen_width().min(screen_height() / image_ratio);
+        let height = screen_height().min(screen_width() * image_ratio);
+
+        let x = (screen_width() - width) / 2.0;
+        let y = (screen_height() - height) / 2.0;
+
         set_default_camera();
         clear_background(BLACK);
         draw_texture_ex(
             &texture,
-            0.,
-            0.,
+            x,
+            y,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(screen_width(), screen_height())),
+                dest_size: Some(vec2(width, height)),
                 ..Default::default()
             },
         );
