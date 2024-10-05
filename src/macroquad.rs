@@ -1,5 +1,7 @@
 use macroquad::prelude::*;
 
+use std::path::PathBuf;
+
 pub async fn display_image(image: &Image) {
     let texture = Texture2D::from_image(&image);
     texture.set_filter(FilterMode::Nearest);
@@ -19,4 +21,8 @@ pub async fn display_image(image: &Image) {
         );
         next_frame().await
     }
+}
+
+pub fn save_png(image: &Image, path: &PathBuf) {
+    image.export_png(&path.display().to_string())
 }

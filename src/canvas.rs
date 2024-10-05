@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
 use macroquad::{color::BLACK, texture::Image};
+use std::{fs::File, io::Write, path::PathBuf};
 
 pub fn canvas(width: usize, height: usize) -> Canvas {
     Canvas::new(width, height)
@@ -85,6 +86,11 @@ impl Canvas {
             }
         }
         image
+    }
+
+    pub fn save_ppm(&self, path: &PathBuf) {
+        let mut output = File::create(path).unwrap();
+        write!(output, "{}", self.as_ppm()).unwrap();
     }
 }
 
