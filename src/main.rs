@@ -1,21 +1,9 @@
 use macroquad::prelude::*;
-use std::fs::File;
-use std::io::{Error, Write};
+use macroquad::texture::Image;
 use std::ops;
 
-const EPSILON: Float = 0.00001;
-
-type Float = f32;
-
-trait FloatExt {
-    fn equals(&self, other: &Float) -> bool;
-}
-
-impl FloatExt for Float {
-    fn equals(&self, other: &Float) -> bool {
-        (self - other).abs() < EPSILON
-    }
-}
+mod float;
+use float::{Float, FloatExt, EPSILON};
 
 #[derive(Debug, Clone, Copy)]
 struct Tuple {
@@ -101,7 +89,7 @@ impl Tuple {
             r: self.x,
             g: self.y,
             b: self.z,
-            a: self.w,
+            a: 1.0,
         }
     }
 }
@@ -282,6 +270,20 @@ impl Canvas {
         output.push_str(&line);
         output
     }
+
+    fn as_image(&self) -> Image {
+        let mut image = Image::gen_image_color(self.width as u16, self.height as u16, BLACK);
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let p = self.pixels[y * self.width + x];
+                if p.red() > 0.0 {
+                    println!("x: {}, y: {}, p: {:?}", x, y, p);
+                }
+                image.set_pixel(x as u32, y as u32, p.as_color());
+            }
+        }
+        image
+    }
 }
 
 fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
@@ -302,6 +304,28 @@ fn color(red: Float, green: Float, blue: Float) -> Tuple {
 
 fn canvas(width: usize, height: usize) -> Canvas {
     Canvas::new(width, height)
+}
+
+fn generate_trajectory() -> Canvas {
+    let start = point(0.0, 1.0, 0.0);
+    let velocity = vector(1.0, 1.8, 0.0).normalize() * 11.25;
+    let mut p = Projectile::new(start, velocity);
+    let gravity = vector(0.0, -0.1, 0.0);
+    let wind = vector(-0.01, 0.0, 0.0);
+    let e = Environment::new(gravity, wind);
+    let mut c = canvas(900, 550);
+    let red = color(1.0, 0.0, 0.0);
+
+    while !p.has_landed() {
+        p = e.tick(p);
+        let x = p.position.x.round() as usize;
+        let y = p.position.y.round() as usize;
+        let ypos = c.height - y - 1;
+        //println!("x: {}, y: {} yprim: {}", x, y, yprim);
+        c.write_pixel(x, ypos, &red);
+    }
+
+    c
 }
 
 #[derive(Debug)]
@@ -656,24 +680,11 @@ mod test_chapter_2_canvas {
     }
 
     #[test]
-    fn generate_trajectory() {
-        let start = point(0.0, 1.0, 0.0);
-        let velocity = vector(1.0, 1.8, 0.0).normalize() * 11.25;
-        let mut p = Projectile::new(start, velocity);
-        let gravity = vector(0.0, -0.1, 0.0);
-        let wind = vector(-0.01, 0.0, 0.0);
-        let e = Environment::new(gravity, wind);
-        let mut c = canvas(900, 550);
-        let red = color(1.0, 0.0, 0.0);
+    fn test_generate_trajectory() {
+        use std::fs::File;
+        use std::io::Write;
 
-        while !p.has_landed() {
-            p = e.tick(p);
-            let x = p.position.x.round() as usize;
-            let y = p.position.y.round() as usize;
-            let yprim = c.height - y - 1;
-            println!("x: {}, y: {} yprim: {}", x, y, yprim);
-            c.write_pixel(x, yprim, &red);
-        }
+        let c = generate_trajectory();
 
         let ppm = c.as_ppm();
         let mut output = File::create("image.ppm").unwrap();
@@ -683,16 +694,20 @@ mod test_chapter_2_canvas {
 
 #[macroquad::main("Macroquad Ray Tracer")]
 async fn main() {
-    let width = 80;
-    let height = 40;
-    let mut image = Image::gen_image_color(width, height, WHITE);
-    image.set_pixel(40, 20, tuple(1.0, 0.5, 0.5, 1.0).as_color());
+    //let width = 80;
+    //let height = 40;
+    //let mut image = Image::gen_image_color(width, height, WHITE);
+    //image.set_pixel(40, 20, tuple(1.0, 0.5, 0.5, 1.0).as_color());
+
+    let c = generate_trajectory();
+    let image = c.as_image();
+
     let texture = Texture2D::from_image(&image);
     texture.set_filter(FilterMode::Nearest);
 
     loop {
         set_default_camera();
-        clear_background(PURPLE);
+        clear_background(BLACK);
         draw_texture_ex(
             &texture,
             0.,
