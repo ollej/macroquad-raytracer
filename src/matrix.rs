@@ -30,17 +30,25 @@ pub type MatrixRow2 = [Float; 2];
 pub type MatrixRow3 = [Float; 3];
 pub type MatrixRow = [Float; 4];
 
-pub trait Settable {
+pub trait Submatrix {
     fn set(&mut self, index: MatrixIndex, value: Float);
 }
 
-pub trait Submatrix<T>
+// Ugly hack to make Matrix2 work as submatrix
+impl Submatrix for Float {
+    fn set(&mut self, _index: MatrixIndex, _value: Float) {}
+}
+
+pub trait Inversion<T, R>
 where
-    T: Settable,
+    T: Submatrix,
+    R: IntoIterator<Item = Float>,
 {
     fn length(&self) -> usize;
 
     fn empty_submatrix() -> T;
+
+    fn row(&self, row: usize) -> R;
 
     fn get(&self, row: usize, col: usize) -> Float;
 
@@ -63,6 +71,25 @@ where
         }
         m
     }
+
+    fn minor(&self, row: usize, col: usize) -> Float;
+
+    fn cofactor(&self, row: usize, col: usize) -> Float {
+        let minor = self.minor(row, col);
+        if (row + col) % 2 != 0 {
+            -minor
+        } else {
+            minor
+        }
+    }
+
+    fn determinant(&self) -> Float {
+        self.row(0)
+            .into_iter()
+            .enumerate()
+            .map(|(col, val)| val * self.cofactor(0, col))
+            .sum()
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -78,20 +105,46 @@ impl Matrix2 {
     pub fn empty() -> Self {
         Matrix2::new([0.0; Self::LENGTH], [0.0; Self::LENGTH])
     }
+}
 
-    pub fn determinant(&self) -> Float {
+impl Submatrix for Matrix2 {
+    fn set(&mut self, index: MatrixIndex, value: Float) {
+        self.0[index.0][index.1] = value;
+    }
+}
+
+impl Inversion<Float, MatrixRow2> for Matrix2 {
+    fn length(&self) -> usize {
+        Self::LENGTH
+    }
+
+    fn empty_submatrix() -> Float {
+        0.0
+    }
+
+    fn row(&self, row: usize) -> MatrixRow2 {
+        self.0[row]
+    }
+
+    fn get(&self, row: usize, col: usize) -> Float {
+        self.0[row][col]
+    }
+
+    fn submatrix(&self, row: usize, col: usize) -> Float {
+        self.0[1 - row][1 - col]
+    }
+
+    fn minor(&self, _row: usize, _col: usize) -> Float {
+        0.0
+    }
+
+    fn determinant(&self) -> Float {
         let a = self[(0, 0)];
         let b = self[(0, 1)];
         let c = self[(1, 0)];
         let d = self[(1, 1)];
 
         (a * d) - (b * c)
-    }
-}
-
-impl Settable for Matrix2 {
-    fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0][index.1] = value;
     }
 }
 
@@ -130,22 +183,9 @@ impl Matrix3 {
     fn get(&self, row: usize, col: usize) -> Float {
         self.0[row][col]
     }
-
-    fn minor(&self, row: usize, col: usize) -> Float {
-        self.submatrix(row, col).determinant()
-    }
-
-    fn cofactor(&self, row: usize, col: usize) -> Float {
-        let minor = self.minor(row, col);
-        if (row + col) % 2 != 0 {
-            -minor
-        } else {
-            minor
-        }
-    }
 }
 
-impl Submatrix<Matrix2> for Matrix3 {
+impl Inversion<Matrix2, MatrixRow3> for Matrix3 {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -154,12 +194,20 @@ impl Submatrix<Matrix2> for Matrix3 {
         Matrix2::empty()
     }
 
+    fn row(&self, row: usize) -> MatrixRow3 {
+        self.0[row]
+    }
+
     fn get(&self, row: usize, col: usize) -> Float {
         self.0[row][col]
     }
+
+    fn minor(&self, row: usize, col: usize) -> Float {
+        self.submatrix(row, col).determinant()
+    }
 }
 
-impl Settable for Matrix3 {
+impl Submatrix for Matrix3 {
     fn set(&mut self, index: MatrixIndex, value: Float) {
         self.0[index.0][index.1] = value;
     }
@@ -208,7 +256,7 @@ impl Matrix {
     }
 }
 
-impl Submatrix<Matrix3> for Matrix {
+impl Inversion<Matrix3, MatrixRow> for Matrix {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -217,12 +265,20 @@ impl Submatrix<Matrix3> for Matrix {
         Matrix3::empty()
     }
 
+    fn row(&self, row: usize) -> MatrixRow {
+        self.0[row]
+    }
+
     fn get(&self, row: usize, col: usize) -> Float {
         self.0[row][col]
     }
+
+    fn minor(&self, row: usize, col: usize) -> Float {
+        self.submatrix(row, col).determinant()
+    }
 }
 
-impl Settable for Matrix {
+impl Submatrix for Matrix {
     fn set(&mut self, index: MatrixIndex, value: Float) {
         self.0[index.0][index.1] = value;
     }
@@ -467,5 +523,28 @@ mod test_chapter_3_matrices {
         assert_eq!(A.cofactor(0, 0), -12.0);
         assert_eq!(A.minor(1, 0), 25.0);
         assert_eq!(A.cofactor(1, 0), -25.0);
+    }
+
+    #[test]
+    fn calculating_the_determinant_of_a_3x3_matrix() {
+        let A = matrix3([1.0, 2.0, 6.0], [-5.0, 8.0, -4.0], [2.0, 6.0, 4.0]);
+        assert_eq!(A.cofactor(0, 0), 56.0);
+        assert_eq!(A.cofactor(0, 1), 12.0);
+        assert_eq!(A.cofactor(0, 2), -46.0);
+        assert_eq!(A.determinant(), -196.0);
+    }
+
+    #[test]
+    fn calculating_the_determinant_of_a_4x4_matrix() {
+        let A = matrix4(
+            [-2.0, -8.0, 3.0, 5.0],
+            [-3.0, 1.0, 7.0, 3.0],
+            [1.0, 2.0, -9.0, 6.0],
+            [-6.0, 7.0, 7.0, -9.0],
+        );
+        assert_eq!(A.cofactor(0, 0), 690.0);
+        assert_eq!(A.cofactor(0, 1), 447.0);
+        assert_eq!(A.cofactor(0, 2), 210.0);
+        assert_eq!(A.determinant(), -4071.0);
     }
 }
