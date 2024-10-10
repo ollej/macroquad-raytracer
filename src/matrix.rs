@@ -34,12 +34,14 @@ pub type MatrixRow = [Float; 4];
 pub struct Matrix2([MatrixRow2; 2]);
 
 impl Matrix2 {
+    const LENGTH: usize = 2;
+
     pub fn new(t1: MatrixRow2, t2: MatrixRow2) -> Self {
         Matrix2([t1, t2])
     }
 
     pub fn empty() -> Self {
-        Matrix2::new([0.0; 2], [0.0; 2])
+        Matrix2::new([0.0; Self::LENGTH], [0.0; Self::LENGTH])
     }
 
     pub fn determinant(&self) -> Float {
@@ -52,12 +54,56 @@ impl Matrix2 {
     }
 }
 
+impl Index<MatrixIndex> for Matrix2 {
+    type Output = Float;
+
+    fn index(&self, index: MatrixIndex) -> &Self::Output {
+        &self.0[index.0][index.1]
+    }
+}
+
+impl IndexMut<MatrixIndex> for Matrix2 {
+    fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
+        &mut self.0[index.0][index.1]
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Matrix3([MatrixRow3; 3]);
 
 impl Matrix3 {
+    const LENGTH: usize = 3;
+
     pub fn new(t1: MatrixRow3, t2: MatrixRow3, t3: MatrixRow3) -> Self {
         Matrix3([t1, t2, t3])
+    }
+
+    pub fn submatrix(&self, row: usize, col: usize) -> Matrix2 {
+        let mut m = Matrix2::empty();
+        let mut row_index = 0;
+        for i in 0..Self::LENGTH {
+            if i == row {
+                continue;
+            }
+            let mut col_index = 0;
+            for j in 0..Self::LENGTH {
+                if j == col {
+                    continue;
+                }
+                m[(row_index, col_index)] = self[(i, j)];
+                col_index += 1;
+            }
+            row_index += 1;
+        }
+        m
+    }
+}
+
+impl Index<MatrixIndex> for Matrix3 {
+    type Output = Float;
+
+    fn index(&self, index: MatrixIndex) -> &Self::Output {
+        &self.0[index.0][index.1]
     }
 }
 
@@ -65,12 +111,19 @@ impl Matrix3 {
 pub struct Matrix([MatrixRow; 4]);
 
 impl Matrix {
+    const LENGTH: usize = 4;
+
     pub fn new(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Self {
         Matrix([t1, t2, t3, t4])
     }
 
     pub fn empty() -> Self {
-        Matrix::new([0.0; 4], [0.0; 4], [0.0; 4], [0.0; 4])
+        Matrix::new(
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+        )
     }
 
     pub fn transpose(&self) -> Self {
@@ -80,22 +133,6 @@ impl Matrix {
             [self[(0, 2)], self[(1, 2)], self[(2, 2)], self[(3, 2)]],
             [self[(0, 3)], self[(1, 3)], self[(2, 3)], self[(3, 3)]],
         )
-    }
-}
-
-impl Index<MatrixIndex> for Matrix2 {
-    type Output = Float;
-
-    fn index(&self, index: MatrixIndex) -> &Self::Output {
-        &self.0[index.0][index.1]
-    }
-}
-
-impl Index<MatrixIndex> for Matrix3 {
-    type Output = Float;
-
-    fn index(&self, index: MatrixIndex) -> &Self::Output {
-        &self.0[index.0][index.1]
     }
 }
 
@@ -118,8 +155,8 @@ impl Mul<Matrix> for Matrix {
 
     fn mul(self, other: Matrix) -> Self::Output {
         let mut m = Matrix::empty();
-        for row in 0..4 {
-            for col in 0..4 {
+        for row in 0..Self::LENGTH {
+            for col in 0..Self::LENGTH {
                 m[(row, col)] = self[(row, 0)] * other[(0, col)]
                     + self[(row, 1)] * other[(1, col)]
                     + self[(row, 2)] * other[(2, col)]
@@ -134,8 +171,8 @@ impl Mul<Tuple> for Matrix {
     type Output = Tuple;
 
     fn mul(self, other: Tuple) -> Self::Output {
-        let mut t = [0.0; 4];
-        for row in 0..4 {
+        let mut t = [0.0; Self::LENGTH];
+        for row in 0..Self::LENGTH {
             t[row] = self[(row, 0)] * other.x
                 + self[(row, 1)] * other.y
                 + self[(row, 2)] * other.z
@@ -301,5 +338,11 @@ mod test_chapter_3_matrices {
     fn calculating_the_determinant_of_a_2x2_matrix() {
         let A = matrix2([1.0, 5.0], [-3.0, 2.0]);
         assert_eq!(A.determinant(), 17.0);
+    }
+
+    #[test]
+    fn a_submatrix_of_a_3x3_matrix_is_a_2x2_matrix() {
+        let A = matrix3([1.0, 5.0, 0.0], [-3.0, 2.0, 7.0], [0.0, 6.0, -3.0]);
+        assert_eq!(A.submatrix(0, 2), matrix2([-3.0, 2.0], [0.0, 6.0],));
     }
 }
