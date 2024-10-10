@@ -30,6 +30,41 @@ pub type MatrixRow2 = [Float; 2];
 pub type MatrixRow3 = [Float; 3];
 pub type MatrixRow = [Float; 4];
 
+pub trait Settable {
+    fn set(&mut self, index: MatrixIndex, value: Float);
+}
+
+pub trait Submatrix<T>
+where
+    T: Settable,
+{
+    fn length(&self) -> usize;
+
+    fn empty_submatrix() -> T;
+
+    fn get(&self, row: usize, col: usize) -> Float;
+
+    fn submatrix(&self, row: usize, col: usize) -> T {
+        let mut m = Self::empty_submatrix();
+        let mut row_index = 0;
+        for i in 0..self.length() {
+            if i == row {
+                continue;
+            }
+            let mut col_index = 0;
+            for j in 0..self.length() {
+                if j == col {
+                    continue;
+                }
+                m.set((row_index, col_index), self.get(i, j));
+                col_index += 1;
+            }
+            row_index += 1;
+        }
+        m
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Matrix2([MatrixRow2; 2]);
 
@@ -51,6 +86,12 @@ impl Matrix2 {
         let d = self[(1, 1)];
 
         (a * d) - (b * c)
+    }
+}
+
+impl Settable for Matrix2 {
+    fn set(&mut self, index: MatrixIndex, value: Float) {
+        self.0[index.0][index.1] = value;
     }
 }
 
@@ -78,24 +119,40 @@ impl Matrix3 {
         Matrix3([t1, t2, t3])
     }
 
-    pub fn submatrix(&self, row: usize, col: usize) -> Matrix2 {
-        let mut m = Matrix2::empty();
-        let mut row_index = 0;
-        for i in 0..Self::LENGTH {
-            if i == row {
-                continue;
-            }
-            let mut col_index = 0;
-            for j in 0..Self::LENGTH {
-                if j == col {
-                    continue;
-                }
-                m[(row_index, col_index)] = self[(i, j)];
-                col_index += 1;
-            }
-            row_index += 1;
-        }
-        m
+    pub fn empty() -> Self {
+        Matrix3::new(
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+        )
+    }
+
+    fn get(&self, row: usize, col: usize) -> Float {
+        self.0[row][col]
+    }
+
+    fn set(&mut self, index: MatrixIndex, value: Float) {
+        self.0[index.0][index.1] = value;
+    }
+}
+
+impl Submatrix<Matrix2> for Matrix3 {
+    fn length(&self) -> usize {
+        Self::LENGTH
+    }
+
+    fn empty_submatrix() -> Matrix2 {
+        Matrix2::empty()
+    }
+
+    fn get(&self, row: usize, col: usize) -> Float {
+        self.0[row][col]
+    }
+}
+
+impl Settable for Matrix3 {
+    fn set(&mut self, index: MatrixIndex, value: Float) {
+        self.0[index.0][index.1] = value;
     }
 }
 
@@ -104,6 +161,12 @@ impl Index<MatrixIndex> for Matrix3 {
 
     fn index(&self, index: MatrixIndex) -> &Self::Output {
         &self.0[index.0][index.1]
+    }
+}
+
+impl IndexMut<MatrixIndex> for Matrix3 {
+    fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
+        &mut self.0[index.0][index.1]
     }
 }
 
@@ -133,6 +196,26 @@ impl Matrix {
             [self[(0, 2)], self[(1, 2)], self[(2, 2)], self[(3, 2)]],
             [self[(0, 3)], self[(1, 3)], self[(2, 3)], self[(3, 3)]],
         )
+    }
+}
+
+impl Submatrix<Matrix3> for Matrix {
+    fn length(&self) -> usize {
+        Self::LENGTH
+    }
+
+    fn empty_submatrix() -> Matrix3 {
+        Matrix3::empty()
+    }
+
+    fn get(&self, row: usize, col: usize) -> Float {
+        self.0[row][col]
+    }
+}
+
+impl Settable for Matrix {
+    fn set(&mut self, index: MatrixIndex, value: Float) {
+        self.0[index.0][index.1] = value;
     }
 }
 
@@ -344,5 +427,19 @@ mod test_chapter_3_matrices {
     fn a_submatrix_of_a_3x3_matrix_is_a_2x2_matrix() {
         let A = matrix3([1.0, 5.0, 0.0], [-3.0, 2.0, 7.0], [0.0, 6.0, -3.0]);
         assert_eq!(A.submatrix(0, 2), matrix2([-3.0, 2.0], [0.0, 6.0],));
+    }
+
+    #[test]
+    fn a_submatrix_of_a_4x4_matrix_is_a_3x3_matrix() {
+        let A = matrix4(
+            [-6.0, 1.0, 1.0, 6.0],
+            [-8.0, 5.0, 8.0, 6.0],
+            [-1.0, 0.0, 8.0, 2.0],
+            [-7.0, 1.0, -1.0, 1.0],
+        );
+        assert_eq!(
+            A.submatrix(2, 1),
+            matrix3([-6.0, 1.0, 6.0], [-8.0, 8.0, 6.0], [-7.0, -1.0, 1.0],)
+        );
     }
 }
