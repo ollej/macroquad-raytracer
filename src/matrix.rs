@@ -1,6 +1,6 @@
-use std::ops::Index;
+use std::ops::{Index, IndexMut, Mul};
 
-use crate::float::*;
+use crate::{float::*, tuple::*};
 
 pub fn matrix2(t1: MatrixRow2, t2: MatrixRow2) -> Matrix2 {
     Matrix2::new(t1, t2)
@@ -10,18 +10,18 @@ pub fn matrix3(t1: MatrixRow3, t2: MatrixRow3, t3: MatrixRow3) -> Matrix3 {
     Matrix3::new(t1, t2, t3)
 }
 
-pub fn matrix4(t1: MatrixRow4, t2: MatrixRow4, t3: MatrixRow4, t4: MatrixRow4) -> Matrix4 {
-    Matrix4::new(t1, t2, t3, t4)
+pub fn matrix4(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Matrix {
+    Matrix::new(t1, t2, t3, t4)
 }
 
-pub fn matrix(t1: MatrixRow4, t2: MatrixRow4, t3: MatrixRow4, t4: MatrixRow4) -> Matrix4 {
-    Matrix4::new(t1, t2, t3, t4)
+pub fn matrix(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Matrix {
+    Matrix::new(t1, t2, t3, t4)
 }
 
 pub type MatrixIndex = (usize, usize);
 pub type MatrixRow2 = [Float; 2];
 pub type MatrixRow3 = [Float; 3];
-pub type MatrixRow4 = [Float; 4];
+pub type MatrixRow = [Float; 4];
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Matrix2([MatrixRow2; 2]);
@@ -42,11 +42,15 @@ impl Matrix3 {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Matrix4([MatrixRow4; 4]);
+pub struct Matrix([MatrixRow; 4]);
 
-impl Matrix4 {
-    pub fn new(t1: MatrixRow4, t2: MatrixRow4, t3: MatrixRow4, t4: MatrixRow4) -> Self {
-        Matrix4([t1, t2, t3, t4])
+impl Matrix {
+    pub fn new(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Self {
+        Matrix([t1, t2, t3, t4])
+    }
+
+    pub fn empty() -> Self {
+        Matrix::new([0.0; 4], [0.0; 4], [0.0; 4], [0.0; 4])
     }
 }
 
@@ -66,11 +70,49 @@ impl Index<MatrixIndex> for Matrix3 {
     }
 }
 
-impl Index<MatrixIndex> for Matrix4 {
+impl Index<MatrixIndex> for Matrix {
     type Output = Float;
 
     fn index(&self, index: MatrixIndex) -> &Self::Output {
         &self.0[index.0][index.1]
+    }
+}
+
+impl IndexMut<MatrixIndex> for Matrix {
+    fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
+        &mut self.0[index.0][index.1]
+    }
+}
+
+impl Mul<Matrix> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Self::Output {
+        let mut m = Matrix::empty();
+        for row in 0..4 {
+            for col in 0..4 {
+                m[(row, col)] = self[(row, 0)] * other[(0, col)]
+                    + self[(row, 1)] * other[(1, col)]
+                    + self[(row, 2)] * other[(2, col)]
+                    + self[(row, 3)] * other[(3, col)];
+            }
+        }
+        m
+    }
+}
+
+impl Mul<Tuple> for Matrix {
+    type Output = Tuple;
+
+    fn mul(self, other: Tuple) -> Self::Output {
+        let mut t = [0.0; 4];
+        for row in 0..4 {
+            t[row] = self[(row, 0)] * other.x
+                + self[(row, 1)] * other.y
+                + self[(row, 2)] * other.z
+                + self[(row, 3)] * other.w;
+        }
+        Tuple::new(t[0], t[1], t[2], t[3])
     }
 }
 
@@ -146,5 +188,42 @@ mod test_chapter_3_matrices {
             [4.0, 3.0, 2.0, 1.0],
         );
         assert_ne!(A, B);
+    }
+
+    #[test]
+    fn multiplying_two_matrices() {
+        let A = matrix(
+            [1.0, 2.0, 3.0, 4.0],
+            [5.0, 6.0, 7.0, 8.0],
+            [9.0, 8.0, 7.0, 6.0],
+            [5.0, 4.0, 3.0, 2.0],
+        );
+        let B = matrix(
+            [-2.0, 1.0, 2.0, 3.0],
+            [3.0, 2.0, 1.0, -1.0],
+            [4.0, 3.0, 6.0, 5.0],
+            [1.0, 2.0, 7.0, 8.0],
+        );
+        assert_eq!(
+            A * B,
+            matrix(
+                [20.0, 22.0, 50.0, 48.0],
+                [44.0, 54.0, 114.0, 108.0],
+                [40.0, 58.0, 110.0, 102.0],
+                [16.0, 26.0, 46.0, 42.0],
+            )
+        );
+    }
+
+    #[test]
+    fn a_matrix_multiplied_by_a_tuple() {
+        let A = matrix(
+            [1.0, 2.0, 3.0, 4.0],
+            [2.0, 4.0, 4.0, 2.0],
+            [8.0, 6.0, 4.0, 1.0],
+            [0.0, 0.0, 0.0, 1.0],
+        );
+        let b = tuple(1.0, 2.0, 3.0, 1.0);
+        assert_eq!(A * b, tuple(18.0, 24.0, 33.0, 1.0));
     }
 }
