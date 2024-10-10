@@ -59,6 +59,15 @@ impl Matrix {
     pub fn empty() -> Self {
         Matrix::new([0.0; 4], [0.0; 4], [0.0; 4], [0.0; 4])
     }
+
+    pub fn transpose(&self) -> Self {
+        Matrix::new(
+            [self[(0, 0)], self[(1, 0)], self[(2, 0)], self[(3, 0)]],
+            [self[(0, 1)], self[(1, 1)], self[(2, 1)], self[(3, 1)]],
+            [self[(0, 2)], self[(1, 2)], self[(2, 2)], self[(3, 2)]],
+            [self[(0, 3)], self[(1, 3)], self[(2, 3)], self[(3, 3)]],
+        )
+    }
 }
 
 impl Index<MatrixIndex> for Matrix2 {
@@ -249,5 +258,29 @@ mod test_chapter_3_matrices {
     fn multiplying_the_identity_matrix_by_a_tuple() {
         let a = tuple(1.0, 2.0, 3.0, 4.0);
         assert_eq!(IDENTITY_MATRIX * a, a);
+    }
+
+    #[test]
+    fn transposing_a_matrix() {
+        let A = matrix(
+            [0.0, 9.0, 3.0, 0.0],
+            [9.0, 8.0, 0.0, 8.0],
+            [1.0, 8.0, 5.0, 3.0],
+            [0.0, 0.0, 5.0, 8.0],
+        );
+        assert_eq!(
+            A.transpose(),
+            matrix(
+                [0.0, 9.0, 1.0, 0.0],
+                [9.0, 8.0, 8.0, 0.0],
+                [3.0, 0.0, 5.0, 5.0],
+                [0.0, 8.0, 3.0, 8.0],
+            )
+        );
+    }
+
+    #[test]
+    fn transposing_the_identity_matrix() {
+        assert_eq!(IDENTITY_MATRIX.transpose(), IDENTITY_MATRIX);
     }
 }
