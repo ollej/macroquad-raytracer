@@ -18,6 +18,10 @@ pub fn matrix(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Mat
     Matrix::new(t1, t2, t3, t4)
 }
 
+pub fn identity_matrix() -> Matrix {
+    Matrix::identity()
+}
+
 pub type MatrixIndex = (usize, usize);
 pub type MatrixRow2 = [Float; 2];
 pub type MatrixRow3 = [Float; 3];
@@ -51,6 +55,15 @@ impl Matrix {
 
     pub fn empty() -> Self {
         Matrix::new([0.0; 4], [0.0; 4], [0.0; 4], [0.0; 4])
+    }
+
+    pub fn identity() -> Self {
+        Matrix::new(
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        )
     }
 }
 
@@ -225,5 +238,22 @@ mod test_chapter_3_matrices {
         );
         let b = tuple(1.0, 2.0, 3.0, 1.0);
         assert_eq!(A * b, tuple(18.0, 24.0, 33.0, 1.0));
+    }
+
+    #[test]
+    fn multiplying_a_matrix_by_the_identity_matrix() {
+        let A = matrix(
+            [0.0, 1.0, 2.0, 4.0],
+            [1.0, 2.0, 4.0, 8.0],
+            [2.0, 4.0, 8.0, 16.0],
+            [4.0, 8.0, 16.0, 32.0],
+        );
+        assert_eq!(A * identity_matrix(), A);
+    }
+
+    #[test]
+    fn multiplying_the_identity_matrix_by_a_tuple() {
+        let a = tuple(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(identity_matrix() * a, a);
     }
 }
