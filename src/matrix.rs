@@ -37,6 +37,19 @@ impl Matrix2 {
     pub fn new(t1: MatrixRow2, t2: MatrixRow2) -> Self {
         Matrix2([t1, t2])
     }
+
+    pub fn empty() -> Self {
+        Matrix2::new([0.0; 2], [0.0; 2])
+    }
+
+    pub fn determinant(&self) -> Float {
+        let a = self[(0, 0)];
+        let b = self[(0, 1)];
+        let c = self[(1, 0)];
+        let d = self[(1, 1)];
+
+        (a * d) - (b * c)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -282,5 +295,11 @@ mod test_chapter_3_matrices {
     #[test]
     fn transposing_the_identity_matrix() {
         assert_eq!(IDENTITY_MATRIX.transpose(), IDENTITY_MATRIX);
+    }
+
+    #[test]
+    fn calculating_the_determinant_of_a_2x2_matrix() {
+        let A = matrix2([1.0, 5.0], [-3.0, 2.0]);
+        assert_eq!(A.determinant(), 17.0);
     }
 }
