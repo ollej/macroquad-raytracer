@@ -36,7 +36,9 @@ pub trait Submatrix {
 
 // Ugly hack to make Matrix2 work as submatrix
 impl Submatrix for Float {
-    fn set(&mut self, _index: MatrixIndex, _value: Float) {}
+    fn set(&mut self, _index: MatrixIndex, value: Float) {
+        *self = value;
+    }
 }
 
 pub trait Inversion<T, R>
