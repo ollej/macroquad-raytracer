@@ -729,4 +729,22 @@ mod test_chapter_3_matrices {
             )
         );
     }
+
+    #[test]
+    fn multiplying_a_product_by_its_inverse() {
+        let A = matrix(
+            [3.0, -9.0, 7.0, 3.0],
+            [3.0, -8.0, 2.0, -9.0],
+            [-4.0, 4.0, 4.0, 4.0],
+            [-6.0, 5.0, -1.0, 1.0],
+        );
+        let B = matrix(
+            [8.0, 2.0, 2.0, 2.0],
+            [3.0, -1.0, 7.0, 0.0],
+            [7.0, 0.0, 5.0, 4.0],
+            [6.0, -2.0, 0.0, 5.0],
+        );
+        let C = A * B;
+        assert_eq!(C * B.inverse().unwrap(), A);
+    }
 }
