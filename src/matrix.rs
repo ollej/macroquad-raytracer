@@ -2,33 +2,105 @@ use std::ops::{Index, IndexMut, Mul};
 
 use crate::{float::*, tuple::*};
 
-pub fn matrix2(t1: MatrixRow2, t2: MatrixRow2) -> Matrix2 {
-    Matrix2::new(t1, t2)
+pub fn matrix2<R: Into<MatrixRow<2>>>(t1: R, t2: R) -> Matrix2 {
+    Matrix2::new(t1.into(), t2.into())
 }
 
-pub fn matrix3(t1: MatrixRow3, t2: MatrixRow3, t3: MatrixRow3) -> Matrix3 {
-    Matrix3::new(t1, t2, t3)
+pub fn matrix3<R: Into<MatrixRow<3>>>(t1: R, t2: R, t3: R) -> Matrix3 {
+    Matrix3::new(t1.into(), t2.into(), t3.into())
 }
 
-pub fn matrix4(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Matrix {
-    Matrix::new(t1, t2, t3, t4)
+pub fn matrix4<R: Into<MatrixRow<4>>>(t1: R, t2: R, t3: R, t4: R) -> Matrix {
+    Matrix::new(t1.into(), t2.into(), t3.into(), t4.into())
 }
 
-pub fn matrix(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Matrix {
-    Matrix::new(t1, t2, t3, t4)
+pub fn matrix<R: Into<MatrixRow<4>>>(t1: R, t2: R, t3: R, t4: R) -> Matrix {
+    Matrix::new(t1.into(), t2.into(), t3.into(), t4.into())
 }
 
 const IDENTITY_MATRIX: Matrix = Matrix([
-    [1.0, 0.0, 0.0, 0.0],
-    [0.0, 1.0, 0.0, 0.0],
-    [0.0, 0.0, 1.0, 0.0],
-    [0.0, 0.0, 0.0, 1.0],
+    MatrixRow([1.0, 0.0, 0.0, 0.0]),
+    MatrixRow([0.0, 1.0, 0.0, 0.0]),
+    MatrixRow([0.0, 0.0, 1.0, 0.0]),
+    MatrixRow([0.0, 0.0, 0.0, 1.0]),
 ]);
 
 pub type MatrixIndex = (usize, usize);
-pub type MatrixRow2 = [Float; 2];
-pub type MatrixRow3 = [Float; 3];
-pub type MatrixRow = [Float; 4];
+
+#[derive(Debug, Clone, Copy)]
+pub struct MatrixRow<const LENGTH: usize>([Float; LENGTH]);
+
+impl IntoIterator for MatrixRow<2> {
+    type Item = f32;
+    type IntoIter = std::array::IntoIter<Float, 2>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl IntoIterator for MatrixRow<3> {
+    type Item = f32;
+    type IntoIter = std::array::IntoIter<Float, 3>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl IntoIterator for MatrixRow<4> {
+    type Item = f32;
+    type IntoIter = std::array::IntoIter<Float, 4>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl From<[Float; 2]> for MatrixRow<2> {
+    fn from(value: [Float; 2]) -> Self {
+        Self(value)
+    }
+}
+
+impl From<[Float; 3]> for MatrixRow<3> {
+    fn from(value: [Float; 3]) -> Self {
+        Self(value)
+    }
+}
+
+impl From<[Float; 4]> for MatrixRow<4> {
+    fn from(value: [Float; 4]) -> Self {
+        Self(value)
+    }
+}
+
+impl PartialEq for MatrixRow<2> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0
+            .into_iter()
+            .enumerate()
+            .all(|(index, value)| value.equals(&other.0[index]))
+    }
+}
+
+impl PartialEq for MatrixRow<3> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0
+            .into_iter()
+            .enumerate()
+            .all(|(index, value)| value.equals(&other.0[index]))
+    }
+}
+
+impl PartialEq for MatrixRow<4> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0
+            .into_iter()
+            .enumerate()
+            .all(|(index, value)| value.equals(&other.0[index]))
+    }
+}
 
 pub trait SubMatrix {
     fn set(&mut self, index: MatrixIndex, value: Float);
@@ -116,23 +188,23 @@ where
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Matrix2([MatrixRow2; 2]);
+pub struct Matrix2([MatrixRow<2>; 2]);
 
 impl Matrix2 {
     const LENGTH: usize = 2;
 
-    pub fn new(t1: MatrixRow2, t2: MatrixRow2) -> Self {
-        Matrix2([t1, t2])
+    pub fn new<R: Into<MatrixRow<2>>>(t1: R, t2: R) -> Self {
+        Matrix2([t1.into(), t2.into()])
     }
 }
 
 impl SubMatrix for Matrix2 {
     fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0][index.1] = value;
+        self.0[index.0].0[index.1] = value;
     }
 }
 
-impl Inversion<Float, MatrixRow2, Matrix2> for Matrix2 {
+impl Inversion<Float, MatrixRow<2>, Matrix2> for Matrix2 {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -145,16 +217,16 @@ impl Inversion<Float, MatrixRow2, Matrix2> for Matrix2 {
         0.0
     }
 
-    fn row(&self, row: usize) -> MatrixRow2 {
+    fn row(&self, row: usize) -> MatrixRow<2> {
         self.0[row]
     }
 
     fn get(&self, row: usize, col: usize) -> Float {
-        self.0[row][col]
+        self.0[row].0[col]
     }
 
     fn submatrix(&self, row: usize, col: usize) -> Float {
-        self.0[1 - row][1 - col]
+        self.0[1 - row].0[1 - col]
     }
 
     fn minor(&self, _row: usize, _col: usize) -> Float {
@@ -175,32 +247,32 @@ impl Index<MatrixIndex> for Matrix2 {
     type Output = Float;
 
     fn index(&self, index: MatrixIndex) -> &Self::Output {
-        &self.0[index.0][index.1]
+        &self.0[index.0].0[index.1]
     }
 }
 
 impl IndexMut<MatrixIndex> for Matrix2 {
     fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
-        &mut self.0[index.0][index.1]
+        &mut self.0[index.0].0[index.1]
     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Matrix3([MatrixRow3; 3]);
+pub struct Matrix3([MatrixRow<3>; 3]);
 
 impl Matrix3 {
     const LENGTH: usize = 3;
 
-    pub fn new(t1: MatrixRow3, t2: MatrixRow3, t3: MatrixRow3) -> Self {
-        Matrix3([t1, t2, t3])
+    pub fn new<R: Into<MatrixRow<3>>>(t1: R, t2: R, t3: R) -> Self {
+        Matrix3([t1.into(), t2.into(), t3.into()])
     }
 
     fn get(&self, row: usize, col: usize) -> Float {
-        self.0[row][col]
+        self.0[row].0[col]
     }
 }
 
-impl Inversion<Matrix2, MatrixRow3, Matrix3> for Matrix3 {
+impl Inversion<Matrix2, MatrixRow<3>, Matrix3> for Matrix3 {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -217,12 +289,12 @@ impl Inversion<Matrix2, MatrixRow3, Matrix3> for Matrix3 {
         Matrix2::empty()
     }
 
-    fn row(&self, row: usize) -> MatrixRow3 {
+    fn row(&self, row: usize) -> MatrixRow<3> {
         self.0[row]
     }
 
     fn get(&self, row: usize, col: usize) -> Float {
-        self.0[row][col]
+        self.0[row].0[col]
     }
 
     fn minor(&self, row: usize, col: usize) -> Float {
@@ -232,7 +304,7 @@ impl Inversion<Matrix2, MatrixRow3, Matrix3> for Matrix3 {
 
 impl SubMatrix for Matrix3 {
     fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0][index.1] = value;
+        self.0[index.0].0[index.1] = value;
     }
 }
 
@@ -240,24 +312,24 @@ impl Index<MatrixIndex> for Matrix3 {
     type Output = Float;
 
     fn index(&self, index: MatrixIndex) -> &Self::Output {
-        &self.0[index.0][index.1]
+        &self.0[index.0].0[index.1]
     }
 }
 
 impl IndexMut<MatrixIndex> for Matrix3 {
     fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
-        &mut self.0[index.0][index.1]
+        &mut self.0[index.0].0[index.1]
     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Matrix([MatrixRow; 4]);
+pub struct Matrix([MatrixRow<4>; 4]);
 
 impl Matrix {
     const LENGTH: usize = 4;
 
-    pub fn new(t1: MatrixRow, t2: MatrixRow, t3: MatrixRow, t4: MatrixRow) -> Self {
-        Matrix([t1, t2, t3, t4])
+    pub fn new<R: Into<MatrixRow<4>>>(t1: R, t2: R, t3: R, t4: R) -> Self {
+        Matrix([t1.into(), t2.into(), t3.into(), t4.into()])
     }
 
     pub fn transpose(&self) -> Self {
@@ -270,7 +342,7 @@ impl Matrix {
     }
 }
 
-impl Inversion<Matrix3, MatrixRow, Matrix> for Matrix {
+impl Inversion<Matrix3, MatrixRow<4>, Matrix> for Matrix {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -288,12 +360,12 @@ impl Inversion<Matrix3, MatrixRow, Matrix> for Matrix {
         Matrix3::empty()
     }
 
-    fn row(&self, row: usize) -> MatrixRow {
+    fn row(&self, row: usize) -> MatrixRow<4> {
         self.0[row]
     }
 
     fn get(&self, row: usize, col: usize) -> Float {
-        self.0[row][col]
+        self.0[row].0[col]
     }
 
     fn minor(&self, row: usize, col: usize) -> Float {
@@ -303,7 +375,7 @@ impl Inversion<Matrix3, MatrixRow, Matrix> for Matrix {
 
 impl SubMatrix for Matrix {
     fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0][index.1] = value;
+        self.0[index.0].0[index.1] = value;
     }
 }
 
@@ -311,13 +383,13 @@ impl Index<MatrixIndex> for Matrix {
     type Output = Float;
 
     fn index(&self, index: MatrixIndex) -> &Self::Output {
-        &self.0[index.0][index.1]
+        &self.0[index.0].0[index.1]
     }
 }
 
 impl IndexMut<MatrixIndex> for Matrix {
     fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
-        &mut self.0[index.0][index.1]
+        &mut self.0[index.0].0[index.1]
     }
 }
 
@@ -618,6 +690,5 @@ mod test_chapter_3_matrices {
                 [-0.52256, -0.81391, -0.30075, 0.30639]
             )
         );
-        assert!(!A.invertible());
     }
 }
