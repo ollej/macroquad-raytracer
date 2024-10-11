@@ -30,23 +30,26 @@ pub type MatrixRow2 = [Float; 2];
 pub type MatrixRow3 = [Float; 3];
 pub type MatrixRow = [Float; 4];
 
-pub trait Submatrix {
+pub trait SubMatrix {
     fn set(&mut self, index: MatrixIndex, value: Float);
 }
 
 // Ugly hack to make Matrix2 work as submatrix
-impl Submatrix for Float {
+impl SubMatrix for Float {
     fn set(&mut self, _index: MatrixIndex, value: Float) {
         *self = value;
     }
 }
 
-pub trait Inversion<T, R>
+pub trait Inversion<T, R, M>
 where
-    T: Submatrix,
+    T: SubMatrix,
     R: IntoIterator<Item = Float>,
+    M: SubMatrix,
 {
     fn length(&self) -> usize;
+
+    fn empty() -> M;
 
     fn empty_submatrix() -> T;
 
@@ -96,6 +99,20 @@ where
     fn invertible(&self) -> bool {
         self.determinant() != 0.0
     }
+
+    fn inverse(&self) -> Result<M, String> {
+        if !self.invertible() {
+            return Err("Matrix is not invertible".to_string());
+        }
+        let mut m2 = Self::empty();
+        for row in 0..self.length() {
+            for col in 0..self.length() {
+                let c = self.cofactor(row, col);
+                m2.set((col, row), c / self.determinant());
+            }
+        }
+        Ok(m2)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -107,21 +124,21 @@ impl Matrix2 {
     pub fn new(t1: MatrixRow2, t2: MatrixRow2) -> Self {
         Matrix2([t1, t2])
     }
-
-    pub fn empty() -> Self {
-        Matrix2::new([0.0; Self::LENGTH], [0.0; Self::LENGTH])
-    }
 }
 
-impl Submatrix for Matrix2 {
+impl SubMatrix for Matrix2 {
     fn set(&mut self, index: MatrixIndex, value: Float) {
         self.0[index.0][index.1] = value;
     }
 }
 
-impl Inversion<Float, MatrixRow2> for Matrix2 {
+impl Inversion<Float, MatrixRow2, Matrix2> for Matrix2 {
     fn length(&self) -> usize {
         Self::LENGTH
+    }
+
+    fn empty() -> Self {
+        Matrix2::new([0.0; Self::LENGTH], [0.0; Self::LENGTH])
     }
 
     fn empty_submatrix() -> Float {
@@ -178,22 +195,22 @@ impl Matrix3 {
         Matrix3([t1, t2, t3])
     }
 
-    pub fn empty() -> Self {
-        Matrix3::new(
-            [0.0; Self::LENGTH],
-            [0.0; Self::LENGTH],
-            [0.0; Self::LENGTH],
-        )
-    }
-
     fn get(&self, row: usize, col: usize) -> Float {
         self.0[row][col]
     }
 }
 
-impl Inversion<Matrix2, MatrixRow3> for Matrix3 {
+impl Inversion<Matrix2, MatrixRow3, Matrix3> for Matrix3 {
     fn length(&self) -> usize {
         Self::LENGTH
+    }
+
+    fn empty() -> Self {
+        Matrix3::new(
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+        )
     }
 
     fn empty_submatrix() -> Matrix2 {
@@ -213,7 +230,7 @@ impl Inversion<Matrix2, MatrixRow3> for Matrix3 {
     }
 }
 
-impl Submatrix for Matrix3 {
+impl SubMatrix for Matrix3 {
     fn set(&mut self, index: MatrixIndex, value: Float) {
         self.0[index.0][index.1] = value;
     }
@@ -243,15 +260,6 @@ impl Matrix {
         Matrix([t1, t2, t3, t4])
     }
 
-    pub fn empty() -> Self {
-        Matrix::new(
-            [0.0; Self::LENGTH],
-            [0.0; Self::LENGTH],
-            [0.0; Self::LENGTH],
-            [0.0; Self::LENGTH],
-        )
-    }
-
     pub fn transpose(&self) -> Self {
         Matrix::new(
             [self[(0, 0)], self[(1, 0)], self[(2, 0)], self[(3, 0)]],
@@ -262,9 +270,18 @@ impl Matrix {
     }
 }
 
-impl Inversion<Matrix3, MatrixRow> for Matrix {
+impl Inversion<Matrix3, MatrixRow, Matrix> for Matrix {
     fn length(&self) -> usize {
         Self::LENGTH
+    }
+
+    fn empty() -> Self {
+        Matrix::new(
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+            [0.0; Self::LENGTH],
+        )
     }
 
     fn empty_submatrix() -> Matrix3 {
@@ -284,7 +301,7 @@ impl Inversion<Matrix3, MatrixRow> for Matrix {
     }
 }
 
-impl Submatrix for Matrix {
+impl SubMatrix for Matrix {
     fn set(&mut self, index: MatrixIndex, value: Float) {
         self.0[index.0][index.1] = value;
     }
@@ -502,7 +519,7 @@ mod test_chapter_3_matrices {
 
     #[test]
     fn a_submatrix_of_a_4x4_matrix_is_a_3x3_matrix() {
-        let A = matrix4(
+        let A = matrix(
             [-6.0, 1.0, 1.0, 6.0],
             [-8.0, 5.0, 8.0, 6.0],
             [-1.0, 0.0, 8.0, 2.0],
@@ -542,7 +559,7 @@ mod test_chapter_3_matrices {
 
     #[test]
     fn calculating_the_determinant_of_a_4x4_matrix() {
-        let A = matrix4(
+        let A = matrix(
             [-2.0, -8.0, 3.0, 5.0],
             [-3.0, 1.0, 7.0, 3.0],
             [1.0, 2.0, -9.0, 6.0],
@@ -556,7 +573,7 @@ mod test_chapter_3_matrices {
 
     #[test]
     fn testing_an_invertible_matrix_for_invertibility() {
-        let A = matrix4(
+        let A = matrix(
             [6.0, 4.0, 4.0, 4.0],
             [5.0, 5.0, 7.0, 6.0],
             [4.0, -9.0, 3.0, -7.0],
@@ -568,13 +585,39 @@ mod test_chapter_3_matrices {
 
     #[test]
     fn testing_a_noninvertible_matrix_for_invertibility() {
-        let A = matrix4(
+        let A = matrix(
             [-4.0, 2.0, -2.0, -3.0],
             [9.0, 6.0, 2.0, 6.0],
             [0.0, -5.0, 1.0, -5.0],
             [0.0, 0.0, 0.0, 0.0],
         );
         assert_eq!(A.determinant(), 0.0);
+        assert!(!A.invertible());
+    }
+
+    #[test]
+    fn calculating_the_inverse_of_a_matrix() {
+        let A = matrix(
+            [-5.0, 2.0, 6.0, -8.0],
+            [1.0, -5.0, 1.0, 8.0],
+            [7.0, 7.0, -6.0, -7.0],
+            [1.0, -3.0, 7.0, 4.0],
+        );
+        let B = A.inverse().unwrap();
+        assert_eq!(A.determinant(), 532.0);
+        assert_eq!(A.cofactor(2, 3), -160.0);
+        assert_eq!(B[(3, 2)], -160.0 / 532.0);
+        assert_eq!(A.cofactor(3, 2), 105.0);
+        assert_eq!(B[(2, 3)], 105.0 / 532.0);
+        assert_eq!(
+            B,
+            matrix(
+                [0.21805, 0.45113, 0.24060, -0.04511],
+                [-0.80827, -1.45677, -0.44361, 0.52068],
+                [-0.07895, -0.22368, -0.05263, 0.19737],
+                [-0.52256, -0.81391, -0.30075, 0.30639]
+            )
+        );
         assert!(!A.invertible());
     }
 }
