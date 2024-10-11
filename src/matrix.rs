@@ -747,4 +747,50 @@ mod test_chapter_3_matrices {
         let C = A * B;
         assert_eq!(C * B.inverse().unwrap(), A);
     }
+
+    #[test]
+    fn inverting_the_identity_matrix() {
+        assert_eq!(
+            IDENTITY_MATRIX.inverse().unwrap(),
+            matrix(
+                [1.0, -0.0, 0.0, -0.0],
+                [-0.0, 1.0, -0.0, 0.0],
+                [0.0, -0.0, 1.0, -0.0],
+                [-0.0, 0.0, -0.0, 1.0],
+            )
+        );
+    }
+
+    #[test]
+    fn multiply_a_matrix_with_its_inverse() {
+        let A = matrix(
+            [9.0, 3.0, 0.0, 9.0],
+            [-5.0, -2.0, -6.0, -3.0],
+            [-4.0, 9.0, 6.0, 4.0],
+            [-7.0, 6.0, 6.0, 2.0],
+        );
+        let B = A.inverse().unwrap();
+        assert_eq!(A * B, IDENTITY_MATRIX.inverse().unwrap());
+    }
+
+    #[test]
+    fn inverse_of_transpose_of_a_matrix_equals_transpose_of_inverse() {
+        let A = matrix(
+            [9.0, 3.0, 0.0, 9.0],
+            [-5.0, -2.0, -6.0, -3.0],
+            [-4.0, 9.0, 6.0, 4.0],
+            [-7.0, 6.0, 6.0, 2.0],
+        );
+        let B = A.transpose().inverse().unwrap();
+        let C = A.inverse().unwrap().transpose();
+        assert_eq!(B, C);
+    }
+
+    #[test]
+    fn multiplying_changed_identity_matrix_with_tuple() {
+        let mut A = IDENTITY_MATRIX;
+        A[(0, 1)] = 1.0;
+        let a = tuple(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(A * a, tuple(3.0, 2.0, 3.0, 4.0));
+    }
 }
