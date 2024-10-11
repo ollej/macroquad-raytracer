@@ -92,6 +92,10 @@ where
             .map(|(col, val)| val * self.cofactor(0, col))
             .sum()
     }
+
+    fn invertible(&self) -> bool {
+        self.determinant() != 0.0
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -548,5 +552,29 @@ mod test_chapter_3_matrices {
         assert_eq!(A.cofactor(0, 1), 447.0);
         assert_eq!(A.cofactor(0, 2), 210.0);
         assert_eq!(A.determinant(), -4071.0);
+    }
+
+    #[test]
+    fn testing_an_invertible_matrix_for_invertibility() {
+        let A = matrix4(
+            [6.0, 4.0, 4.0, 4.0],
+            [5.0, 5.0, 7.0, 6.0],
+            [4.0, -9.0, 3.0, -7.0],
+            [9.0, 1.0, 7.0, -6.0],
+        );
+        assert_eq!(A.determinant(), -2120.0);
+        assert!(A.invertible());
+    }
+
+    #[test]
+    fn testing_a_noninvertible_matrix_for_invertibility() {
+        let A = matrix4(
+            [-4.0, 2.0, -2.0, -3.0],
+            [9.0, 6.0, 2.0, 6.0],
+            [0.0, -5.0, 1.0, -5.0],
+            [0.0, 0.0, 0.0, 0.0],
+        );
+        assert_eq!(A.determinant(), 0.0);
+        assert!(!A.invertible());
     }
 }
