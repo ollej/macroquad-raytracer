@@ -18,6 +18,10 @@ pub fn matrix<R: Into<MatrixRow<4>>>(t1: R, t2: R, t3: R, t4: R) -> Matrix {
     Matrix::new(t1.into(), t2.into(), t3.into(), t4.into())
 }
 
+pub fn translation(x: Float, y: Float, z: Float) -> Matrix {
+    Matrix::translation(x, y, z)
+}
+
 const IDENTITY_MATRIX: Matrix = Matrix([
     MatrixRow([1.0, 0.0, 0.0, 0.0]),
     MatrixRow([0.0, 1.0, 0.0, 0.0]),
@@ -373,6 +377,14 @@ impl Matrix {
 
     pub fn new<R: Into<MatrixRow<4>>>(t1: R, t2: R, t3: R, t4: R) -> Self {
         Matrix([t1.into(), t2.into(), t3.into(), t4.into()])
+    }
+
+    pub fn translation(x: Float, y: Float, z: Float) -> Matrix {
+        let mut matrix = IDENTITY_MATRIX;
+        matrix.set((0, 3), x);
+        matrix.set((1, 3), y);
+        matrix.set((2, 3), z);
+        matrix
     }
 
     pub fn transpose(&self) -> Self {
@@ -833,5 +845,34 @@ mod test_chapter_3_matrices {
         A[(0, 1)] = 1.0;
         let a = tuple(1.0, 2.0, 3.0, 4.0);
         assert_eq!(A * a, tuple(3.0, 2.0, 3.0, 4.0));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_4_transformations {
+    #![allow(non_snake_case)]
+
+    use super::*;
+
+    #[test]
+    fn multiplying_by_a_translation_matrix() {
+        let transform = translation(5.0, -3.0, 2.0);
+        let p = point(-3.0, 4.0, 5.0);
+        assert_eq!(transform * p, point(2.0, 1.0, 7.0));
+    }
+
+    #[test]
+    fn multiplying_by_the_inverse_of_a_translation_matrix() {
+        let transform = translation(5.0, -3.0, 2.0);
+        let inv = transform.inverse().unwrap();
+        let p = point(-3.0, 4.0, 5.0);
+        assert_eq!(inv * p, point(-8.0, 7.0, 3.0));
+    }
+
+    #[test]
+    fn translation_does_not_affect_vectors() {
+        let transform = translation(5.0, -3.0, 2.0);
+        let v = vector(-3.0, 4.0, 5.0);
+        assert_eq!(transform * v, v);
     }
 }
