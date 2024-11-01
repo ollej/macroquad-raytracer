@@ -22,6 +22,10 @@ pub fn translation(x: Float, y: Float, z: Float) -> Matrix {
     Matrix::translation(x, y, z)
 }
 
+pub fn scaling(x: Float, y: Float, z: Float) -> Matrix {
+    Matrix::scaling(x, y, z)
+}
+
 const IDENTITY_MATRIX: Matrix = Matrix([
     MatrixRow([1.0, 0.0, 0.0, 0.0]),
     MatrixRow([0.0, 1.0, 0.0, 0.0]),
@@ -384,6 +388,14 @@ impl Matrix {
         matrix.set((0, 3), x);
         matrix.set((1, 3), y);
         matrix.set((2, 3), z);
+        matrix
+    }
+
+    pub fn scaling(x: Float, y: Float, z: Float) -> Matrix {
+        let mut matrix = IDENTITY_MATRIX;
+        matrix.set((0, 0), x);
+        matrix.set((1, 1), y);
+        matrix.set((2, 2), z);
         matrix
     }
 
@@ -874,5 +886,34 @@ mod test_chapter_4_transformations {
         let transform = translation(5.0, -3.0, 2.0);
         let v = vector(-3.0, 4.0, 5.0);
         assert_eq!(transform * v, v);
+    }
+
+    #[test]
+    fn a_scaling_matrix_applied_to_a_point() {
+        let transform = scaling(2.0, 3.0, 4.0);
+        let p = point(-4.0, 6.0, 8.0);
+        assert_eq!(transform * p, point(-8.0, 18.0, 32.0));
+    }
+
+    #[test]
+    fn a_scaling_matrix_applied_to_a_vector() {
+        let transform = scaling(2.0, 3.0, 4.0);
+        let v = vector(-4.0, 6.0, 8.0);
+        assert_eq!(transform * v, vector(-8.0, 18.0, 32.0));
+    }
+
+    #[test]
+    fn multiplying_by_the_inverse_of_a_scaling_matrix() {
+        let transform = scaling(2.0, 3.0, 4.0);
+        let inv = transform.inverse().unwrap();
+        let v = vector(-4.0, 6.0, 8.0);
+        assert_eq!(inv * v, vector(-2.0, 2.0, 2.0));
+    }
+
+    #[test]
+    fn reflection_is_scaling_by_a_negative_value() {
+        let transform = scaling(-1.0, 1.0, 1.0);
+        let p = point(2.0, 3.0, 4.0);
+        assert_eq!(transform * p, point(-2.0, 3.0, 4.0));
     }
 }
