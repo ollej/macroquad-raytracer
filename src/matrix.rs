@@ -129,27 +129,30 @@ impl SubMatrix {
 
 impl PartialEq<Float> for SubMatrix {
     fn eq(&self, other: &Float) -> bool {
-        match self {
-            SubMatrix::Float(value) => value == other,
-            SubMatrix::Matrix2(_) | SubMatrix::Matrix3(_) => false,
+        if let SubMatrix::Float(value) = self {
+            value == other
+        } else {
+            false
         }
     }
 }
 
 impl PartialEq<Matrix2> for SubMatrix {
     fn eq(&self, other: &Matrix2) -> bool {
-        match self {
-            SubMatrix::Float(_) | SubMatrix::Matrix3(_) => false,
-            SubMatrix::Matrix2(matrix) => matrix == other,
+        if let SubMatrix::Matrix2(matrix) = self {
+            matrix == other
+        } else {
+            false
         }
     }
 }
 
 impl PartialEq<Matrix3> for SubMatrix {
     fn eq(&self, other: &Matrix3) -> bool {
-        match self {
-            SubMatrix::Float(_) | SubMatrix::Matrix2(_) => false,
-            SubMatrix::Matrix3(matrix) => matrix == other,
+        if let SubMatrix::Matrix3(matrix) = self {
+            matrix == other
+        } else {
+            false
         }
     }
 }
