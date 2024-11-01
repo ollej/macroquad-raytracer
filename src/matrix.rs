@@ -19,6 +19,10 @@ pub fn matrix<R: Into<MatrixRow<4>>>(t1: R, t2: R, t3: R, t4: R) -> Matrix {
     Matrix::new(t1.into(), t2.into(), t3.into(), t4.into())
 }
 
+pub fn identity_matrix() -> Matrix {
+    IDENTITY_MATRIX
+}
+
 pub fn translation(x: Float, y: Float, z: Float) -> Matrix {
     Matrix::translation(x, y, z)
 }
@@ -461,6 +465,26 @@ impl Matrix {
             [self[(0, 2)], self[(1, 2)], self[(2, 2)], self[(3, 2)]],
             [self[(0, 3)], self[(1, 3)], self[(2, 3)], self[(3, 3)]],
         )
+    }
+
+    pub fn rotate_x(self, r: Float) -> Self {
+        Self::rotation_x(r) * self
+    }
+
+    pub fn rotate_y(self, r: Float) -> Self {
+        Self::rotation_y(r) * self
+    }
+
+    pub fn rotate_z(self, r: Float) -> Self {
+        Self::rotation_z(r) * self
+    }
+
+    pub fn scale(self, x: Float, y: Float, z: Float) -> Self {
+        Self::scaling(x, y, z) * self
+    }
+
+    pub fn translate(self, x: Float, y: Float, z: Float) -> Self {
+        Self::translation(x, y, z) * self
     }
 }
 
@@ -919,6 +943,8 @@ mod test_chapter_3_matrices {
 mod test_chapter_4_transformations {
     #![allow(non_snake_case)]
 
+    use std::convert::identity;
+
     use super::*;
 
     #[test]
@@ -1082,6 +1108,16 @@ mod test_chapter_4_transformations {
         let B = scaling(5.0, 5.0, 5.0);
         let C = translation(10.0, 5.0, 7.0);
         let T = C * B * A;
+        assert_eq!(T * p, point(15.0, 0.0, 7.0));
+    }
+
+    #[test]
+    fn test_chained_fluent_api() {
+        let p = point(1.0, 0.0, 1.0);
+        let T = identity_matrix()
+            .rotate_x(PI / 2.0)
+            .scale(5.0, 5.0, 5.0)
+            .translate(10.0, 5.0, 7.0);
         assert_eq!(T * p, point(15.0, 0.0, 7.0));
     }
 }
