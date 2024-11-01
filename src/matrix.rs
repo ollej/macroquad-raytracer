@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use std::ops::{Index, IndexMut, Mul};
 
 use crate::{float::*, tuple::*};
@@ -24,6 +25,18 @@ pub fn translation(x: Float, y: Float, z: Float) -> Matrix {
 
 pub fn scaling(x: Float, y: Float, z: Float) -> Matrix {
     Matrix::scaling(x, y, z)
+}
+
+pub fn rotation_x(r: Float) -> Matrix {
+    Matrix::rotation_x(r)
+}
+
+pub fn rotation_y(r: Float) -> Matrix {
+    Matrix::rotation_y(r)
+}
+
+pub fn rotation_z(r: Float) -> Matrix {
+    Matrix::rotation_z(r)
 }
 
 const IDENTITY_MATRIX: Matrix = Matrix([
@@ -399,6 +412,32 @@ impl Matrix {
         matrix
     }
 
+    pub fn rotation_x(r: Float) -> Matrix {
+        let mut matrix = IDENTITY_MATRIX;
+        matrix.set((1, 1), r.cos());
+        matrix.set((1, 2), -r.sin());
+        matrix.set((2, 1), r.sin());
+        matrix.set((2, 2), r.cos());
+        matrix
+    }
+
+    pub fn rotation_y(r: Float) -> Matrix {
+        let mut matrix = IDENTITY_MATRIX;
+        matrix.set((0, 0), r.cos());
+        matrix.set((0, 2), r.sin());
+        matrix.set((2, 0), -r.sin());
+        matrix.set((2, 2), r.cos());
+        matrix
+    }
+
+    pub fn rotation_z(r: Float) -> Matrix {
+        let mut matrix = IDENTITY_MATRIX;
+        matrix.set((0, 0), r.cos());
+        matrix.set((0, 1), -r.sin());
+        matrix.set((1, 0), r.sin());
+        matrix.set((1, 1), r.cos());
+        matrix
+    }
     pub fn transpose(&self) -> Self {
         Matrix::new(
             [self[(0, 0)], self[(1, 0)], self[(2, 0)], self[(3, 0)]],
@@ -915,5 +954,52 @@ mod test_chapter_4_transformations {
         let transform = scaling(-1.0, 1.0, 1.0);
         let p = point(2.0, 3.0, 4.0);
         assert_eq!(transform * p, point(-2.0, 3.0, 4.0));
+    }
+
+    #[test]
+    fn rotating_a_point_around_the_x_axis() {
+        let p = point(0.0, 1.0, 0.0);
+        let half_quarter = rotation_x(PI / 4.0);
+        let full_quarter = rotation_x(PI / 2.0);
+        assert_eq!(
+            half_quarter * p,
+            point(0.0, 2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0)
+        );
+        assert_eq!(full_quarter * p, point(0.0, 0.0, 1.0));
+    }
+
+    #[test]
+    fn the_inverse_of_an_x_rotation_rotates_in_the_opposite_direction() {
+        let p = point(0.0, 1.0, 0.0);
+        let half_quarter = rotation_x(PI / 4.0);
+        let inv = half_quarter.inverse().unwrap();
+        assert_eq!(
+            inv * p,
+            point(0.0, 2.0_f32.sqrt() / 2.0, -2.0_f32.sqrt() / 2.0)
+        );
+    }
+
+    #[test]
+    fn rotating_a_point_around_the_y_axis() {
+        let p = point(0.0, 0.0, 1.0);
+        let half_quarter = rotation_y(PI / 4.0);
+        let full_quarter = rotation_y(PI / 2.0);
+        assert_eq!(
+            half_quarter * p,
+            point(2.0_f32.sqrt() / 2.0, 0.0, 2.0_f32.sqrt() / 2.0)
+        );
+        assert_eq!(full_quarter * p, point(1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn rotating_a_point_around_the_z_axis() {
+        let p = point(0.0, 1.0, 0.0);
+        let half_quarter = rotation_z(PI / 4.0);
+        let full_quarter = rotation_z(PI / 2.0);
+        assert_eq!(
+            half_quarter * p,
+            point(-2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0, 0.0)
+        );
+        assert_eq!(full_quarter * p, point(-1.0, 0.0, 0.0));
     }
 }
