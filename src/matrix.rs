@@ -102,34 +102,75 @@ impl PartialEq for MatrixRow<4> {
     }
 }
 
-pub trait SubMatrix {
-    fn set(&mut self, index: MatrixIndex, value: Float);
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum SubMatrix {
+    Float(Float),
+    Matrix2(Matrix2),
+    Matrix3(Matrix3),
 }
 
-// Ugly hack to make Matrix2 work as submatrix
-impl SubMatrix for Float {
-    fn set(&mut self, _index: MatrixIndex, value: Float) {
-        *self = value;
+impl SubMatrix {
+    fn set(&mut self, index: MatrixIndex, new_value: Float) {
+        match self {
+            SubMatrix::Float(value) => *value = new_value,
+            SubMatrix::Matrix2(matrix) => matrix.set(index, new_value),
+            SubMatrix::Matrix3(matrix) => matrix.set(index, new_value),
+        }
+    }
+
+    fn determinant(&self) -> Float {
+        match self {
+            SubMatrix::Float(_) => 0.0,
+            SubMatrix::Matrix2(matrix) => matrix.determinant(),
+            SubMatrix::Matrix3(matrix) => matrix.determinant(),
+        }
     }
 }
 
-pub trait Inversion<T, R, M>
+impl PartialEq<Float> for SubMatrix {
+    fn eq(&self, other: &Float) -> bool {
+        match self {
+            SubMatrix::Float(value) => value == other,
+            SubMatrix::Matrix2(_) | SubMatrix::Matrix3(_) => false,
+        }
+    }
+}
+
+impl PartialEq<Matrix2> for SubMatrix {
+    fn eq(&self, other: &Matrix2) -> bool {
+        match self {
+            SubMatrix::Float(_) | SubMatrix::Matrix3(_) => false,
+            SubMatrix::Matrix2(matrix) => matrix == other,
+        }
+    }
+}
+
+impl PartialEq<Matrix3> for SubMatrix {
+    fn eq(&self, other: &Matrix3) -> bool {
+        match self {
+            SubMatrix::Float(_) | SubMatrix::Matrix2(_) => false,
+            SubMatrix::Matrix3(matrix) => matrix == other,
+        }
+    }
+}
+
+pub trait Inversion<R>
 where
-    T: SubMatrix,
     R: IntoIterator<Item = Float>,
-    M: SubMatrix,
 {
     fn length(&self) -> usize;
 
-    fn empty() -> M;
+    fn empty() -> Self;
 
-    fn empty_submatrix() -> T;
+    fn empty_submatrix() -> SubMatrix;
 
     fn row(&self, row: usize) -> R;
 
     fn get(&self, row: usize, col: usize) -> Float;
 
-    fn submatrix(&self, row: usize, col: usize) -> T {
+    fn set(&mut self, index: MatrixIndex, new_value: Float);
+
+    fn submatrix(&self, row: usize, col: usize) -> SubMatrix {
         let mut m = Self::empty_submatrix();
         let mut row_index = 0;
         for i in 0..self.length() {
@@ -172,7 +213,10 @@ where
         self.determinant() != 0.0
     }
 
-    fn inverse(&self) -> Result<M, String> {
+    fn inverse(&self) -> Result<Self, String>
+    where
+        Self: Sized,
+    {
         if !self.invertible() {
             return Err("Matrix is not invertible".to_string());
         }
@@ -198,13 +242,7 @@ impl Matrix2 {
     }
 }
 
-impl SubMatrix for Matrix2 {
-    fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0].0[index.1] = value;
-    }
-}
-
-impl Inversion<Float, MatrixRow<2>, Matrix2> for Matrix2 {
+impl Inversion<MatrixRow<2>> for Matrix2 {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -213,8 +251,8 @@ impl Inversion<Float, MatrixRow<2>, Matrix2> for Matrix2 {
         Matrix2::new([0.0; Self::LENGTH], [0.0; Self::LENGTH])
     }
 
-    fn empty_submatrix() -> Float {
-        0.0
+    fn empty_submatrix() -> SubMatrix {
+        SubMatrix::Float(0.0)
     }
 
     fn row(&self, row: usize) -> MatrixRow<2> {
@@ -225,8 +263,12 @@ impl Inversion<Float, MatrixRow<2>, Matrix2> for Matrix2 {
         self.0[row].0[col]
     }
 
-    fn submatrix(&self, row: usize, col: usize) -> Float {
-        self.0[1 - row].0[1 - col]
+    fn set(&mut self, index: MatrixIndex, new_value: Float) {
+        self.0[index.0].0[index.1] = new_value
+    }
+
+    fn submatrix(&self, row: usize, col: usize) -> SubMatrix {
+        SubMatrix::Float(self.0[1 - row].0[1 - col])
     }
 
     fn minor(&self, _row: usize, _col: usize) -> Float {
@@ -272,7 +314,7 @@ impl Matrix3 {
     }
 }
 
-impl Inversion<Matrix2, MatrixRow<3>, Matrix3> for Matrix3 {
+impl Inversion<MatrixRow<3>> for Matrix3 {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -285,8 +327,8 @@ impl Inversion<Matrix2, MatrixRow<3>, Matrix3> for Matrix3 {
         )
     }
 
-    fn empty_submatrix() -> Matrix2 {
-        Matrix2::empty()
+    fn empty_submatrix() -> SubMatrix {
+        SubMatrix::Matrix2(Matrix2::empty())
     }
 
     fn row(&self, row: usize) -> MatrixRow<3> {
@@ -297,14 +339,12 @@ impl Inversion<Matrix2, MatrixRow<3>, Matrix3> for Matrix3 {
         self.0[row].0[col]
     }
 
+    fn set(&mut self, index: MatrixIndex, new_value: Float) {
+        self.0[index.0].0[index.1] = new_value
+    }
+
     fn minor(&self, row: usize, col: usize) -> Float {
         self.submatrix(row, col).determinant()
-    }
-}
-
-impl SubMatrix for Matrix3 {
-    fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0].0[index.1] = value;
     }
 }
 
@@ -342,7 +382,7 @@ impl Matrix {
     }
 }
 
-impl Inversion<Matrix3, MatrixRow<4>, Matrix> for Matrix {
+impl Inversion<MatrixRow<4>> for Matrix {
     fn length(&self) -> usize {
         Self::LENGTH
     }
@@ -356,8 +396,8 @@ impl Inversion<Matrix3, MatrixRow<4>, Matrix> for Matrix {
         )
     }
 
-    fn empty_submatrix() -> Matrix3 {
-        Matrix3::empty()
+    fn empty_submatrix() -> SubMatrix {
+        SubMatrix::Matrix3(Matrix3::empty())
     }
 
     fn row(&self, row: usize) -> MatrixRow<4> {
@@ -368,14 +408,12 @@ impl Inversion<Matrix3, MatrixRow<4>, Matrix> for Matrix {
         self.0[row].0[col]
     }
 
+    fn set(&mut self, index: MatrixIndex, new_value: Float) {
+        self.0[index.0].0[index.1] = new_value
+    }
+
     fn minor(&self, row: usize, col: usize) -> Float {
         self.submatrix(row, col).determinant()
-    }
-}
-
-impl SubMatrix for Matrix {
-    fn set(&mut self, index: MatrixIndex, value: Float) {
-        self.0[index.0].0[index.1] = value;
     }
 }
 
