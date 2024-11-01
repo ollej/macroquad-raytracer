@@ -1,4 +1,3 @@
-use std::f32::consts::PI;
 use std::ops::{Index, IndexMut, Mul};
 
 use crate::{float::*, tuple::*};
@@ -943,9 +942,9 @@ mod test_chapter_3_matrices {
 mod test_chapter_4_transformations {
     #![allow(non_snake_case)]
 
-    use std::convert::identity;
-
     use super::*;
+
+    use std::f32::consts::PI;
 
     #[test]
     fn multiplying_by_a_translation_matrix() {
