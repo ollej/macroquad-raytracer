@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{command, Parser};
+use clap::{Parser, command};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ImageType {

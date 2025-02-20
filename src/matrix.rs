@@ -225,11 +225,7 @@ where
 
     fn cofactor(&self, row: usize, col: usize) -> Float {
         let minor = self.minor(row, col);
-        if (row + col) % 2 != 0 {
-            -minor
-        } else {
-            minor
-        }
+        if (row + col) % 2 != 0 { -minor } else { minor }
     }
 
     fn determinant(&self) -> Float {
