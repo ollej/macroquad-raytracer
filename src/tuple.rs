@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::{color::*, float::*};
+use crate::{color::*, float::*, matrix::*};
 
 pub fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
     Tuple::new(x, y, z, w)
@@ -177,6 +177,22 @@ impl ops::Div<Float> for Tuple {
             z: self.z / other,
             w: self.w / other,
         }
+    }
+}
+
+impl ops::Mul<Matrix> for Tuple {
+    type Output = Tuple;
+
+    fn mul(self, other: Matrix) -> Self::Output {
+        other * self
+    }
+}
+
+impl ops::Mul<&Matrix> for Tuple {
+    type Output = Tuple;
+
+    fn mul(self, other: &Matrix) -> Self::Output {
+        other * self
     }
 }
 

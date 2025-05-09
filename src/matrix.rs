@@ -225,7 +225,11 @@ where
 
     fn cofactor(&self, row: usize, col: usize) -> Float {
         let minor = self.minor(row, col);
-        if (row + col) % 2 != 0 { -minor } else { minor }
+        if (row + col) % 2 != 0 {
+            -minor
+        } else {
+            minor
+        }
     }
 
     fn determinant(&self) -> Float {
@@ -561,6 +565,14 @@ impl Mul<Tuple> for Matrix {
                 + self[(row, 3)] * other.w;
         }
         Tuple::new(t[0], t[1], t[2], t[3])
+    }
+}
+
+impl Mul<Tuple> for &Matrix {
+    type Output = Tuple;
+
+    fn mul(self, other: Tuple) -> Self::Output {
+        *self * other
     }
 }
 
