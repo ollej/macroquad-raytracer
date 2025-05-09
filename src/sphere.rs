@@ -16,16 +16,16 @@ impl Sphere {
         let discriminant = b * b - 4. * a * c;
 
         if discriminant < 0. {
-            return vec![];
+            return Intersections::empty();
         }
 
         let t1 = (-b - discriminant.sqrt()) / (2. * a);
         let t2 = (-b + discriminant.sqrt()) / (2. * a);
 
-        vec![
+        Intersections::new(vec![
             Intersection::new(t1, self.clone()),
             Intersection::new(t2, self.clone()),
-        ]
+        ])
     }
 }
 
