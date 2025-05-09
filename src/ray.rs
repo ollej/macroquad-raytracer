@@ -1,4 +1,4 @@
-use crate::{float::*, sphere::*, tuple::*};
+use crate::{float::*, tuple::*};
 
 #[derive(Clone)]
 pub struct Ray {
@@ -25,7 +25,7 @@ pub fn position(ray: &Ray, t: Float) -> Point {
 }
 
 #[cfg(test)]
-mod test_chapter_5_intersections {
+mod test_chapter_5_ray {
     #![allow(non_snake_case)]
 
     use super::*;
@@ -53,58 +53,5 @@ mod test_chapter_5_intersections {
         assert_eq!(r.position(1.), point(3., 3., 4.));
         assert_eq!(r.position(-1.), point(1., 3., 4.));
         assert_eq!(r.position(2.5), point(4.5, 3., 4.));
-    }
-
-    #[test]
-    fn a_ray_intersects_a_sphere_at_two_points() {
-        let r = ray(point(0., 0., -5.), vector(0., 0., 1.));
-        let s = sphere();
-        let xs = intersect(&s, &r);
-        assert_eq!(xs.len(), 2);
-        assert_eq_float!(xs[0], 4.0);
-        assert_eq_float!(xs[1], 6.0);
-        assert_eq!(s.intersect(&r), xs);
-    }
-
-    #[test]
-    fn a_ray_intersects_a_sphere_at_a_tangent() {
-        let r = ray(point(0., 1., -5.), vector(0., 0., 1.));
-        let s = sphere();
-        let xs = intersect(&s, &r);
-        assert_eq!(xs.len(), 2);
-        assert_eq_float!(xs[0], 5.0);
-        assert_eq_float!(xs[1], 5.0);
-        assert_eq!(s.intersect(&r), xs);
-    }
-
-    #[test]
-    fn a_ray_misses_a_sphere() {
-        let r = ray(point(0., 2., -5.), vector(0., 0., 1.));
-        let s = sphere();
-        let xs = intersect(&s, &r);
-        assert_eq!(xs.len(), 0);
-        assert_eq!(s.intersect(&r), xs);
-    }
-
-    #[test]
-    fn a_ray_originates_inside_a_sphere() {
-        let r = ray(point(0., 0., 0.), vector(0., 0., 1.));
-        let s = sphere();
-        let xs = intersect(&s, &r);
-        assert_eq!(xs.len(), 2);
-        assert_eq_float!(xs[0], -1.0);
-        assert_eq_float!(xs[1], 1.0);
-        assert_eq!(s.intersect(&r), xs);
-    }
-
-    #[test]
-    fn a_sphere_is_behind_a_ray() {
-        let r = ray(point(0., 0., 5.), vector(0., 0., 1.));
-        let s = sphere();
-        let xs = intersect(&s, &r);
-        assert_eq!(xs.len(), 2);
-        assert_eq_float!(xs[0], -6.0);
-        assert_eq_float!(xs[1], -4.0);
-        assert_eq!(s.intersect(&r), xs);
     }
 }
