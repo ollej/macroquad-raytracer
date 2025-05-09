@@ -6,4 +6,5 @@ pub mod macroquad;
 pub mod matrix;
 pub mod prelude;
 pub mod projectile;
+pub mod ray;
 pub mod tuple;
