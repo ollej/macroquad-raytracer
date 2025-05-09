@@ -5,4 +5,6 @@ pub use crate::float::*;
 pub use crate::macroquad::*;
 pub use crate::matrix::*;
 pub use crate::projectile::*;
+pub use crate::ray::*;
+pub use crate::sphere::*;
 pub use crate::tuple::*;
