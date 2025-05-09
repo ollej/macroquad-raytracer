@@ -96,7 +96,7 @@ mod test_chapter_5_intersections {
     fn intersect_sets_the_object_on_the_intersection() {
         let r = ray(point(0., 0., -5.), vector(0., 0., 1.));
         let s = sphere();
-        let xs = intersect(&s, &r);
+        let xs = s.intersect(&r).unwrap();
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].object, s);
         assert_eq!(xs[1].object, s);

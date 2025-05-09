@@ -17,8 +17,8 @@ impl Ray {
         self.origin + self.direction * t
     }
 
-    pub fn transform(&self, matrix: &Matrix) -> Result<Ray, String> {
-        Ok(self * matrix)
+    pub fn transform(&self, matrix: &Matrix) -> Ray {
+        self * matrix
     }
 }
 
@@ -49,7 +49,7 @@ pub fn position(ray: &Ray, t: Float) -> Point {
     ray.position(t)
 }
 
-pub fn transform(ray: &Ray, matrix: &Matrix) -> Result<Ray, String> {
+pub fn transform(ray: &Ray, matrix: &Matrix) -> Ray {
     ray.transform(matrix)
 }
 
@@ -88,19 +88,19 @@ mod test_chapter_5_ray {
     fn translating_a_ray() {
         let r = ray(point(1., 2., 3.), vector(0., 1., 0.));
         let m = translation(3., 4., 5.);
-        let r2 = transform(&r, &m).unwrap();
+        let r2 = transform(&r, &m);
         assert_eq!(r2.origin, point(4., 6., 8.));
         assert_eq!(r2.direction, vector(0., 1., 0.));
-        assert_eq!(r.transform(&m), Ok(r2));
+        assert_eq!(r.transform(&m), r2);
     }
 
     #[test]
     fn scaling_a_ray() {
         let r = ray(point(1., 2., 3.), vector(0., 1., 0.));
         let m = scaling(2., 3., 4.);
-        let r2 = transform(&r, &m).unwrap();
+        let r2 = transform(&r, &m);
         assert_eq!(r2.origin, point(2., 6., 12.));
         assert_eq!(r2.direction, vector(0., 3., 0.));
-        assert_eq!(r.transform(&m), Ok(r2));
+        assert_eq!(r.transform(&m), r2);
     }
 }
