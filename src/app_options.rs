@@ -1,14 +1,14 @@
 use std::path::PathBuf;
 
-use clap::{Parser, command};
+use clap::{command, Parser};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum ImageType {
+pub enum ImageFormat {
     PNG,
     PPM,
 }
 
-impl clap::ValueEnum for ImageType {
+impl clap::ValueEnum for ImageFormat {
     fn value_variants<'a>() -> &'a [Self] {
         &[Self::PNG, Self::PPM]
     }
@@ -21,6 +21,25 @@ impl clap::ValueEnum for ImageType {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum Image {
+    Clock,
+    Circle,
+}
+
+impl clap::ValueEnum for Image {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Clock, Self::Circle]
+    }
+
+    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+        match self {
+            Self::Clock => Some(clap::builder::PossibleValue::new("clock")),
+            Self::Circle => Some(clap::builder::PossibleValue::new("circle")),
+        }
+    }
+}
+
 #[derive(Parser, Debug, Clone)]
 #[command(name = "macroquad-raytracer", about = "A simple raytracer")]
 pub struct AppOptions {
@@ -28,9 +47,13 @@ pub struct AppOptions {
     #[arg(short, long, default_value = ".")]
     pub directory: PathBuf,
 
+    /// Generate this image
+    #[arg(short, long, default_value = "circle")]
+    pub image: Image,
+
     /// Save output as an image of this type
-    #[arg(short, long)]
-    pub image: Option<ImageType>,
+    #[arg(short = 'F', long)]
+    pub format: Option<ImageFormat>,
 
     /// Basename (without extension) to save image as
     #[arg(short, long, default_value = "canvas")]
@@ -43,9 +66,9 @@ pub struct AppOptions {
 
 impl AppOptions {
     pub fn image_path(&self) -> Option<PathBuf> {
-        match self.image {
-            Some(ImageType::PNG) => Some(self.directory_path("png")),
-            Some(ImageType::PPM) => Some(self.directory_path("ppm")),
+        match self.format {
+            Some(ImageFormat::PNG) => Some(self.directory_path("png")),
+            Some(ImageFormat::PPM) => Some(self.directory_path("ppm")),
             None => None,
         }
     }
