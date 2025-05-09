@@ -1,8 +1,8 @@
-use std::ops::Index;
+use std::{cmp::Ordering, ops::Index};
 
 use crate::{float::*, sphere::*};
 
-#[derive(PartialEq, PartialOrd, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Intersection {
     pub t: Float,
     pub object: Sphere,
@@ -15,6 +15,12 @@ impl Intersection {
 
     pub fn positive(&self) -> bool {
         self.t > 0.
+    }
+}
+
+impl PartialOrd for Intersection {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.t.partial_cmp(&other.t)
     }
 }
 

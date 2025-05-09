@@ -1,11 +1,19 @@
-use crate::{intersection::*, ray::*, tuple::*};
+use crate::{intersection::*, matrix::*, ray::*, tuple::*};
 
-#[derive(PartialEq, PartialOrd, Copy, Clone, Debug)]
-pub struct Sphere {}
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub struct Sphere {
+    pub transform: Matrix,
+}
 
 impl Sphere {
     pub fn new() -> Self {
-        Sphere {}
+        Sphere {
+            transform: IDENTITY_MATRIX,
+        }
+    }
+
+    pub fn set_transform(&mut self, matrix: Matrix) {
+        self.transform = matrix;
     }
 
     pub fn intersect(&self, ray: &Ray) -> Intersections {
@@ -96,5 +104,19 @@ mod test_chapter_5_intersections {
         assert_eq_float!(xs[0].t, -6.0);
         assert_eq_float!(xs[1].t, -4.0);
         assert_eq!(s.intersect(&r), xs);
+    }
+
+    #[test]
+    fn a_spheres_default_transformation() {
+        let s = sphere();
+        assert_eq!(s.transform, identity_matrix());
+    }
+
+    #[test]
+    fn changing_a_spheres_transformation() {
+        let mut s = sphere();
+        let t = translation(2., 3., 4.);
+        s.set_transform(t);
+        assert_eq!(s.transform, t);
     }
 }

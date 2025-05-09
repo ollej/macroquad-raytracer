@@ -46,7 +46,7 @@ pub fn shearing(xy: Float, xz: Float, yx: Float, yz: Float, zx: Float, zy: Float
     Matrix::shearing(xy, xz, yx, yz, zx, zy)
 }
 
-const IDENTITY_MATRIX: Matrix = Matrix([
+pub const IDENTITY_MATRIX: Matrix = Matrix([
     MatrixRow([1.0, 0.0, 0.0, 0.0]),
     MatrixRow([0.0, 1.0, 0.0, 0.0]),
     MatrixRow([0.0, 0.0, 1.0, 0.0]),
