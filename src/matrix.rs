@@ -576,6 +576,13 @@ impl Mul<Tuple> for &Matrix {
     }
 }
 
+impl Mul<&Tuple> for Matrix {
+    type Output = Tuple;
+
+    fn mul(self, other: &Tuple) -> Self::Output {
+        self * *other
+    }
+}
 #[cfg(test)]
 mod test_chapter_3_matrices {
     #![allow(non_snake_case)]
