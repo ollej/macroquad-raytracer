@@ -41,6 +41,10 @@ impl Sphere {
             Intersection::new(t2, self.clone()),
         ]))
     }
+
+    pub fn normal_at(&self, p: Point) -> Vector {
+        (p - point(0., 0., 0.)).normalize()
+    }
 }
 
 pub fn sphere() -> Sphere {
@@ -52,7 +56,7 @@ pub fn intersect(sphere: &Sphere, ray: &Ray) -> Result<Intersections, String> {
 }
 
 pub fn normal_at(sphere: &Sphere, p: Point) -> Vector {
-    (p - point(0., 0., 0.)).normalize()
+    sphere.normal_at(p)
 }
 
 #[cfg(test)]
