@@ -3,6 +3,7 @@ pub use crate::canvas::*;
 pub use crate::color::*;
 pub use crate::float::*;
 pub use crate::intersection::*;
+pub use crate::light::*;
 pub use crate::macroquad::*;
 pub use crate::matrix::*;
 pub use crate::projectile::*;

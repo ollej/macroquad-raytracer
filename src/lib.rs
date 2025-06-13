@@ -3,6 +3,7 @@ pub mod canvas;
 pub mod color;
 pub mod float;
 pub mod intersection;
+pub mod light;
 pub mod macroquad;
 pub mod matrix;
 pub mod prelude;

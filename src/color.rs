@@ -2,13 +2,22 @@ use std::ops;
 
 use crate::{float::*, tuple::*};
 
-pub fn color(red: Float, green: Float, blue: Float) -> Tuple {
-    Tuple::color(red, green, blue)
+pub fn color(red: Float, green: Float, blue: Float) -> Color {
+    Color::color(red, green, blue)
 }
 
 pub type Color = Tuple;
 
 impl Color {
+    pub fn color(red: Float, green: Float, blue: Float) -> Color {
+        Tuple {
+            x: red,
+            y: green,
+            z: blue,
+            w: 0.0,
+        }
+    }
+
     pub fn as_byte_strings(&self) -> [String; 3] {
         let red = (self.x * 255.0).round().clamp(0.0, 255.0) as u8;
         let green = (self.y * 255.0).round().clamp(0.0, 255.0) as u8;

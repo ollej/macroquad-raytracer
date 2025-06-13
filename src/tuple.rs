@@ -14,6 +14,10 @@ pub fn vector(x: Float, y: Float, z: Float) -> Tuple {
     Tuple::vector(x, y, z)
 }
 
+pub fn reflect(in_vector: Vector, normal: &Vector) -> Vector {
+    in_vector.reflect(normal)
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Tuple {
     pub x: Float,
@@ -36,15 +40,6 @@ impl Tuple {
 
     pub fn vector(x: Float, y: Float, z: Float) -> Vector {
         Tuple { x, y, z, w: 0.0 }
-    }
-
-    pub fn color(red: Float, green: Float, blue: Float) -> Color {
-        Tuple {
-            x: red,
-            y: green,
-            z: blue,
-            w: 0.0,
-        }
     }
 
     pub fn is_vector(&self) -> bool {
@@ -87,6 +82,12 @@ impl Tuple {
             b: self.z,
             a: 1.0,
         }
+    }
+}
+
+impl Vector {
+    pub fn reflect(self, normal: &Vector) -> Vector {
+        self - normal * 2. * self.dot(normal)
     }
 }
 
@@ -172,6 +173,14 @@ impl ops::Mul<Float> for Tuple {
             z: self.z * other,
             w: self.w * other,
         }
+    }
+}
+
+impl ops::Mul<Float> for &Tuple {
+    type Output = Tuple;
+
+    fn mul(self, other: Float) -> Self::Output {
+        *self * other
     }
 }
 
@@ -363,5 +372,26 @@ mod test_chapter_1_maths {
         let b = vector(2.0, 3.0, 4.0);
         assert_eq!(a.cross(&b), vector(-1.0, 2.0, -1.0));
         assert_eq!(b.cross(&a), vector(1.0, -2.0, 1.0));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_6_vector_reflection {
+    use super::*;
+
+    #[test]
+    fn reflecting_a_vector_approaching_at_45_degrees() {
+        let v = vector(1., -1., 0.);
+        let n = vector(0., 1., 0.);
+        let r = v.reflect(&n);
+        assert_eq!(r, vector(1., 1., 0.));
+    }
+
+    #[test]
+    fn reflecting_a_vector_off_a_slanting_surface() {
+        let v = vector(0., -1., 0.);
+        let n = vector(2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0, 0.);
+        let r = v.reflect(&n);
+        assert_eq!(r, vector(1., 0., 0.));
     }
 }
