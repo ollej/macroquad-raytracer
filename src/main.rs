@@ -4,8 +4,8 @@ use clap::Parser;
 use std::f32::consts::PI;
 use std::time::Instant;
 
-fn generate_clock() -> Result<Canvas, String> {
-    let half_width = 50.0;
+fn generate_clock(canvas_size: usize) -> Result<Canvas, String> {
+    let half_width = canvas_size as f32 / 2.0;
     let mut canvas = canvas((half_width * 2.0) as usize, (half_width * 2.0) as usize);
     let origin = point(0.0, 0.0, 0.0);
     let twelve = point(0.0, 0.0, 1.0);
@@ -24,20 +24,19 @@ fn generate_clock() -> Result<Canvas, String> {
     Ok(canvas)
 }
 
-fn generate_circle() -> Result<Canvas, String> {
+fn generate_circle(canvas_size: usize) -> Result<Canvas, String> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let canvas_pixels = 100;
-    let pixel_size = wall_size / canvas_pixels as f32;
+    let pixel_size = wall_size / canvas_size as f32;
     let half = wall_size / 2.;
-    let mut canvas = canvas(canvas_pixels, canvas_pixels);
+    let mut canvas = canvas(canvas_size, canvas_size);
     let color = color(1.0, 0.0, 0.0);
     let shape = sphere();
 
-    for y in 0..canvas_pixels {
+    for y in 0..canvas_size {
         let world_y = half - pixel_size * y as f32;
-        for x in 0..canvas_pixels {
+        for x in 0..canvas_size {
             let world_x = -half + pixel_size * x as f32;
             let position = point(world_x, world_y, wall_z);
             let r = ray(ray_origin, (position - ray_origin).normalize());
@@ -51,14 +50,13 @@ fn generate_circle() -> Result<Canvas, String> {
     Ok(canvas)
 }
 
-fn generate_sphere() -> Result<Canvas, String> {
+fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let canvas_pixels = 200;
-    let pixel_size = wall_size / canvas_pixels as f32;
+    let pixel_size = wall_size / canvas_size as f32;
     let half = wall_size / 2.;
-    let mut canvas = canvas(canvas_pixels, canvas_pixels);
+    let mut canvas = canvas(canvas_size, canvas_size);
 
     let mut sphere = sphere();
     sphere.material.color = color(1.0, 0.2, 1.0);
@@ -67,9 +65,9 @@ fn generate_sphere() -> Result<Canvas, String> {
     let light_color = WHITE;
     let light = point_light(light_position, light_color);
 
-    for y in 0..canvas_pixels {
+    for y in 0..canvas_size {
         let world_y = half - pixel_size * y as f32;
-        for x in 0..canvas_pixels {
+        for x in 0..canvas_size {
             let world_x = -half + pixel_size * x as f32;
             let position = point(world_x, world_y, wall_z);
             let r = ray(ray_origin, (position - ray_origin).normalize());
@@ -93,9 +91,9 @@ async fn main() -> Result<(), String> {
     let options = AppOptions::parse();
 
     let c = match options.image {
-        Image::Clock => generate_clock()?,
-        Image::Circle => generate_circle()?,
-        Image::Sphere => generate_sphere()?,
+        Image::Clock => generate_clock(options.size)?,
+        Image::Circle => generate_circle(options.size)?,
+        Image::Sphere => generate_sphere(options.size)?,
     };
 
     let before = Instant::now();

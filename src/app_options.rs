@@ -68,6 +68,10 @@ pub struct AppOptions {
     /// Display elapsed time on stdout
     #[arg(short = 't', long)]
     pub time: bool,
+
+    /// Size of canvas in pixels for both width and height
+    #[arg(short = 's', long, default_value = "100")]
+    pub size: usize,
 }
 
 impl AppOptions {
