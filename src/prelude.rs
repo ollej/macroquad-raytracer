@@ -5,6 +5,7 @@ pub use crate::float::*;
 pub use crate::intersection::*;
 pub use crate::light::*;
 pub use crate::macroquad::*;
+pub use crate::material::*;
 pub use crate::matrix::*;
 pub use crate::projectile::*;
 pub use crate::ray::*;
