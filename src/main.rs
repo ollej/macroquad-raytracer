@@ -2,6 +2,7 @@ use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
 use std::f32::consts::PI;
+use std::time::Instant;
 
 fn generate_clock() -> Result<Canvas, String> {
     let half_width = 50.0;
@@ -54,7 +55,7 @@ fn generate_sphere() -> Result<Canvas, String> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let canvas_pixels = 100;
+    let canvas_pixels = 200;
     let pixel_size = wall_size / canvas_pixels as f32;
     let half = wall_size / 2.;
     let mut canvas = canvas(canvas_pixels, canvas_pixels);
@@ -97,7 +98,11 @@ async fn main() -> Result<(), String> {
         Image::Sphere => generate_sphere()?,
     };
 
+    let before = Instant::now();
     let image = c.as_image();
+    if options.time {
+        println!("Elapsed time: {:.2?}", before.elapsed());
+    }
 
     match options.format {
         Some(ImageFormat::PNG) => save_png(&image, &options.image_path().unwrap()),

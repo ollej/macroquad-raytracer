@@ -64,6 +64,10 @@ pub struct AppOptions {
     /// Don't show the generated image in a window
     #[arg(short = 'H', long)]
     pub hide: bool,
+
+    /// Display elapsed time on stdout
+    #[arg(short = 't', long)]
+    pub time: bool,
 }
 
 impl AppOptions {
