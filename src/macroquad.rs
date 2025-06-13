@@ -37,6 +37,7 @@ pub async fn display_image(image: &Image) {
             WHITE,
             DrawTextureParams {
                 dest_size: Some(vec2(width, height)),
+                flip_y: true,
                 ..Default::default()
             },
         );

@@ -82,7 +82,7 @@ impl Canvas {
         for x in 0..self.width {
             for y in 0..self.height {
                 let p = self.pixels[y * self.width + x];
-                image.set_pixel(x as u32, y as u32, p.as_color());
+                image.set_pixel(x as u32, (self.height - y - 1) as u32, p.as_color());
             }
         }
         image
