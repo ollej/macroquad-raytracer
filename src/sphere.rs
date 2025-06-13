@@ -1,19 +1,24 @@
-use crate::{intersection::*, matrix::*, ray::*, tuple::*};
+use crate::{intersection::*, material::*, matrix::*, ray::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Sphere {
     pub transform: Matrix,
+    pub material: Material,
 }
 
 impl Sphere {
     pub fn empty() -> Self {
         Sphere {
             transform: IDENTITY_MATRIX,
+            material: Material::default(),
         }
     }
 
     pub fn new(matrix: Matrix) -> Self {
-        Sphere { transform: matrix }
+        Sphere {
+            transform: matrix,
+            material: Material::default(),
+        }
     }
 
     pub fn set_transform(&mut self, matrix: &Matrix) {
@@ -233,5 +238,28 @@ mod test_chapter_6_normals {
         s.set_transform(&m);
         let n = s.normal_at(&point(0., 2.0_f32.sqrt() / 2., -2.0_f32.sqrt() / 2.));
         assert_eq!(n, Ok(vector(0., 0.97014, -0.24254)));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_6_sphere_material {
+    #![allow(non_snake_case)]
+
+    use super::*;
+
+    #[test]
+    fn a_sphere_has_a_default_material() {
+        let s = sphere();
+        let m = s.material;
+        assert_eq!(m, material());
+    }
+
+    #[test]
+    fn a_sphere_may_be_assigned_a_material() {
+        let mut s = sphere();
+        let mut m = material();
+        m.ambient = 1.;
+        s.material = m;
+        assert_eq!(s.material, m);
     }
 }

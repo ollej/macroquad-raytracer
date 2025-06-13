@@ -1,10 +1,10 @@
 use crate::{color::*, float::*};
 
 pub fn material() -> Material {
-    Material::new(color(1., 1., 1.), 0.1, 0.9, 0.9, 200.0)
+    Material::default()
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Material {
     pub color: Color,
     pub ambient: Float,
@@ -28,6 +28,12 @@ impl Material {
             specular,
             shininess,
         }
+    }
+}
+
+impl Default for Material {
+    fn default() -> Self {
+        Material::new(color(1., 1., 1.), 0.1, 0.9, 0.9, 200.0)
     }
 }
 
