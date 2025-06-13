@@ -141,6 +141,14 @@ impl ops::Sub<Tuple> for Tuple {
     }
 }
 
+impl ops::Sub<&Tuple> for &Tuple {
+    type Output = Tuple;
+
+    fn sub(self, other: &Tuple) -> Self::Output {
+        (*self).sub(other)
+    }
+}
+
 impl ops::Neg for Tuple {
     type Output = Tuple;
 

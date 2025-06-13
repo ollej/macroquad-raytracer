@@ -51,6 +51,10 @@ pub fn intersect(sphere: &Sphere, ray: &Ray) -> Result<Intersections, String> {
     sphere.intersect(ray)
 }
 
+pub fn normal_at(sphere: &Sphere, p: Point) -> Vector {
+    (p - point(0., 0., 0.)).normalize()
+}
+
 #[cfg(test)]
 mod test_chapter_5_intersections {
     #![allow(non_snake_case)]
@@ -144,5 +148,68 @@ mod test_chapter_5_intersections {
         s.set_transform(&translation(5., 0., 0.));
         let xs = s.intersect(&r).unwrap();
         assert_eq!(xs.len(), 0);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_6_normals {
+    #![allow(non_snake_case)]
+
+    use super::*;
+
+    #[test]
+    fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
+        let s = sphere();
+        let n = normal_at(&s, point(1., 0., 0.));
+        assert_eq!(n, vector(1., 0., 0.));
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
+        let s = sphere();
+        let n = normal_at(&s, point(0., 1., 0.));
+        assert_eq!(n, vector(0., 1., 0.));
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_at_a_point_on_the_z_axis() {
+        let s = sphere();
+        let n = normal_at(&s, point(0., 0., 1.));
+        assert_eq!(n, vector(0., 0., 1.));
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_at_a_nonaxial_point() {
+        let s = sphere();
+        let n = normal_at(
+            &s,
+            point(
+                3.0_f32.sqrt() / 3.0,
+                3.0_f32.sqrt() / 3.0,
+                3.0_f32.sqrt() / 3.0,
+            ),
+        );
+        assert_eq!(
+            n,
+            vector(
+                3.0_f32.sqrt() / 3.0,
+                3.0_f32.sqrt() / 3.0,
+                3.0_f32.sqrt() / 3.0
+            )
+        );
+    }
+
+    #[test]
+    fn the_normal_is_a_normalized_vector() {
+        let s = sphere();
+        let n = normal_at(
+            &s,
+            point(
+                3.0_f32.sqrt() / 3.0,
+                3.0_f32.sqrt() / 3.0,
+                3.0_f32.sqrt() / 3.0,
+            ),
+        );
+        assert_eq!(n, n.normalize());
     }
 }
