@@ -1,4 +1,4 @@
-pub const EPSILON: Float = 0.00001;
+pub const EPSILON: Float = 0.0001;
 
 pub type Float = f32;
 

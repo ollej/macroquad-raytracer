@@ -8,6 +8,13 @@ pub fn color(red: Float, green: Float, blue: Float) -> Color {
 
 pub type Color = Tuple;
 
+pub const BLACK: Color = Color {
+    x: 0.,
+    y: 0.,
+    z: 0.,
+    w: 0.,
+};
+
 impl Color {
     pub fn color(red: Float, green: Float, blue: Float) -> Color {
         Tuple {
