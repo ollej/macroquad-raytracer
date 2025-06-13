@@ -15,6 +15,13 @@ pub const BLACK: Color = Color {
     w: 0.,
 };
 
+pub const WHITE: Color = Color {
+    x: 1.,
+    y: 1.,
+    z: 1.,
+    w: 0.,
+};
+
 impl Color {
     pub fn color(red: Float, green: Float, blue: Float) -> Color {
         Tuple {
