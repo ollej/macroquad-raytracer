@@ -26,11 +26,12 @@ pub enum Image {
     Clock,
     Circle,
     Sphere,
+    SphereRayon,
 }
 
 impl clap::ValueEnum for Image {
     fn value_variants<'a>() -> &'a [Self] {
-        &[Self::Clock, Self::Circle, Self::Sphere]
+        &[Self::Clock, Self::Circle, Self::Sphere, Self::SphereRayon]
     }
 
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
@@ -38,6 +39,7 @@ impl clap::ValueEnum for Image {
             Self::Clock => Some(clap::builder::PossibleValue::new("clock")),
             Self::Circle => Some(clap::builder::PossibleValue::new("circle")),
             Self::Sphere => Some(clap::builder::PossibleValue::new("sphere")),
+            Self::SphereRayon => Some(clap::builder::PossibleValue::new("sphere-rayon")),
         }
     }
 }
@@ -50,7 +52,7 @@ pub struct AppOptions {
     pub directory: PathBuf,
 
     /// Generate this image
-    #[arg(short, long, default_value = "sphere")]
+    #[arg(short, long, default_value = "sphere-rayon")]
     pub image: Image,
 
     /// Save output as an image of this type
