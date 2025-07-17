@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, ops::Index};
 
-use crate::{float::*, sphere::*};
+use crate::{float::*, ray::*, sphere::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Intersection {
@@ -15,6 +15,18 @@ impl Intersection {
 
     pub fn positive(&self) -> bool {
         self.t > 0.
+    }
+
+    pub fn prepare_computations(&self, ray: &Ray) -> Result<PreparedComputation, String> {
+        let point = ray.position(self.t);
+        let normalv = self.object.normal_at(&point)?;
+        Ok(PreparedComputation {
+            t: self.t,
+            object: self.object.clone(),
+            point,
+            eyev: -ray.direction,
+            normalv,
+        })
     }
 }
 
@@ -58,6 +70,14 @@ impl Index<usize> for Intersections {
     }
 }
 
+pub struct PreparedComputation {
+    pub t: Float,
+    pub object: Sphere,
+    pub point: Point,
+    pub eyev: Vector,
+    pub normalv: Vector,
+}
+
 pub fn intersection(t: Float, object: Sphere) -> Intersection {
     Intersection::new(t, object)
 }
@@ -68,6 +88,13 @@ pub fn intersections(intersections: Vec<Intersection>) -> Intersections {
 
 pub fn hit(intersections: &Intersections) -> Option<Intersection> {
     intersections.hit()
+}
+
+pub fn prepare_computations(
+    intersection: &Intersection,
+    ray: &Ray,
+) -> Result<PreparedComputation, String> {
+    intersection.prepare_computations(ray)
 }
 
 #[cfg(test)]
@@ -150,5 +177,26 @@ mod test_chapter_5_intersections {
         let i = hit(&xs);
         assert_eq!(i, Some(i4));
         assert_eq!(xs.hit(), Some(i4));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_7_world_intersections {
+    #![allow(non_snake_case)]
+
+    use super::*;
+    use crate::{ray::*, tuple::*};
+
+    #[test]
+    fn precomputing_the_state_of_an_intersection() {
+        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = sphere();
+        let i = intersection(4.0, shape);
+        let comps = prepare_computations(&i, &r).unwrap();
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.object, i.object);
+        assert_eq!(comps.point, point(0.0, 0.0, -1.0));
+        assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
+        assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
     }
 }
