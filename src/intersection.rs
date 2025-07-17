@@ -9,8 +9,11 @@ pub struct Intersection {
 }
 
 impl Intersection {
-    pub fn new(t: Float, object: Sphere) -> Self {
-        Intersection { t, object }
+    pub fn new(t: Float, object: &Sphere) -> Self {
+        Intersection {
+            t,
+            object: object.to_owned(),
+        }
     }
 
     pub fn positive(&self) -> bool {
@@ -70,6 +73,7 @@ impl Index<usize> for Intersections {
     }
 }
 
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct PreparedComputation {
     pub t: Float,
     pub object: Sphere,
@@ -78,7 +82,7 @@ pub struct PreparedComputation {
     pub normalv: Vector,
 }
 
-pub fn intersection(t: Float, object: Sphere) -> Intersection {
+pub fn intersection(t: Float, object: &Sphere) -> Intersection {
     Intersection::new(t, object)
 }
 
@@ -102,12 +106,11 @@ mod test_chapter_5_intersections {
     #![allow(non_snake_case)]
 
     use super::*;
-    use crate::{ray::*, tuple::*};
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {
         let s = sphere();
-        let i = intersection(3.5, s.clone());
+        let i = intersection(3.5, &s);
         assert_eq!(i.t, 3.5);
         assert_eq!(i.object, s);
     }
@@ -115,8 +118,8 @@ mod test_chapter_5_intersections {
     #[test]
     fn aggregating_intersections() {
         let s = sphere();
-        let i1 = intersection(1., s.clone());
-        let i2 = intersection(2., s);
+        let i1 = intersection(1., &s);
+        let i2 = intersection(2., &s);
         let xs = intersections(vec![i1, i2]);
         assert_eq!(xs.len(), 2);
         assert_eq_float!(xs[0].t, 1.0);
@@ -136,8 +139,8 @@ mod test_chapter_5_intersections {
     #[test]
     fn the_hit_when_all_intersections_have_positive_t() {
         let s = sphere();
-        let i1 = intersection(1., s.clone());
-        let i2 = intersection(2., s);
+        let i1 = intersection(1., &s);
+        let i2 = intersection(2., &s);
         let xs = intersections(vec![i2, i1]);
         let i = hit(&xs);
         assert_eq!(i, Some(i1));
@@ -147,8 +150,8 @@ mod test_chapter_5_intersections {
     #[test]
     fn the_hit_when_some_intersections_have_negative_t() {
         let s = sphere();
-        let i1 = intersection(-1., s.clone());
-        let i2 = intersection(1., s);
+        let i1 = intersection(-1., &s);
+        let i2 = intersection(1., &s);
         let xs = intersections(vec![i2, i1]);
         let i = hit(&xs);
         assert_eq!(i, Some(i2));
@@ -158,8 +161,8 @@ mod test_chapter_5_intersections {
     #[test]
     fn the_hit_when_all_intersections_have_negative_t() {
         let s = sphere();
-        let i1 = intersection(-2., s.clone());
-        let i2 = intersection(-1., s);
+        let i1 = intersection(-2., &s);
+        let i2 = intersection(-1., &s);
         let xs = intersections(vec![i2, i1]);
         let i = hit(&xs);
         assert_eq!(i, None);
@@ -169,10 +172,10 @@ mod test_chapter_5_intersections {
     #[test]
     fn the_hit_is_always_the_lowest_nonnegative_intersection() {
         let s = sphere();
-        let i1 = intersection(5., s.clone());
-        let i2 = intersection(7., s.clone());
-        let i3 = intersection(-3., s.clone());
-        let i4 = intersection(2., s);
+        let i1 = intersection(5., &s);
+        let i2 = intersection(7., &s);
+        let i3 = intersection(-3., &s);
+        let i4 = intersection(2., &s);
         let xs = intersections(vec![i1, i2, i3, i4]);
         let i = hit(&xs);
         assert_eq!(i, Some(i4));
@@ -191,12 +194,15 @@ mod test_chapter_7_world_intersections {
     fn precomputing_the_state_of_an_intersection() {
         let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
         let shape = sphere();
-        let i = intersection(4.0, shape);
+        let i = intersection(4.0, &shape);
         let comps = prepare_computations(&i, &r).unwrap();
         assert_eq!(comps.t, i.t);
         assert_eq!(comps.object, i.object);
         assert_eq!(comps.point, point(0.0, 0.0, -1.0));
         assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
+
+        let comps2 = i.prepare_computations(&r).unwrap();
+        assert_eq!(comps, comps2);
     }
 }

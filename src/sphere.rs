@@ -46,8 +46,8 @@ impl Sphere {
         let t2 = (-b + discriminant.sqrt()) / (2. * a);
 
         Ok(Intersections::new(vec![
-            Intersection::new(t1, self.clone()),
-            Intersection::new(t2, self.clone()),
+            Intersection::new(t1, self),
+            Intersection::new(t2, self),
         ]))
     }
 
