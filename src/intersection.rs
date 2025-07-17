@@ -37,6 +37,10 @@ impl Intersections {
         Intersections(intersections)
     }
 
+    pub fn inner(&self) -> &Vec<Intersection> {
+        &self.0
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }

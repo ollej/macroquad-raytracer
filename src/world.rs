@@ -1,7 +1,17 @@
-use crate::{color::*, light::*, sphere::*, tuple::*};
+use crate::{
+    color::*, intersection::*, light::*, material::*, matrix::*, ray::*, sphere::*, tuple::*,
+};
 
 pub fn world() -> World {
     World::new()
+}
+
+pub fn default_world() -> World {
+    World::default()
+}
+
+pub fn intersect_world(world: &World, ray: &Ray) -> Result<Intersections, String> {
+    world.intersect(ray)
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -10,12 +20,39 @@ pub struct World {
     light: Option<Light>,
 }
 
+impl Default for World {
+    fn default() -> World {
+        let mut s1 = sphere();
+        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0);
+        s1.set_material(&m);
+        let mut s2 = sphere();
+        s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
+        World {
+            objects: vec![s1, s2],
+            light: Some(point_light(point(-10.0, 10.0, -10.), color(1.0, 1.0, 1.0))),
+        }
+    }
+}
+
 impl World {
     pub fn new() -> Self {
         Self {
             objects: vec![],
             light: None,
         }
+    }
+
+    pub fn contains(&self, object: &Sphere) -> bool {
+        self.objects.contains(object)
+    }
+
+    pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
+        let mut all_intersections = vec![];
+        for obj in self.objects.iter() {
+            let mut intersections = obj.intersect(ray)?.inner().to_owned();
+            all_intersections.append(&mut intersections);
+        }
+        Ok(Intersections::new(all_intersections))
     }
 }
 
@@ -28,5 +65,34 @@ mod test_chapter_7_world {
         let w = world();
         assert_eq!(w.objects, vec![]);
         assert_eq!(w.light, None);
+    }
+
+    #[test]
+    fn the_default_world() {
+        let light = point_light(point(-10.0, 10.0, -10.), color(1.0, 1.0, 1.0));
+        let mut s1 = sphere();
+        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0);
+        s1.set_material(&m);
+        let mut s2 = sphere();
+        s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
+        let w = default_world();
+        assert_eq!(w.light, Some(light));
+        assert!(w.contains(&s1));
+        assert!(w.contains(&s2));
+
+        let w2 = World::default();
+        assert_eq!(w, w2);
+    }
+
+    #[test]
+    fn intersect_a_world_with_a_ray() {
+        let w = default_world();
+        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let xs = intersect_world(&w, &r).unwrap();
+        assert_eq!(xs.len(), 4);
+        assert_eq!(xs[0].t, 4.0);
+        assert_eq!(xs[1].t, 4.5);
+        assert_eq!(xs[2].t, 5.5);
+        assert_eq!(xs[3].t, 6.0);
     }
 }

@@ -25,6 +25,10 @@ impl Sphere {
         self.transform = matrix.clone();
     }
 
+    pub fn set_material(&mut self, material: &Material) {
+        self.material = material.clone();
+    }
+
     pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
         let ray2 = ray.transform(&self.transform.inverse()?);
 
