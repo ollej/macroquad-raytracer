@@ -22,11 +22,11 @@ impl Sphere {
     }
 
     pub fn set_transform(&mut self, matrix: &Matrix) {
-        self.transform = matrix.clone();
+        self.transform = matrix.to_owned();
     }
 
     pub fn set_material(&mut self, material: &Material) {
-        self.material = material.clone();
+        self.material = material.to_owned();
     }
 
     pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {

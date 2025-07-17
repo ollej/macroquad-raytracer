@@ -84,7 +84,7 @@ impl Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Material::new(color(1., 1., 1.), 0.1, 0.9, 0.9, 200.0)
+        Material::new(color(1.0, 1.0, 1.0), 0.1, 0.9, 0.9, 200.0)
     }
 }
 

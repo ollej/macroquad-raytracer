@@ -20,7 +20,7 @@ impl Intersection {
         self.t > 0.
     }
 
-    pub fn prepare_computations(&self, ray: &Ray) -> Result<PreparedComputation, String> {
+    pub fn prepare_computations(&self, ray: &Ray) -> Result<PreparedComputations, String> {
         let point = ray.position(self.t);
         let eyev = -ray.direction;
         let mut normalv = self.object.normal_at(&point)?;
@@ -28,7 +28,7 @@ impl Intersection {
         if inside {
             normalv = -normalv;
         }
-        Ok(PreparedComputation {
+        Ok(PreparedComputations {
             t: self.t,
             object: self.object.clone(),
             point,
@@ -80,7 +80,7 @@ impl Index<usize> for Intersections {
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub struct PreparedComputation {
+pub struct PreparedComputations {
     pub t: Float,
     pub object: Sphere,
     pub point: Point,
@@ -104,7 +104,7 @@ pub fn hit(intersections: &Intersections) -> Option<Intersection> {
 pub fn prepare_computations(
     intersection: &Intersection,
     ray: &Ray,
-) -> Result<PreparedComputation, String> {
+) -> Result<PreparedComputations, String> {
     intersection.prepare_computations(ray)
 }
 
