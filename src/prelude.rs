@@ -1,4 +1,5 @@
 pub use crate::app_options::*;
+pub use crate::camera::*;
 pub use crate::canvas::*;
 pub use crate::color::*;
 pub use crate::float::*;

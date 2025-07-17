@@ -7,6 +7,11 @@ pub fn canvas(width: usize, height: usize) -> Canvas {
     Canvas::new(width, height)
 }
 
+pub fn pixel_at(canvas: &Canvas, x: usize, y: usize) -> Color {
+    canvas.pixel_at(x, y)
+}
+
+#[derive(PartialEq, Debug, Clone)]
 pub struct Canvas {
     pub width: usize,
     pub height: usize,
