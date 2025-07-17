@@ -1,4 +1,6 @@
-use crate::{canvas::*, float::*, matrix::*, ray::*, tuple::*, world::*};
+use crate::{canvas::*, color::*, float::*, matrix::*, ray::*, tuple::*, world::*};
+
+use rayon::prelude::*;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Camera {
@@ -54,13 +56,24 @@ impl Camera {
 
     pub fn render(&self, world: &World) -> Result<Canvas, String> {
         let mut image = canvas(self.hsize, self.vsize);
-        for y in 0..self.vsize {
-            for x in 0..self.hsize {
-                let ray = self.ray_for_pixel(x, y)?;
-                let color = world.color_at(&ray)?;
-                image.write_pixel(x, y, &color);
-            }
+
+        let pixels: Vec<(usize, usize, Color)> = (0..self.vsize)
+            .into_par_iter()
+            .flat_map(|y| {
+                (0..self.hsize).into_par_iter().map(move |x| {
+                    let ray = self.ray_for_pixel(x, y)?;
+                    let color = world.color_at(&ray)?;
+
+                    Ok::<(usize, usize, Color), String>((x, y, color))
+                })
+            })
+            .flatten()
+            .collect();
+
+        for (x, y, color) in pixels {
+            image.write_pixel(x, y, &color);
         }
+
         Ok(image)
     }
 }
