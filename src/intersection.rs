@@ -22,13 +22,19 @@ impl Intersection {
 
     pub fn prepare_computations(&self, ray: &Ray) -> Result<PreparedComputation, String> {
         let point = ray.position(self.t);
-        let normalv = self.object.normal_at(&point)?;
+        let eyev = -ray.direction;
+        let mut normalv = self.object.normal_at(&point)?;
+        let inside = normalv.dot(&eyev) < 0.0;
+        if inside {
+            normalv = -normalv;
+        }
         Ok(PreparedComputation {
             t: self.t,
             object: self.object.clone(),
             point,
-            eyev: -ray.direction,
+            eyev,
             normalv,
+            inside,
         })
     }
 }
@@ -80,6 +86,7 @@ pub struct PreparedComputation {
     pub point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
+    pub inside: bool,
 }
 
 pub fn intersection(t: Float, object: &Sphere) -> Intersection {
@@ -188,7 +195,6 @@ mod test_chapter_7_world_intersections {
     #![allow(non_snake_case)]
 
     use super::*;
-    use crate::{ray::*, tuple::*};
 
     #[test]
     fn precomputing_the_state_of_an_intersection() {
@@ -204,5 +210,27 @@ mod test_chapter_7_world_intersections {
 
         let comps2 = i.prepare_computations(&r).unwrap();
         assert_eq!(comps, comps2);
+    }
+
+    #[test]
+    fn the_hit_when_an_intersection_occurs_on_the_outside() {
+        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = sphere();
+        let i = intersection(4.0, &shape);
+        let comps = prepare_computations(&i, &r).unwrap();
+        assert_eq!(comps.inside, false);
+    }
+
+    #[test]
+    fn the_hit_when_an_intersection_occurs_on_the_inside() {
+        let r = ray(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
+        let shape = sphere();
+        let i = intersection(1.0, &shape);
+        let comps = prepare_computations(&i, &r).unwrap();
+        assert_eq!(comps.point, point(0.0, 0.0, 1.0));
+        assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
+        assert_eq!(comps.inside, true);
+        // normal would have been (0, 0, 1), but is inverted!
+        assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
     }
 }
