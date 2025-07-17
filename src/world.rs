@@ -24,8 +24,8 @@ pub fn color_at(world: &World, ray: &Ray) -> Result<Color, String> {
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct World {
-    objects: Vec<Sphere>,
-    light: Option<Light>,
+    pub objects: Vec<Sphere>,
+    pub light: Option<Light>,
 }
 
 impl Default for World {

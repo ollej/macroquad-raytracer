@@ -136,6 +136,78 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
     Ok(canvas)
 }
 
+fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
+    let mut wall_material = material();
+    wall_material.color = color(1.0, 0.9, 0.9);
+    wall_material.specular = 0.0;
+
+    let floor = Sphere {
+        transform: scaling(10.0, 0.01, 10.0),
+        material: wall_material.clone(),
+    };
+
+    let left_wall = Sphere {
+        transform: translation(0.0, 0.0, 5.0)
+            * rotation_y(-PI / 4.0)
+            * rotation_x(PI / 2.0)
+            * scaling(10.0, 0.01, 10.0),
+        material: wall_material.clone(),
+    };
+
+    let right_wall = Sphere {
+        transform: translation(0.0, 0.0, 5.0)
+            * rotation_y(PI / 4.0)
+            * rotation_x(PI / 2.0)
+            * scaling(10.0, 0.01, 10.0),
+        material: wall_material.clone(),
+    };
+
+    let middle = Sphere {
+        transform: translation(-0.5, 1.0, 0.5),
+        material: Material {
+            color: color(0.1, 1.0, 0.5),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    };
+
+    let right = Sphere {
+        transform: translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        material: Material {
+            color: color(0.5, 1.0, 0.1),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    };
+
+    let left = Sphere {
+        transform: translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+        material: Material {
+            color: color(1.0, 0.8, 0.1),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    };
+
+    let light_source = point_light(point(-10.0, 10.0, -10.0), color(1.0, 1.0, 1.0));
+    let world = World {
+        objects: vec![floor, left_wall, right_wall, middle, left, right],
+        light: Some(light_source),
+    };
+
+    let mut camera = camera(canvas_size, canvas_size / 2, PI / 3.0);
+    camera.transform = view_transform(
+        &point(0.0, 1.5, -5.0),
+        &point(0.0, 1.0, 0.0),
+        &vector(0.0, 1.0, 0.0),
+    );
+
+    camera.render(&world)
+}
+
 #[macroquad::main(window_conf())]
 async fn main() -> Result<(), String> {
     let options = AppOptions::parse();
@@ -146,6 +218,7 @@ async fn main() -> Result<(), String> {
         Image::Circle => generate_circle(options.size)?,
         Image::Sphere => generate_sphere(options.size)?,
         Image::SphereRayon => generate_sphere_rayon(options.size)?,
+        Image::Scene => generate_scene(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
