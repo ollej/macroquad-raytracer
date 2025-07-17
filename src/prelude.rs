@@ -11,3 +11,4 @@ pub use crate::projectile::*;
 pub use crate::ray::*;
 pub use crate::sphere::*;
 pub use crate::tuple::*;
+pub use crate::world::*;

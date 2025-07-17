@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::{color::*, float::*, matrix::*};
+use crate::{float::*, matrix::*};
 
 pub fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
     Tuple::new(x, y, z, w)
