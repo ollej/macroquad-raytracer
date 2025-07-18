@@ -1,5 +1,4 @@
 /target
-canvas.ppm
-canvas.png
-image.ppm
+*.ppm
+*.png
 /output
