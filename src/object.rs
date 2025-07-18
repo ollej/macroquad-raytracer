@@ -40,10 +40,12 @@ impl Object {
         self.material = material.to_owned();
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
-        let transformed_ray = ray.transform(&self.transform.inverse()?);
+    pub fn transformed_ray(&self, ray: &Ray) -> Result<Ray, String> {
+        Ok(ray.transform(&self.transform.inverse()?))
+    }
 
-        if let Some((t1, t2)) = self.shape.intersect(&transformed_ray) {
+    pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
+        if let Some((t1, t2)) = self.shape.intersect(&self.transformed_ray(ray)?) {
             Ok(Intersections::new(vec![
                 Intersection::new(t1, self.to_owned()),
                 Intersection::new(t2, self.to_owned()),
@@ -111,5 +113,26 @@ mod test_chapter_9_shapes {
         m.ambient = 1.;
         s.material = m;
         assert_eq!(s.material, m);
+    }
+
+    #[test]
+    fn intersecting_a_scaled_shape_with_a_ray() {
+        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let mut s = test_shape();
+        s.set_transform(&scaling(2.0, 2.0, 2.0));
+        s.intersect(&r).unwrap();
+        let transformed_ray = s.transformed_ray(&r).unwrap();
+        assert_eq!(transformed_ray.origin, point(0.0, 0.0, -2.5));
+        assert_eq!(transformed_ray.direction, vector(0.0, 0.0, 0.5));
+    }
+
+    fn intersecting_a_translated_shape_with_a_ray() {
+        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let mut s = test_shape();
+        s.set_transform(&translation(5.0, 0.0, 0.0));
+        s.intersect(&r).unwrap();
+        let transformed_ray = s.transformed_ray(&r).unwrap();
+        assert_eq!(transformed_ray.origin, point(-5.0, 0.0, -5.0));
+        assert_eq!(transformed_ray.direction, vector(0.0, 0.0, 1.0));
     }
 }

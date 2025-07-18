@@ -1,4 +1,4 @@
-use crate::{float::*, ray::*, sphere::*, tuple::*};
+use crate::{float::*, ray::*, sphere::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Shape {

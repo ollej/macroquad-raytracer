@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 use crate::{float::*, matrix::*, tuple::*};
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Ray {
     pub origin: Point,
     pub direction: Vector,

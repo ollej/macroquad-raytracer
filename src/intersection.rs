@@ -78,7 +78,7 @@ impl Index<usize> for Intersections {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct PreparedComputations {
     pub t: Float,
     pub object: Object,
