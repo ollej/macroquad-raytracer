@@ -22,6 +22,10 @@ pub fn color_at(world: &World, ray: &Ray) -> Result<Color, String> {
     world.color_at(ray)
 }
 
+pub fn is_shadowed(world: &World, point: &Point) -> bool {
+    world.is_shadowed(point)
+}
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct World {
     pub objects: Vec<Sphere>,
@@ -88,6 +92,23 @@ impl World {
                 Ok(self.shade_hit(&prepared_computations))
             }
             None => Ok(BLACK),
+        }
+    }
+
+    pub fn is_shadowed(&self, point: &Point) -> bool {
+        if let Some(light) = &self.light {
+            let v = light.position - point;
+            let distance = v.magnitude();
+            let direction = v.normalize();
+            let r = ray(point.clone(), direction);
+            self.intersect(&r)
+                .ok()
+                .map(|intersections| intersections.hit())
+                .flatten()
+                .map(|hit| hit.t < distance)
+                .unwrap_or(false)
+        } else {
+            false
         }
     }
 }
@@ -188,5 +209,38 @@ mod test_chapter_7_world {
         let r = ray(point(0.0, 0.0, 0.75), vector(0.0, 0.0, -1.0));
         let c = w.color_at(&r).unwrap();
         assert_eq!(c, inner.material.color);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_8_shadows {
+    use super::*;
+
+    #[test]
+    fn there_is_no_shadow_when_nothing_is_collinear_with_point_and_light() {
+        let w = default_world();
+        let p = point(0.0, 10.0, 0.0);
+        assert_eq!(is_shadowed(&w, &p), false);
+    }
+
+    #[test]
+    fn the_shadow_when_an_object_is_between_the_point_and_the_light() {
+        let w = default_world();
+        let p = point(10.0, -10.0, 10.0);
+        assert_eq!(is_shadowed(&w, &p), true);
+    }
+
+    #[test]
+    fn there_is_no_shadow_when_an_object_is_behind_the_light() {
+        let w = default_world();
+        let p = point(-20.0, 20.0, -20.0);
+        assert_eq!(is_shadowed(&w, &p), false);
+    }
+
+    #[test]
+    fn there_is_no_shadow_when_an_object_is_behind_the_point() {
+        let w = default_world();
+        let p = point(-2.0, 2.0, -2.0);
+        assert_eq!(is_shadowed(&w, &p), false);
     }
 }
