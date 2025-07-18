@@ -72,7 +72,7 @@ pub type MatrixIndex = (usize, usize);
 pub struct MatrixRow<const LENGTH: usize>([Float; LENGTH]);
 
 impl IntoIterator for MatrixRow<2> {
-    type Item = f32;
+    type Item = Float;
     type IntoIter = std::array::IntoIter<Float, 2>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -81,7 +81,7 @@ impl IntoIterator for MatrixRow<2> {
 }
 
 impl IntoIterator for MatrixRow<3> {
-    type Item = f32;
+    type Item = Float;
     type IntoIter = std::array::IntoIter<Float, 3>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -90,7 +90,7 @@ impl IntoIterator for MatrixRow<3> {
 }
 
 impl IntoIterator for MatrixRow<4> {
-    type Item = f32;
+    type Item = Float;
     type IntoIter = std::array::IntoIter<Float, 4>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -972,7 +972,7 @@ mod test_chapter_4_transformations {
 
     use super::*;
 
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
     #[test]
     fn multiplying_by_a_translation_matrix() {
@@ -1032,7 +1032,7 @@ mod test_chapter_4_transformations {
         let full_quarter = rotation_x(PI / 2.0);
         assert_eq!(
             half_quarter * p,
-            point(0.0, 2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0)
+            point(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
         );
         assert_eq!(full_quarter * p, point(0.0, 0.0, 1.0));
     }
@@ -1044,7 +1044,7 @@ mod test_chapter_4_transformations {
         let inv = half_quarter.inverse().unwrap();
         assert_eq!(
             inv * p,
-            point(0.0, 2.0_f32.sqrt() / 2.0, -2.0_f32.sqrt() / 2.0)
+            point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0)
         );
     }
 
@@ -1055,7 +1055,7 @@ mod test_chapter_4_transformations {
         let full_quarter = rotation_y(PI / 2.0);
         assert_eq!(
             half_quarter * p,
-            point(2.0_f32.sqrt() / 2.0, 0.0, 2.0_f32.sqrt() / 2.0)
+            point(2.0_f64.sqrt() / 2.0, 0.0, 2.0_f64.sqrt() / 2.0)
         );
         assert_eq!(full_quarter * p, point(1.0, 0.0, 0.0));
     }
@@ -1067,7 +1067,7 @@ mod test_chapter_4_transformations {
         let full_quarter = rotation_z(PI / 2.0);
         assert_eq!(
             half_quarter * p,
-            point(-2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0, 0.0)
+            point(-2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0)
         );
         assert_eq!(full_quarter * p, point(-1.0, 0.0, 0.0));
     }
@@ -1154,6 +1154,7 @@ mod test_chapter_7_view_transform {
     #![allow(non_snake_case)]
 
     use super::*;
+
     #[test]
     fn the_transformation_matrix_for_the_default_orientation() {
         let from = point(0.0, 0.0, 0.0);

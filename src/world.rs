@@ -72,13 +72,15 @@ impl World {
     }
 
     pub fn shade_hit(&self, prepared_computations: &PreparedComputations) -> Color {
+        let shadowed = self.is_shadowed(&prepared_computations.over_point);
+
         match &self.light {
             Some(light) => prepared_computations.object.material.lighting(
                 light,
-                &prepared_computations.point,
+                &prepared_computations.over_point,
                 &prepared_computations.eyev,
                 &prepared_computations.normalv,
-                false,
+                shadowed,
             ),
             None => BLACK,
         }
@@ -242,5 +244,20 @@ mod test_chapter_8_shadows {
         let w = default_world();
         let p = point(-2.0, 2.0, -2.0);
         assert_eq!(is_shadowed(&w, &p), false);
+    }
+
+    #[test]
+    fn shade_hit_is_given_an_intersection_in_shadow() {
+        let mut w = world();
+        w.set_light(&point_light(point(0.0, 0.0, -10.0), color(1.0, 1.0, 1.0)));
+        let s1 = sphere();
+        w.objects.push(s1);
+        let s2 = Sphere::new(translation(0.0, 0.0, 10.0));
+        w.objects.push(s2);
+        let r = ray(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
+        let i = intersection(4.0, &s2);
+        let comps = prepare_computations(&i, &r).unwrap();
+        let c = w.shade_hit(&comps);
+        assert_eq!(c, color(0.1, 0.1, 0.1));
     }
 }

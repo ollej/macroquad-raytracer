@@ -173,7 +173,7 @@ mod test_chapter_6_normals {
     #![allow(non_snake_case)]
 
     use super::*;
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
@@ -200,16 +200,16 @@ mod test_chapter_6_normals {
     fn the_normal_on_a_sphere_at_a_nonaxial_point() {
         let s = sphere();
         let n = s.normal_at(&point(
-            3.0_f32.sqrt() / 3.0,
-            3.0_f32.sqrt() / 3.0,
-            3.0_f32.sqrt() / 3.0,
+            3.0_f64.sqrt() / 3.0,
+            3.0_f64.sqrt() / 3.0,
+            3.0_f64.sqrt() / 3.0,
         ));
         assert_eq!(
             n,
             Ok(vector(
-                3.0_f32.sqrt() / 3.0,
-                3.0_f32.sqrt() / 3.0,
-                3.0_f32.sqrt() / 3.0
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0
             ))
         );
     }
@@ -219,9 +219,9 @@ mod test_chapter_6_normals {
         let s = sphere();
         let n = s
             .normal_at(&point(
-                3.0_f32.sqrt() / 3.0,
-                3.0_f32.sqrt() / 3.0,
-                3.0_f32.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
             ))
             .unwrap();
         assert_eq!(n, n.normalize());
@@ -240,7 +240,7 @@ mod test_chapter_6_normals {
         let mut s = sphere();
         let m = scaling(1., 0.5, 1.) * rotation_z(PI / 5.);
         s.set_transform(&m);
-        let n = s.normal_at(&point(0., 2.0_f32.sqrt() / 2., -2.0_f32.sqrt() / 2.));
+        let n = s.normal_at(&point(0., 2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.));
         assert_eq!(n, Ok(vector(0., 0.97014, -0.24254)));
     }
 }

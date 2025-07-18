@@ -77,9 +77,9 @@ impl Tuple {
 
     pub fn as_color(&self) -> macroquad::color::Color {
         macroquad::color::Color {
-            r: self.x,
-            g: self.y,
-            b: self.z,
+            r: self.x as f32,
+            g: self.y as f32,
+            b: self.z as f32,
             a: 1.0,
         }
     }
@@ -331,13 +331,13 @@ mod test_chapter_1_maths {
     #[test]
     fn computing_the_magnitude_of_vector_1_2_3() {
         let v = vector(1.0, 2.0, 3.0);
-        assert_eq!(v.magnitude(), 14.0_f32.sqrt());
+        assert_eq!(v.magnitude(), 14.0_f64.sqrt());
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_1_2_3_with_negative_values() {
         let v = vector(-1.0, -2.0, -3.0);
-        assert_eq!(v.magnitude(), 14.0_f32.sqrt());
+        assert_eq!(v.magnitude(), 14.0_f64.sqrt());
     }
 
     #[test]
@@ -390,7 +390,7 @@ mod test_chapter_6_vector_reflection {
     #[test]
     fn reflecting_a_vector_off_a_slanting_surface() {
         let v = vector(0., -1., 0.);
-        let n = vector(2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0, 0.);
+        let n = vector(2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.);
         let r = v.reflect(&n);
         assert_eq!(r, vector(1., 0., 0.));
     }

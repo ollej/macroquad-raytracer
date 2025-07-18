@@ -91,7 +91,7 @@ pub fn render(camera: &Camera, world: &World) -> Result<Canvas, String> {
 mod test_chapter_7_camera {
     use super::*;
 
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
     #[test]
     fn constructing_a_camera() {
@@ -111,13 +111,13 @@ mod test_chapter_7_camera {
     #[test]
     fn the_pixel_size_for_a_horizontal_canvas() {
         let c = camera(200, 125, PI / 2.0);
-        assert_eq!(c.pixel_size, 0.01);
+        assert_eq_float!(c.pixel_size, 0.01);
     }
 
     #[test]
     fn the_pixel_size_for_a_vertical_canvas() {
         let c = camera(125, 200, PI / 2.0);
-        assert_eq!(c.pixel_size, 0.01);
+        assert_eq_float!(c.pixel_size, 0.01);
     }
 
     #[test]
@@ -147,7 +147,7 @@ mod test_chapter_7_camera {
         assert_eq!(r.origin, point(0.0, 2.0, -5.0));
         assert_eq!(
             r.direction,
-            vector(2.0_f32.sqrt() / 2.0, 0.0, -2.0_f32.sqrt() / 2.0)
+            vector(2.0_f64.sqrt() / 2.0, 0.0, -2.0_f64.sqrt() / 2.0)
         );
     }
 

@@ -28,10 +28,12 @@ impl Intersection {
         if inside {
             normalv = -normalv;
         }
+        let over_point = point + normalv * EPSILON;
         Ok(PreparedComputations {
             t: self.t,
-            object: self.object.clone(),
+            object: self.object,
             point,
+            over_point,
             eyev,
             normalv,
             inside,
@@ -84,6 +86,7 @@ pub struct PreparedComputations {
     pub t: Float,
     pub object: Sphere,
     pub point: Point,
+    pub over_point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
     pub inside: bool,
@@ -232,5 +235,24 @@ mod test_chapter_7_world_intersections {
         assert_eq!(comps.inside, true);
         // normal would have been (0, 0, 1), but is inverted!
         assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_8_shadows {
+    #![allow(non_snake_case)]
+
+    use super::*;
+
+    use crate::matrix::*;
+
+    #[test]
+    fn the_hit_should_offset_the_point() {
+        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = Sphere::new(translation(0.0, 0.0, 1.0));
+        let i = intersection(5.0, &shape);
+        let comps = prepare_computations(&i, &r).unwrap();
+        assert!(comps.over_point.z < -EPSILON / 2.0);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }

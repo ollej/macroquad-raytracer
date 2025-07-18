@@ -2,11 +2,11 @@ use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
 use rayon::prelude::*;
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 use std::time::Instant;
 
 fn generate_clock(canvas_size: usize) -> Result<Canvas, String> {
-    let half_width = canvas_size as f32 / 2.0;
+    let half_width = canvas_size as Float / 2.0;
     let mut canvas = canvas((half_width * 2.0) as usize, (half_width * 2.0) as usize);
     let origin = point(0.0, 0.0, 0.0);
     let twelve = point(0.0, 0.0, 1.0);
@@ -14,7 +14,7 @@ fn generate_clock(canvas_size: usize) -> Result<Canvas, String> {
     let radius = half_width * 2.0 * (3.0 / 8.0);
 
     for h in 0..12 {
-        let r = rotation_y(h as f32 * (PI / 6.0));
+        let r = rotation_y(h as Float * (PI / 6.0));
         let hour = r * twelve;
         let x = ((hour.x + origin.x) * radius + half_width).round() as usize;
         let y = ((hour.z + origin.z) * radius + half_width).round() as usize;
@@ -29,16 +29,16 @@ fn generate_circle(canvas_size: usize) -> Result<Canvas, String> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let pixel_size = wall_size / canvas_size as f32;
+    let pixel_size = wall_size / canvas_size as Float;
     let half = wall_size / 2.;
     let mut canvas = canvas(canvas_size, canvas_size);
     let color = color(1.0, 0.0, 0.0);
     let shape = sphere();
 
     for y in 0..canvas_size {
-        let world_y = half - pixel_size * y as f32;
+        let world_y = half - pixel_size * y as Float;
         for x in 0..canvas_size {
-            let world_x = -half + pixel_size * x as f32;
+            let world_x = -half + pixel_size * x as Float;
             let position = point(world_x, world_y, wall_z);
             let r = ray(ray_origin, (position - ray_origin).normalize());
             let xs = shape.intersect(&r)?;
@@ -55,7 +55,7 @@ fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let pixel_size = wall_size / canvas_size as f32;
+    let pixel_size = wall_size / canvas_size as Float;
     let half = wall_size / 2.;
     let mut canvas = canvas(canvas_size, canvas_size);
 
@@ -67,9 +67,9 @@ fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
     let light = point_light(light_position, light_color);
 
     for y in 0..canvas_size {
-        let world_y = half - pixel_size * y as f32;
+        let world_y = half - pixel_size * y as Float;
         for x in 0..canvas_size {
-            let world_x = -half + pixel_size * x as f32;
+            let world_x = -half + pixel_size * x as Float;
             let position = point(world_x, world_y, wall_z);
             let r = ray(ray_origin, (position - ray_origin).normalize());
             let xs = sphere.intersect(&r)?;
@@ -94,7 +94,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let pixel_size = wall_size / canvas_size as f32;
+    let pixel_size = wall_size / canvas_size as Float;
     let half = wall_size / 2.;
     let mut canvas = canvas(canvas_size, canvas_size);
 
@@ -108,10 +108,10 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
     let pixels: Vec<(usize, usize, Color)> = (0..canvas_size)
         .into_par_iter()
         .flat_map(|y| {
-            let world_y = half - pixel_size * y as f32;
+            let world_y = half - pixel_size * y as Float;
             let light = light.clone();
             (0..canvas_size).into_par_iter().map(move |x| {
-                let world_x = -half + pixel_size * x as f32;
+                let world_x = -half + pixel_size * x as Float;
                 let position = point(world_x, world_y, wall_z);
                 let r = ray(ray_origin, (position - ray_origin).normalize());
                 let xs = sphere.intersect(&r)?;
