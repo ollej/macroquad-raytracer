@@ -55,14 +55,14 @@ impl Object {
     }
 
     pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
-        if let Some((t1, t2)) = self.shape.intersect(&self.transformed_ray(ray)?) {
-            Ok(Intersections::new(vec![
-                Intersection::new(t1, self.to_owned()),
-                Intersection::new(t2, self.to_owned()),
-            ]))
-        } else {
-            Ok(Intersections::empty())
-        }
+        let intersections = self.shape.intersect(&self.transformed_ray(ray)?);
+
+        Ok(Intersections::new(
+            intersections
+                .iter()
+                .map(|t| Intersection::new(*t, self.to_owned()))
+                .collect(),
+        ))
     }
 
     pub fn normal_at(&self, p: &Point) -> Result<Vector, String> {

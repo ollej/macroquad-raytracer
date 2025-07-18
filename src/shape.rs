@@ -14,7 +14,7 @@ impl Shape {
         }
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Option<(Float, Float)> {
+    pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
         match self {
             Shape::Sphere(sphere) => sphere.intersect(ray),
             Shape::Plane(plane) => plane.intersect(ray),

@@ -4,7 +4,7 @@ use crate::{float::*, intersection::*, object::*, ray::*, tuple::*};
 pub struct Sphere {}
 
 impl Sphere {
-    pub fn intersect(&self, ray: &Ray) -> Option<(Float, Float)> {
+    pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
         let sphere_to_ray = ray.origin - point(0., 0., 0.);
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.direction.dot(&sphere_to_ray);
@@ -12,13 +12,13 @@ impl Sphere {
         let discriminant = b * b - 4. * a * c;
 
         if discriminant < 0. {
-            return None;
+            return vec![];
         }
 
         let t1 = (-b - discriminant.sqrt()) / (2. * a);
         let t2 = (-b + discriminant.sqrt()) / (2. * a);
 
-        Some((t1, t2))
+        vec![t1, t2]
     }
 
     pub fn normal_at(&self, p: &Point) -> Point {
