@@ -221,6 +221,10 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
     };
 
     let floor = Object::new_plane(IDENTITY_MATRIX, floor_material);
+    let wall = Object::new_plane(
+        translation(0.0, 0.0, 2.5) * rotation_x(PI / 2.0),
+        floor_material,
+    );
 
     let middle = Object::new_sphere(
         translation(-0.5, 1.0, 0.5),
@@ -254,7 +258,7 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
 
     let light_source = point_light(point(-10.0, 10.0, -10.0), color(1.0, 1.0, 1.0));
     let world = World {
-        objects: vec![floor, middle, left, right],
+        objects: vec![floor, wall, middle, left, right],
         light: Some(light_source),
     };
 
