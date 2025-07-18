@@ -149,56 +149,53 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
         ..Default::default()
     };
 
-    let floor = Sphere {
-        transform: scaling(10.0, 0.01, 10.0),
-        material: wall_material,
-    };
+    let floor = Object::new_sphere(scaling(10.0, 0.01, 10.0), wall_material);
 
-    let left_wall = Sphere {
-        transform: translation(0.0, 0.0, 5.0)
+    let left_wall = Object::new_sphere(
+        translation(0.0, 0.0, 5.0)
             * rotation_y(-PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(10.0, 0.01, 10.0),
-        material: wall_material,
-    };
+        wall_material,
+    );
 
-    let right_wall = Sphere {
-        transform: translation(0.0, 0.0, 5.0)
+    let right_wall = Object::new_sphere(
+        translation(0.0, 0.0, 5.0)
             * rotation_y(PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(10.0, 0.01, 10.0),
-        material: wall_material,
-    };
+        wall_material,
+    );
 
-    let middle = Sphere {
-        transform: translation(-0.5, 1.0, 0.5),
-        material: Material {
+    let middle = Object::new_sphere(
+        translation(-0.5, 1.0, 0.5),
+        Material {
             color: color(0.1, 1.0, 0.5),
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
         },
-    };
+    );
 
-    let right = Sphere {
-        transform: translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        material: Material {
+    let right = Object::new_sphere(
+        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        Material {
             color: color(0.5, 1.0, 0.1),
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
         },
-    };
+    );
 
-    let left = Sphere {
-        transform: translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
-        material: Material {
+    let left = Object::new_sphere(
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+        Material {
             color: color(1.0, 0.8, 0.1),
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
         },
-    };
+    );
 
     let light_source = point_light(point(-10.0, 10.0, -10.0), color(1.0, 1.0, 1.0));
     let world = World {

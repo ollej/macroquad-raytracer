@@ -1,75 +1,37 @@
-use crate::{intersection::*, material::*, matrix::*, ray::*, tuple::*};
+use crate::{float::*, intersection::*, object::*, ray::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub struct Sphere {
-    pub transform: Matrix,
-    pub material: Material,
-}
+pub struct Sphere {}
 
 impl Sphere {
-    pub fn empty() -> Self {
-        Sphere {
-            transform: IDENTITY_MATRIX,
-            material: Material::default(),
-        }
-    }
-
-    pub fn new(matrix: Matrix) -> Self {
-        Sphere {
-            transform: matrix,
-            material: Material::default(),
-        }
-    }
-
-    pub fn set_transform(&mut self, matrix: &Matrix) {
-        self.transform = matrix.to_owned();
-    }
-
-    pub fn set_material(&mut self, material: &Material) {
-        self.material = material.to_owned();
-    }
-
-    pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
-        let ray2 = ray.transform(&self.transform.inverse()?);
-
-        let sphere_to_ray = ray2.origin - point(0., 0., 0.);
-        let a = ray2.direction.dot(&ray2.direction);
-        let b = 2. * ray2.direction.dot(&sphere_to_ray);
+    pub fn intersect(&self, ray: &Ray) -> Option<(Float, Float)> {
+        let sphere_to_ray = ray.origin - point(0., 0., 0.);
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2. * ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.;
         let discriminant = b * b - 4. * a * c;
 
         if discriminant < 0. {
-            return Ok(Intersections::empty());
+            return None;
         }
 
         let t1 = (-b - discriminant.sqrt()) / (2. * a);
         let t2 = (-b + discriminant.sqrt()) / (2. * a);
 
-        Ok(Intersections::new(vec![
-            Intersection::new(t1, self),
-            Intersection::new(t2, self),
-        ]))
-    }
-
-    pub fn normal_at(&self, p: &Point) -> Result<Vector, String> {
-        let object_point = self.transform.inverse()? * p;
-        let object_normal = object_point - point(0., 0., 0.);
-        let mut world_normal = self.transform.inverse()?.transpose() * object_normal;
-        world_normal.w = 0.;
-        Ok(world_normal.normalize())
+        Some((t1, t2))
     }
 }
 
-pub fn sphere() -> Sphere {
-    Sphere::empty()
+pub fn sphere() -> Object {
+    Object::empty()
 }
 
-pub fn intersect(sphere: &Sphere, ray: &Ray) -> Result<Intersections, String> {
-    sphere.intersect(ray)
+pub fn intersect(object: &Object, ray: &Ray) -> Result<Intersections, String> {
+    object.intersect(ray)
 }
 
-pub fn normal_at(sphere: &Sphere, p: &Point) -> Result<Vector, String> {
-    sphere.normal_at(p)
+pub fn normal_at(object: &Object, p: &Point) -> Result<Vector, String> {
+    object.normal_at(p)
 }
 
 #[cfg(test)]
@@ -78,7 +40,7 @@ mod test_chapter_5_intersections {
 
     use super::*;
 
-    use crate::float::*;
+    use crate::{float::*, matrix::*};
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {
@@ -136,7 +98,7 @@ mod test_chapter_5_intersections {
     #[test]
     fn a_spheres_default_transformation() {
         let s = sphere();
-        assert_eq!(s.transform, identity_matrix());
+        assert_eq!(s.transform, IDENTITY_MATRIX);
     }
 
     #[test]
@@ -173,6 +135,7 @@ mod test_chapter_6_normals {
     #![allow(non_snake_case)]
 
     use super::*;
+    use crate::matrix::*;
     use std::f64::consts::PI;
 
     #[test]
@@ -250,6 +213,8 @@ mod test_chapter_6_sphere_material {
     #![allow(non_snake_case)]
 
     use super::*;
+
+    use crate::material::*;
 
     #[test]
     fn a_sphere_has_a_default_material() {

@@ -1,19 +1,16 @@
 use std::{cmp::Ordering, ops::Index};
 
-use crate::{float::*, ray::*, sphere::*, tuple::*};
+use crate::{float::*, object::*, ray::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Intersection {
     pub t: Float,
-    pub object: Sphere,
+    pub object: Object,
 }
 
 impl Intersection {
-    pub fn new(t: Float, object: &Sphere) -> Self {
-        Intersection {
-            t,
-            object: object.to_owned(),
-        }
+    pub fn new(t: Float, object: Object) -> Self {
+        Intersection { t, object }
     }
 
     pub fn positive(&self) -> bool {
@@ -84,7 +81,7 @@ impl Index<usize> for Intersections {
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct PreparedComputations {
     pub t: Float,
-    pub object: Sphere,
+    pub object: Object,
     pub point: Point,
     pub over_point: Point,
     pub eyev: Vector,
@@ -92,8 +89,8 @@ pub struct PreparedComputations {
     pub inside: bool,
 }
 
-pub fn intersection(t: Float, object: &Sphere) -> Intersection {
-    Intersection::new(t, object)
+pub fn intersection(t: Float, object: &Object) -> Intersection {
+    Intersection::new(t, object.to_owned())
 }
 
 pub fn intersections(intersections: Vec<Intersection>) -> Intersections {
@@ -116,6 +113,8 @@ mod test_chapter_5_intersections {
     #![allow(non_snake_case)]
 
     use super::*;
+
+    use crate::sphere::*;
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {
@@ -199,6 +198,8 @@ mod test_chapter_7_world_intersections {
 
     use super::*;
 
+    use crate::sphere::*;
+
     #[test]
     fn precomputing_the_state_of_an_intersection() {
         let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
@@ -249,7 +250,7 @@ mod test_chapter_8_shadows {
     #[test]
     fn the_hit_should_offset_the_point() {
         let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        let shape = Sphere::new(translation(0.0, 0.0, 1.0));
+        let shape = Object::new(translation(0.0, 0.0, 1.0));
         let i = intersection(5.0, &shape);
         let comps = prepare_computations(&i, &r).unwrap();
         assert!(comps.over_point.z < -EPSILON / 2.0);

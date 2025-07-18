@@ -1,5 +1,6 @@
 use crate::{
-    color::*, intersection::*, light::*, material::*, matrix::*, ray::*, sphere::*, tuple::*,
+    color::*, intersection::*, light::*, material::*, matrix::*, object::*, ray::*, sphere::*,
+    tuple::*,
 };
 
 pub fn world() -> World {
@@ -28,7 +29,7 @@ pub fn is_shadowed(world: &World, point: &Point) -> bool {
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Object>,
     pub light: Option<Light>,
 }
 
@@ -58,7 +59,7 @@ impl World {
         self.light = Some(light.to_owned());
     }
 
-    pub fn contains(&self, object: &Sphere) -> bool {
+    pub fn contains(&self, object: &Object) -> bool {
         self.objects.contains(object)
     }
 
@@ -252,7 +253,7 @@ mod test_chapter_8_shadows {
         w.set_light(&point_light(point(0.0, 0.0, -10.0), color(1.0, 1.0, 1.0)));
         let s1 = sphere();
         w.objects.push(s1);
-        let s2 = Sphere::new(translation(0.0, 0.0, 10.0));
+        let s2 = Object::new_sphere(translation(0.0, 0.0, 10.0), Material::default());
         w.objects.push(s2);
         let r = ray(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
         let i = intersection(4.0, &s2);
