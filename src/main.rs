@@ -137,13 +137,15 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
 }
 
 fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
-    let mut wall_material = material();
-    wall_material.color = color(1.0, 0.9, 0.9);
-    wall_material.specular = 0.0;
+    let wall_material = Material {
+        color: color(1.0, 0.9, 0.9),
+        specular: 0.0,
+        ..Default::default()
+    };
 
     let floor = Sphere {
         transform: scaling(10.0, 0.01, 10.0),
-        material: wall_material.clone(),
+        material: wall_material,
     };
 
     let left_wall = Sphere {
@@ -151,7 +153,7 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
             * rotation_y(-PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(10.0, 0.01, 10.0),
-        material: wall_material.clone(),
+        material: wall_material,
     };
 
     let right_wall = Sphere {
@@ -159,7 +161,7 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
             * rotation_y(PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(10.0, 0.01, 10.0),
-        material: wall_material.clone(),
+        material: wall_material,
     };
 
     let middle = Sphere {

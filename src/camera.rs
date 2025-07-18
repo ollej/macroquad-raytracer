@@ -57,22 +57,19 @@ impl Camera {
     pub fn render(&self, world: &World) -> Result<Canvas, String> {
         let mut image = canvas(self.hsize, self.vsize);
 
-        let pixels: Vec<(usize, usize, Color)> = (0..self.vsize)
+        (0..self.vsize)
             .into_par_iter()
             .flat_map(|y| {
                 (0..self.hsize).into_par_iter().map(move |x| {
                     let ray = self.ray_for_pixel(x, y)?;
                     let color = world.color_at(&ray)?;
 
-                    Ok::<(usize, usize, Color), String>((x, y, color))
+                    Ok((x, y, color))
                 })
             })
-            .flatten()
-            .collect();
-
-        for (x, y, color) in pixels {
-            image.write_pixel(x, y, &color);
-        }
+            .collect::<Result<Vec<(usize, usize, Color)>, String>>()?
+            .iter()
+            .for_each(|(x, y, color)| image.write_pixel(*x, *y, color));
 
         Ok(image)
     }
@@ -93,8 +90,6 @@ pub fn render(camera: &Camera, world: &World) -> Result<Canvas, String> {
 #[cfg(test)]
 mod test_chapter_7_camera {
     use super::*;
-
-    use crate::color::*;
 
     use std::f32::consts::PI;
 
