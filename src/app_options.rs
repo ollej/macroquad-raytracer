@@ -28,6 +28,7 @@ pub enum Image {
     Sphere,
     SphereRayon,
     Scene,
+    ScenePlane,
 }
 
 impl clap::ValueEnum for Image {
@@ -38,6 +39,7 @@ impl clap::ValueEnum for Image {
             Self::Sphere,
             Self::SphereRayon,
             Self::Scene,
+            Self::ScenePlane,
         ]
     }
 
@@ -48,6 +50,7 @@ impl clap::ValueEnum for Image {
             Self::Sphere => Some(clap::builder::PossibleValue::new("sphere")),
             Self::SphereRayon => Some(clap::builder::PossibleValue::new("sphere-rayon")),
             Self::Scene => Some(clap::builder::PossibleValue::new("scene")),
+            Self::ScenePlane => Some(clap::builder::PossibleValue::new("scene-plane")),
         }
     }
 }
@@ -60,7 +63,7 @@ pub struct AppOptions {
     pub directory: PathBuf,
 
     /// Generate this image
-    #[arg(short, long, default_value = "scene")]
+    #[arg(short, long, default_value = "scene-plane")]
     pub image: Image,
 
     /// Save output as an image of this type

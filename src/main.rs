@@ -213,6 +213,61 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
+fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
+    let floor_material = Material {
+        color: color(1.0, 0.9, 0.9),
+        specular: 0.0,
+        ..Default::default()
+    };
+
+    let floor = Object::new_plane(IDENTITY_MATRIX, floor_material);
+
+    let middle = Object::new_sphere(
+        translation(-0.5, 1.0, 0.5),
+        Material {
+            color: color(0.1, 1.0, 0.5),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    );
+
+    let right = Object::new_sphere(
+        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        Material {
+            color: color(0.5, 1.0, 0.1),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    );
+
+    let left = Object::new_sphere(
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+        Material {
+            color: color(1.0, 0.8, 0.1),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    );
+
+    let light_source = point_light(point(-10.0, 10.0, -10.0), color(1.0, 1.0, 1.0));
+    let world = World {
+        objects: vec![floor, middle, left, right],
+        light: Some(light_source),
+    };
+
+    let mut camera = camera(canvas_size, canvas_size / 2, PI / 3.0);
+    camera.transform = view_transform(
+        &point(0.0, 1.5, -5.0),
+        &point(0.0, 1.0, 0.0),
+        &vector(0.0, 1.0, 0.0),
+    );
+
+    camera.render(&world)
+}
+
 #[macroquad::main(window_conf())]
 async fn main() -> Result<(), String> {
     let options = AppOptions::parse();
@@ -224,6 +279,7 @@ async fn main() -> Result<(), String> {
         Image::Sphere => generate_sphere(options.size)?,
         Image::SphereRayon => generate_sphere_rayon(options.size)?,
         Image::Scene => generate_scene(options.size)?,
+        Image::ScenePlane => generate_scene_plane(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
