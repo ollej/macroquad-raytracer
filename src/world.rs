@@ -74,6 +74,7 @@ impl World {
                 &prepared_computations.point,
                 &prepared_computations.eyev,
                 &prepared_computations.normalv,
+                false,
             ),
             None => BLACK,
         }
