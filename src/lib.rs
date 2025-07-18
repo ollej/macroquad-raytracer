@@ -9,6 +9,7 @@ pub mod macroquad;
 pub mod material;
 pub mod matrix;
 pub mod object;
+pub mod plane;
 pub mod prelude;
 pub mod projectile;
 pub mod ray;

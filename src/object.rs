@@ -1,4 +1,6 @@
-use crate::{intersection::*, material::*, matrix::*, ray::*, shape::*, sphere::*, tuple::*};
+use crate::{
+    intersection::*, material::*, matrix::*, plane::*, ray::*, shape::*, sphere::*, tuple::*,
+};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Object {
@@ -29,6 +31,14 @@ impl Object {
             transform,
             material,
             shape: Shape::Sphere(Sphere {}),
+        }
+    }
+
+    pub fn new_plane(transform: Matrix, material: Material) -> Self {
+        Self {
+            transform,
+            material,
+            shape: Shape::Plane(Plane {}),
         }
     }
 
