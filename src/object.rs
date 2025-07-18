@@ -57,10 +57,10 @@ impl Object {
 
     pub fn normal_at(&self, p: &Point) -> Result<Vector, String> {
         let transform_inverse = self.transform.inverse()?;
-        let object_point = transform_inverse * p;
-        let object_normal = object_point - point(0., 0., 0.);
-        let mut world_normal = transform_inverse.transpose() * object_normal;
-        world_normal.w = 0.;
+        let local_point = transform_inverse * p;
+        let local_normal: Vector = self.shape.normal_at(&local_point);
+        let mut world_normal: Vector = transform_inverse.transpose() * local_normal;
+        world_normal.w = 0.0;
         Ok(world_normal.normalize())
     }
 }
@@ -80,6 +80,7 @@ mod test_chapter_9_shapes {
     #![allow(non_snake_case)]
 
     use super::*;
+    use std::f64::consts::PI;
 
     fn test_shape() -> Object {
         Object::empty()
@@ -126,6 +127,7 @@ mod test_chapter_9_shapes {
         assert_eq!(transformed_ray.direction, vector(0.0, 0.0, 0.5));
     }
 
+    #[test]
     fn intersecting_a_translated_shape_with_a_ray() {
         let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
         let mut s = test_shape();
@@ -134,5 +136,24 @@ mod test_chapter_9_shapes {
         let transformed_ray = s.transformed_ray(&r).unwrap();
         assert_eq!(transformed_ray.origin, point(-5.0, 0.0, -5.0));
         assert_eq!(transformed_ray.direction, vector(0.0, 0.0, 1.0));
+    }
+
+    #[test]
+    fn computing_the_normal_on_a_translated_shape() {
+        let mut s = test_shape();
+        s.set_transform(&translation(0.0, 1.0, 0.0));
+        let n = s.normal_at(&point(0.0, 1.70711, -0.70711)).unwrap();
+        assert_eq!(n, vector(0.0, 0.70711, -0.70711));
+    }
+
+    #[test]
+    fn computing_the_normal_on_a_transformed_shape() {
+        let mut s = test_shape();
+        let m = scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0);
+        s.set_transform(&m);
+        let n = s
+            .normal_at(&point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0))
+            .unwrap();
+        assert_eq!(n, vector(0.0, 0.97014, -0.24254));
     }
 }

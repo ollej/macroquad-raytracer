@@ -20,6 +20,10 @@ impl Sphere {
 
         Some((t1, t2))
     }
+
+    pub fn normal_at(&self, p: &Point) -> Point {
+        p - &point(0., 0., 0.)
+    }
 }
 
 pub fn sphere() -> Object {
@@ -40,7 +44,7 @@ mod test_chapter_5_intersections {
 
     use super::*;
 
-    use crate::{float::*, matrix::*};
+    use crate::matrix::*;
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {
