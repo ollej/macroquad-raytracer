@@ -121,6 +121,14 @@ impl World {
             false
         }
     }
+
+    fn reflected_color(&self, prepared_computations: &PreparedComputations) -> Color {
+        if prepared_computations.object.material.reflective == 0.0 {
+            BLACK
+        } else {
+            WHITE
+        }
+    }
 }
 
 #[cfg(test)]
@@ -267,5 +275,22 @@ mod test_chapter_8_shadows {
         let comps = prepare_computations(&i, &r).unwrap();
         let c = w.shade_hit(&comps).unwrap();
         assert_eq!(c, color(0.1, 0.1, 0.1));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_11_reflection {
+    use super::*;
+
+    #[test]
+    fn the_reflected_color_for_a_nonreflective_material() {
+        let w = default_world();
+        let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
+        let mut shape = w.objects[1];
+        shape.material.ambient = 1.0;
+        let i = intersection(1.0, &shape);
+        let comps = i.prepare_computations(&r).unwrap();
+        let c = w.reflected_color(&comps);
+        assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 }
