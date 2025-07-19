@@ -11,10 +11,11 @@ pub struct Camera {
     pub half_width: Float,
     pub half_height: Float,
     pub transform: Matrix,
+    pub reflective_depth: usize,
 }
 
 impl Camera {
-    pub fn new(hsize: usize, vsize: usize, field_of_view: Float) -> Self {
+    pub fn new(hsize: usize, vsize: usize, field_of_view: Float, reflective_depth: usize) -> Self {
         let half_view = (field_of_view / 2.0).tan();
         let aspect = hsize as Float / vsize as Float;
         let (half_width, half_height) = if aspect >= 1.0 {
@@ -31,6 +32,7 @@ impl Camera {
             half_width,
             half_height,
             transform: IDENTITY_MATRIX,
+            reflective_depth,
         }
     }
 
@@ -62,7 +64,7 @@ impl Camera {
             .flat_map(|y| {
                 (0..self.hsize).into_par_iter().map(move |x| {
                     let ray = self.ray_for_pixel(x, y)?;
-                    let color = world.color_at(&ray)?;
+                    let color = world.color_at(&ray, self.reflective_depth)?;
 
                     Ok((x, y, color))
                 })
@@ -75,8 +77,8 @@ impl Camera {
     }
 }
 
-pub fn camera(px: usize, py: usize, field_of_view: Float) -> Camera {
-    Camera::new(px, py, field_of_view)
+pub fn camera(px: usize, py: usize, field_of_view: Float, reflective_depth: usize) -> Camera {
+    Camera::new(px, py, field_of_view, reflective_depth)
 }
 
 pub fn ray_for_pixel(camera: &Camera, hsize: usize, vsize: usize) -> Result<Ray, String> {
@@ -98,31 +100,31 @@ mod test_chapter_7_camera {
         let hsize = 160;
         let vsize = 120;
         let field_of_view = PI / 2.0;
-        let c = camera(hsize, vsize, field_of_view);
+        let c = camera(hsize, vsize, field_of_view, 0);
         assert_eq!(c.hsize, 160);
         assert_eq!(c.vsize, 120);
         assert_eq!(c.field_of_view, PI / 2.0);
         assert_eq!(c.transform, IDENTITY_MATRIX);
 
-        let c2 = Camera::new(hsize, vsize, field_of_view);
+        let c2 = Camera::new(hsize, vsize, field_of_view, 0);
         assert_eq!(c, c2);
     }
 
     #[test]
     fn the_pixel_size_for_a_horizontal_canvas() {
-        let c = camera(200, 125, PI / 2.0);
+        let c = camera(200, 125, PI / 2.0, 0);
         assert_eq_float!(c.pixel_size, 0.01);
     }
 
     #[test]
     fn the_pixel_size_for_a_vertical_canvas() {
-        let c = camera(125, 200, PI / 2.0);
+        let c = camera(125, 200, PI / 2.0, 0);
         assert_eq_float!(c.pixel_size, 0.01);
     }
 
     #[test]
     fn constructing_a_ray_through_the_center_of_the_canvas() {
-        let c = camera(201, 101, PI / 2.0);
+        let c = camera(201, 101, PI / 2.0, 0);
         let r = ray_for_pixel(&c, 100, 50).unwrap();
         assert_eq!(r.origin, point(0.0, 0.0, 0.0));
         assert_eq!(r.direction, vector(0.0, 0.0, -1.0));
@@ -133,7 +135,7 @@ mod test_chapter_7_camera {
 
     #[test]
     fn constructing_a_ray_through_a_corner_of_the_canvas() {
-        let c = camera(201, 101, PI / 2.0);
+        let c = camera(201, 101, PI / 2.0, 0);
         let r = ray_for_pixel(&c, 0, 0).unwrap();
         assert_eq!(r.origin, point(0.0, 0.0, 0.0));
         assert_eq!(r.direction, vector(0.66519, 0.33259, -0.66851));
@@ -141,7 +143,7 @@ mod test_chapter_7_camera {
 
     #[test]
     fn constructing_a_ray_when_the_camera_is_transformed() {
-        let mut c = camera(201, 101, PI / 2.0);
+        let mut c = camera(201, 101, PI / 2.0, 0);
         c.transform = rotation_y(PI / 4.0) * translation(0.0, -2.0, 5.0);
         let r = ray_for_pixel(&c, 100, 50).unwrap();
         assert_eq!(r.origin, point(0.0, 2.0, -5.0));
@@ -154,7 +156,7 @@ mod test_chapter_7_camera {
     #[test]
     fn rendering_a_world_with_a_camera() {
         let w = default_world();
-        let mut c = camera(11, 11, PI / 2.0);
+        let mut c = camera(11, 11, PI / 2.0, 0);
         let from = point(0.0, 0.0, -5.0);
         let to = point(0.0, 0.0, 0.0);
         let up = vector(0.0, 1.0, 0.0);

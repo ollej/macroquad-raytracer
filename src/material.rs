@@ -1,5 +1,7 @@
 use crate::{color::*, float::*, light::*, object::*, pattern::*, tuple::*};
 
+pub const MAX_REFLECTIVE_DEPTH: usize = 4;
+
 pub fn material() -> Material {
     Material::default()
 }

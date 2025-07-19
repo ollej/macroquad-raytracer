@@ -230,6 +230,7 @@ mod test_chapter_10_pattern {
         assert_eq!(texture.color_at(&point(1.01, 0.0, 0.0)), BLACK);
     }
 
+    #[test]
     fn checkers_should_repeat_in_y() {
         let texture = checkers_texture(&WHITE, &BLACK);
         assert_eq!(texture.color_at(&point(0.0, 0.0, 0.0)), WHITE);
@@ -237,6 +238,7 @@ mod test_chapter_10_pattern {
         assert_eq!(texture.color_at(&point(0.0, 1.01, 0.0)), BLACK);
     }
 
+    #[test]
     fn checkers_should_repeat_in_z() {
         let texture = checkers_texture(&WHITE, &BLACK);
         assert_eq!(texture.color_at(&point(0.0, 0.0, 0.0)), WHITE);

@@ -1,4 +1,3 @@
-use macroquad::prelude::scene;
 use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
@@ -279,7 +278,7 @@ fn setup_scene(canvas_size: usize) -> (Camera, World) {
         light: Some(light_source),
     };
 
-    let mut camera = camera(canvas_size, canvas_size / 2, PI / 3.0);
+    let mut camera = camera(canvas_size, canvas_size / 2, PI / 3.0, MAX_REFLECTIVE_DEPTH);
     camera.transform = view_transform(
         &point(0.0, 1.5, -5.0),
         &point(0.0, 1.0, 0.0),

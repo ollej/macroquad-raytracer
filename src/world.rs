@@ -18,12 +18,13 @@ pub fn intersect_world(world: &World, ray: &Ray) -> Result<Intersections, String
 pub fn shade_hit(
     world: &World,
     prepared_computations: &PreparedComputations,
+    remaining: usize,
 ) -> Result<Color, String> {
-    world.shade_hit(prepared_computations)
+    world.shade_hit(prepared_computations, remaining)
 }
 
-pub fn color_at(world: &World, ray: &Ray) -> Result<Color, String> {
-    world.color_at(ray)
+pub fn color_at(world: &World, ray: &Ray, remaining: usize) -> Result<Color, String> {
+    world.color_at(ray, remaining)
 }
 
 pub fn is_shadowed(world: &World, point: &Point) -> bool {
@@ -78,7 +79,11 @@ impl World {
         Ok(Intersections::new(all_intersections))
     }
 
-    pub fn shade_hit(&self, prepared_computations: &PreparedComputations) -> Result<Color, String> {
+    pub fn shade_hit(
+        &self,
+        prepared_computations: &PreparedComputations,
+        remaining: usize,
+    ) -> Result<Color, String> {
         let shadowed = self.is_shadowed(&prepared_computations.over_point);
 
         let surface = match &self.light {
@@ -93,17 +98,17 @@ impl World {
             None => BLACK,
         };
 
-        let reflected = self.reflected_color(&prepared_computations)?;
+        let reflected = self.reflected_color(&prepared_computations, remaining)?;
 
         Ok(surface + reflected)
     }
 
-    pub fn color_at(&self, ray: &Ray) -> Result<Color, String> {
+    pub fn color_at(&self, ray: &Ray, remaining: usize) -> Result<Color, String> {
         let intersections = self.intersect(ray)?;
         match intersections.hit() {
             Some(hit) => {
                 let prepared_computations = hit.prepare_computations(ray)?;
-                self.shade_hit(&prepared_computations)
+                self.shade_hit(&prepared_computations, remaining)
             }
             None => Ok(BLACK),
         }
@@ -129,15 +134,18 @@ impl World {
     fn reflected_color(
         &self,
         prepared_computations: &PreparedComputations,
+        remaining: usize,
     ) -> Result<Color, String> {
-        if prepared_computations.object.material.reflective == 0.0 {
+        if remaining < 1 {
+            Ok(BLACK)
+        } else if prepared_computations.object.material.reflective == 0.0 {
             Ok(BLACK)
         } else {
             let reflect_ray = ray(
                 &prepared_computations.over_point,
                 &prepared_computations.reflectv,
             );
-            self.color_at(&reflect_ray)
+            self.color_at(&reflect_ray, remaining - 1)
                 .map(|c| c * prepared_computations.object.material.reflective)
         }
     }
@@ -190,10 +198,10 @@ mod test_chapter_7_world {
         let shape = w.objects.first().unwrap();
         let i = intersection(4.0, &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = shade_hit(&w, &comps).unwrap();
+        let c = shade_hit(&w, &comps, 0).unwrap();
         assert_eq!(c, color(0.38066, 0.47583, 0.2855));
 
-        let c2 = w.shade_hit(&comps).unwrap();
+        let c2 = w.shade_hit(&comps, 0).unwrap();
         assert_eq!(c, c2);
     }
 
@@ -205,7 +213,7 @@ mod test_chapter_7_world {
         let shape = w.objects.get(1).unwrap();
         let i = intersection(0.5, &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = w.shade_hit(&comps).unwrap();
+        let c = w.shade_hit(&comps, 0).unwrap();
         assert_eq!(c, color(0.90498, 0.90498, 0.90498));
     }
 
@@ -213,10 +221,10 @@ mod test_chapter_7_world {
     fn the_color_when_a_ray_misses() {
         let w = default_world();
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 1.0, 0.0));
-        let c = color_at(&w, &r).unwrap();
+        let c = color_at(&w, &r, 0).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
 
-        let c2 = w.color_at(&r).unwrap();
+        let c2 = w.color_at(&r, 0).unwrap();
         assert_eq!(c, c2);
     }
 
@@ -224,7 +232,7 @@ mod test_chapter_7_world {
     fn the_color_when_a_ray_hits() {
         let w = default_world();
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
-        let c = w.color_at(&r).unwrap();
+        let c = w.color_at(&r, 0).unwrap();
         assert_eq!(c, color(0.38066, 0.47583, 0.2855));
     }
 
@@ -237,7 +245,7 @@ mod test_chapter_7_world {
         inner.material.ambient = 1.0;
         w.objects[1] = inner;
         let r = ray(&point(0.0, 0.0, 0.75), &vector(0.0, 0.0, -1.0));
-        let c = w.color_at(&r).unwrap();
+        let c = w.color_at(&r, 0).unwrap();
         assert_eq!(c, inner.material.color);
     }
 }
@@ -285,7 +293,7 @@ mod test_chapter_8_shadows {
         let r = ray(&point(0.0, 0.0, 5.0), &vector(0.0, 0.0, 1.0));
         let i = intersection(4.0, &s2);
         let comps = prepare_computations(&i, &r).unwrap();
-        let c = w.shade_hit(&comps).unwrap();
+        let c = w.shade_hit(&comps, 0).unwrap();
         assert_eq!(c, color(0.1, 0.1, 0.1));
     }
 }
@@ -294,7 +302,7 @@ mod test_chapter_8_shadows {
 mod test_chapter_11_reflection {
     use super::*;
 
-    use crate::{float::*, plane::*};
+    use crate::plane::*;
 
     #[test]
     fn the_reflected_color_for_a_nonreflective_material() {
@@ -304,7 +312,7 @@ mod test_chapter_11_reflection {
         shape.material.ambient = 1.0;
         let i = intersection(1.0, &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = w.reflected_color(&comps).unwrap();
+        let c = w.reflected_color(&comps, 0).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 
@@ -321,7 +329,7 @@ mod test_chapter_11_reflection {
         );
         let i = intersection(2.0_f64.sqrt(), &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = w.reflected_color(&comps).unwrap();
+        let c = w.reflected_color(&comps, 1).unwrap();
         assert_eq!(c, color(0.1903322, 0.237915, 0.142749));
     }
 
@@ -338,7 +346,41 @@ mod test_chapter_11_reflection {
         );
         let i = intersection(2.0_f64.sqrt(), &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = w.shade_hit(&comps).unwrap();
+        let c = w.shade_hit(&comps, 1).unwrap();
         assert_eq!(c, color(0.876757, 0.924340, 0.829174));
+    }
+
+    #[test]
+    fn color_at_with_mutually_reflective_surfaces() {
+        let mut w = world();
+        w.set_light(&point_light(&point(0.0, 0.0, 0.0), &color(1.0, 1.0, 1.0)));
+        let mut lower = plane();
+        lower.material.reflective = 1.0;
+        lower.set_transform(&translation(0.0, -1.0, 0.0));
+        w.objects.push(lower);
+        let mut upper = plane();
+        upper.material.reflective = 1.0;
+        upper.set_transform(&translation(0.0, 1.0, 0.0));
+        w.objects.push(upper);
+        let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 1.0, 0.0));
+        let c = w.color_at(&r, 1).unwrap();
+        assert_eq!(c, color(3.8, 3.8, 3.8));
+    }
+
+    #[test]
+    fn the_reflected_color_at_the_maximum_recursive_depth() {
+        let mut w = default_world();
+        let mut shape = plane();
+        shape.material.reflective = 0.5;
+        shape.set_transform(&translation(0.0, -1.0, 0.0));
+        w.objects.push(shape);
+        let r = ray(
+            &point(0.0, 0.0, -3.0),
+            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+        );
+        let i = intersection(2.0_f64.sqrt(), &shape);
+        let comps = i.prepare_computations(&r).unwrap();
+        let c = w.reflected_color(&comps, 0).unwrap();
+        assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 }
