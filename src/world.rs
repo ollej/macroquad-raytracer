@@ -122,11 +122,19 @@ impl World {
         }
     }
 
-    fn reflected_color(&self, prepared_computations: &PreparedComputations) -> Color {
+    fn reflected_color(
+        &self,
+        prepared_computations: &PreparedComputations,
+    ) -> Result<Color, String> {
         if prepared_computations.object.material.reflective == 0.0 {
-            BLACK
+            Ok(BLACK)
         } else {
-            WHITE
+            let reflect_ray = ray(
+                &prepared_computations.over_point,
+                &prepared_computations.reflectv,
+            );
+            self.color_at(&reflect_ray)
+                .map(|c| c * prepared_computations.object.material.reflective)
         }
     }
 }
@@ -282,6 +290,8 @@ mod test_chapter_8_shadows {
 mod test_chapter_11_reflection {
     use super::*;
 
+    use crate::{float::*, plane::*};
+
     #[test]
     fn the_reflected_color_for_a_nonreflective_material() {
         let w = default_world();
@@ -290,7 +300,24 @@ mod test_chapter_11_reflection {
         shape.material.ambient = 1.0;
         let i = intersection(1.0, &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = w.reflected_color(&comps);
+        let c = w.reflected_color(&comps).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn the_reflected_color_for_a_reflective_material() {
+        let mut w = default_world();
+        let mut shape = plane();
+        shape.material.reflective = 0.5;
+        shape.set_transform(&translation(0.0, -1.0, 0.0));
+        w.objects.push(shape);
+        let r = ray(
+            &point(0.0, 0.0, -3.0),
+            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+        );
+        let i = intersection(2.0_f64.sqrt(), &shape);
+        let comps = i.prepare_computations(&r).unwrap();
+        let c = w.reflected_color(&comps).unwrap();
+        assert_eq!(c, color(0.1903322, 0.237915, 0.142749));
     }
 }
