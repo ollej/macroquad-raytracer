@@ -26,6 +26,8 @@ pub struct Material {
     pub specular: Float,
     pub shininess: Float,
     pub reflective: Float,
+    pub transparency: Float,
+    pub refractive_index: Float,
     pub pattern: Option<Pattern>,
 }
 
@@ -37,6 +39,8 @@ impl Material {
         specular: Float,
         shininess: Float,
         reflective: Float,
+        transparency: Float,
+        refractive_index: Float,
         pattern: Option<Pattern>,
     ) -> Self {
         Material {
@@ -46,6 +50,8 @@ impl Material {
             specular,
             shininess,
             reflective,
+            transparency,
+            refractive_index,
             pattern,
         }
     }
@@ -118,7 +124,17 @@ impl Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Material::new(color(1.0, 1.0, 1.0), 0.1, 0.9, 0.9, 200.0, 0.0, None)
+        Material::new(
+            color(1.0, 1.0, 1.0),
+            0.1,
+            0.9,
+            0.9,
+            200.0,
+            0.0,
+            0.0,
+            1.0,
+            None,
+        )
     }
 }
 
@@ -265,5 +281,12 @@ mod test_chapter_11_reflection {
     fn reflectivity_for_the_default_material() {
         let m = material();
         assert_eq!(m.reflective, 0.0);
+    }
+
+    #[test]
+    fn transparency_and_refractive_index_for_the_default_material() {
+        let m = material();
+        assert_eq!(m.transparency, 0.0);
+        assert_eq!(m.refractive_index, 1.0);
     }
 }
