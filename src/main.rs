@@ -234,13 +234,15 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
         plane_material,
     ));
 
+    let mut pattern = stripe_pattern(&color(1.0, 0.0, 0.0), &color(0.0, 1.0, 0.0));
+    pattern.set_transform(rotation_z(PI / 4.0) * rotation_y(PI / 4.0) * scaling(0.2, 0.2, 0.2));
     world.objects.push(Object::new_sphere(
         translation(-0.5, 1.0, 0.5),
         Material {
             color: WHITE,
             diffuse: 0.7,
             specular: 0.3,
-            pattern: Some(stripe_pattern(&color(1.0, 0.0, 0.0), &color(0.0, 1.0, 0.0))),
+            pattern: Some(pattern),
             ..Default::default()
         },
     ));
