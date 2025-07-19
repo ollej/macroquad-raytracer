@@ -60,7 +60,7 @@ impl Material {
     ) -> Result<Color, String> {
         // Use color from pattern if available
         let color = if let Some(pattern) = self.pattern {
-            pattern.stripe_at_object(object, point)?
+            pattern.pattern_at_object(object, point)?
         } else {
             self.color
         };
