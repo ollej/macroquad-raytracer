@@ -9,6 +9,7 @@ pub use crate::macroquad::*;
 pub use crate::material::*;
 pub use crate::matrix::*;
 pub use crate::object::*;
+pub use crate::pattern::*;
 pub use crate::plane::*;
 pub use crate::projectile::*;
 pub use crate::ray::*;
