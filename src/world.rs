@@ -39,7 +39,7 @@ pub struct World {
 impl Default for World {
     fn default() -> World {
         let mut s1 = sphere();
-        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0, None);
+        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0, 0.0, None);
         s1.set_material(&m);
         let mut s2 = sphere();
         s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
@@ -138,7 +138,7 @@ mod test_chapter_7_world {
     fn the_default_world() {
         let light = point_light(&point(-10.0, 10.0, -10.), &color(1.0, 1.0, 1.0));
         let mut s1 = sphere();
-        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0, None);
+        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0, 0.0, None);
         s1.set_material(&m);
         let mut s2 = sphere();
         s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));

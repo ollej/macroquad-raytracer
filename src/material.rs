@@ -23,6 +23,7 @@ pub struct Material {
     pub diffuse: Float,
     pub specular: Float,
     pub shininess: Float,
+    pub reflective: Float,
     pub pattern: Option<Pattern>,
 }
 
@@ -33,6 +34,7 @@ impl Material {
         diffuse: Float,
         specular: Float,
         shininess: Float,
+        reflective: Float,
         pattern: Option<Pattern>,
     ) -> Self {
         Material {
@@ -41,6 +43,7 @@ impl Material {
             diffuse,
             specular,
             shininess,
+            reflective,
             pattern,
         }
     }
@@ -113,7 +116,7 @@ impl Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Material::new(color(1.0, 1.0, 1.0), 0.1, 0.9, 0.9, 200.0, None)
+        Material::new(color(1.0, 1.0, 1.0), 0.1, 0.9, 0.9, 200.0, 0.0, None)
     }
 }
 
@@ -249,5 +252,16 @@ mod test_chapter_10_material_pattern {
         .unwrap();
         assert_eq!(c1, color(1.0, 1.0, 1.0));
         assert_eq!(c2, color(0.0, 0.0, 0.0));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_11_reflection {
+    use super::*;
+
+    #[test]
+    fn reflectivity_for_the_default_material() {
+        let m = material();
+        assert_eq!(m.reflective, 0.0);
     }
 }
