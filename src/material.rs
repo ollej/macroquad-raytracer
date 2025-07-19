@@ -1,4 +1,4 @@
-use crate::{color::*, float::*, light::*, pattern::*, tuple::*};
+use crate::{color::*, float::*, light::*, object::*, pattern::*, tuple::*};
 
 pub fn material() -> Material {
     Material::default()
@@ -6,13 +6,14 @@ pub fn material() -> Material {
 
 pub fn lighting(
     material: &Material,
+    object: &Object,
     light: &Light,
     point: &Point,
     eyev: &Vector,
     normalv: &Vector,
     in_shadow: bool,
-) -> Color {
-    material.lighting(light, point, eyev, normalv, in_shadow)
+) -> Result<Color, String> {
+    material.lighting(object, light, point, eyev, normalv, in_shadow)
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -50,17 +51,19 @@ impl Material {
 
     pub fn lighting(
         &self,
+        object: &Object,
         light: &Light,
         point: &Point,
         eyev: &Vector,
         normalv: &Vector,
         in_shadow: bool,
-    ) -> Color {
+    ) -> Result<Color, String> {
         // Use color from pattern if available
-        let color = self
-            .pattern
-            .map(|pattern| pattern.stripe_at(point))
-            .unwrap_or(self.color);
+        let color = if let Some(pattern) = self.pattern {
+            pattern.stripe_at_object(object, point)?
+        } else {
+            self.color
+        };
 
         // Combine the surface color with the light's color/intensity
         let effective_color = color * light.intensity;
@@ -70,7 +73,7 @@ impl Material {
 
         // Only return ambient light if point is in shadow
         if in_shadow {
-            return ambient;
+            return Ok(ambient);
         }
 
         // Find the direction to the light source
@@ -104,7 +107,7 @@ impl Material {
         };
 
         // Add the three contributions together to get the final shading
-        ambient + diffuse + specular
+        Ok(ambient + diffuse + specular)
     }
 }
 
@@ -127,6 +130,8 @@ mod test_common {
 mod test_chapter_6_material {
     use super::*;
 
+    use crate::sphere::*;
+
     #[test]
     fn the_default_material() {
         let (m, _position) = test_common::setup();
@@ -143,7 +148,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
-        let result = lighting(&m, &light, &position, &eyev, &normalv, false);
+        let sphere = sphere();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
         assert_eq!(result, color(1.9, 1.9, 1.9));
     }
 
@@ -153,7 +159,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
-        let result = lighting(&m, &light, &position, &eyev, &normalv, false);
+        let sphere = sphere();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
         assert_eq!(result, color(1.0, 1.0, 1.0));
     }
 
@@ -163,7 +170,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
-        let result = lighting(&m, &light, &position, &eyev, &normalv, false);
+        let sphere = sphere();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
         assert_eq!(result, color(0.7364, 0.7364, 0.7364));
     }
 
@@ -173,7 +181,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
-        let result = lighting(&m, &light, &position, &eyev, &normalv, false);
+        let sphere = sphere();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
         assert_eq!(result, color(1.6364, 1.6364, 1.6364));
     }
 }
@@ -182,6 +191,8 @@ mod test_chapter_6_material {
 mod test_chapter_8_shadows {
     use super::*;
 
+    use crate::sphere::*;
+
     #[test]
     fn lighting_with_the_surface_in_shadow() {
         let (m, position) = test_common::setup();
@@ -189,7 +200,10 @@ mod test_chapter_8_shadows {
         let normalv = vector(0.0, 0.0, -1.0);
         let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
         let in_shadow = true;
-        let result = m.lighting(&light, &position, &eyev, &normalv, in_shadow);
+        let sphere = sphere();
+        let result = m
+            .lighting(&sphere, &light, &position, &eyev, &normalv, in_shadow)
+            .unwrap();
         assert_eq!(result, color(0.1, 0.1, 0.1));
     }
 }
@@ -199,6 +213,8 @@ mod test_chapter_10_material_pattern {
     #![allow(non_snake_case)]
 
     use super::*;
+
+    use crate::sphere::*;
 
     #[test]
     fn lighting_with_a_pattern_applied() {
@@ -210,8 +226,27 @@ mod test_chapter_10_material_pattern {
         let eyev = vector(0.0, 0.0, -1.0);
         let normalv = vector(0.0, 0.0, -1.0);
         let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
-        let c1 = lighting(&m, &light, &point(0.9, 0.0, 0.0), &eyev, &normalv, false);
-        let c2 = lighting(&m, &light, &point(1.1, 0.0, 0.0), &eyev, &normalv, false);
+        let sphere = sphere();
+        let c1 = lighting(
+            &m,
+            &sphere,
+            &light,
+            &point(0.9, 0.0, 0.0),
+            &eyev,
+            &normalv,
+            false,
+        )
+        .unwrap();
+        let c2 = lighting(
+            &m,
+            &sphere,
+            &light,
+            &point(1.1, 0.0, 0.0),
+            &eyev,
+            &normalv,
+            false,
+        )
+        .unwrap();
         assert_eq!(c1, color(1.0, 1.0, 1.0));
         assert_eq!(c2, color(0.0, 0.0, 0.0));
     }

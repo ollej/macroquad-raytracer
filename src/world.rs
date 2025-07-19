@@ -15,7 +15,10 @@ pub fn intersect_world(world: &World, ray: &Ray) -> Result<Intersections, String
     world.intersect(ray)
 }
 
-pub fn shade_hit(world: &World, prepared_computations: &PreparedComputations) -> Color {
+pub fn shade_hit(
+    world: &World,
+    prepared_computations: &PreparedComputations,
+) -> Result<Color, String> {
     world.shade_hit(prepared_computations)
 }
 
@@ -75,18 +78,19 @@ impl World {
         Ok(Intersections::new(all_intersections))
     }
 
-    pub fn shade_hit(&self, prepared_computations: &PreparedComputations) -> Color {
+    pub fn shade_hit(&self, prepared_computations: &PreparedComputations) -> Result<Color, String> {
         let shadowed = self.is_shadowed(&prepared_computations.over_point);
 
         match &self.light {
             Some(light) => prepared_computations.object.material.lighting(
+                &prepared_computations.object,
                 light,
                 &prepared_computations.over_point,
                 &prepared_computations.eyev,
                 &prepared_computations.normalv,
                 shadowed,
             ),
-            None => BLACK,
+            None => Ok(BLACK),
         }
     }
 
@@ -95,7 +99,7 @@ impl World {
         match intersections.hit() {
             Some(hit) => {
                 let prepared_computations = hit.prepare_computations(ray)?;
-                Ok(self.shade_hit(&prepared_computations))
+                self.shade_hit(&prepared_computations)
             }
             None => Ok(BLACK),
         }
@@ -166,10 +170,10 @@ mod test_chapter_7_world {
         let shape = w.objects.first().unwrap();
         let i = intersection(4.0, &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = shade_hit(&w, &comps);
+        let c = shade_hit(&w, &comps).unwrap();
         assert_eq!(c, color(0.38066, 0.47583, 0.2855));
 
-        let c2 = w.shade_hit(&comps);
+        let c2 = w.shade_hit(&comps).unwrap();
         assert_eq!(c, c2);
     }
 
@@ -181,7 +185,7 @@ mod test_chapter_7_world {
         let shape = w.objects.get(1).unwrap();
         let i = intersection(0.5, &shape);
         let comps = i.prepare_computations(&r).unwrap();
-        let c = w.shade_hit(&comps);
+        let c = w.shade_hit(&comps).unwrap();
         assert_eq!(c, color(0.90498, 0.90498, 0.90498));
     }
 
@@ -261,7 +265,7 @@ mod test_chapter_8_shadows {
         let r = ray(&point(0.0, 0.0, 5.0), &vector(0.0, 0.0, 1.0));
         let i = intersection(4.0, &s2);
         let comps = prepare_computations(&i, &r).unwrap();
-        let c = w.shade_hit(&comps);
+        let c = w.shade_hit(&comps).unwrap();
         assert_eq!(c, color(0.1, 0.1, 0.1));
     }
 }

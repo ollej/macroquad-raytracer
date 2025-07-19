@@ -78,10 +78,14 @@ fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
                 let point = r.position(hit.t);
                 let normal = hit.object.normal_at(&point)?;
                 let eye = -r.direction;
-                let color = hit
-                    .object
-                    .material
-                    .lighting(&light, &point, &eye, &normal, false);
+                let color = hit.object.material.lighting(
+                    &hit.object,
+                    &light,
+                    &point,
+                    &eye,
+                    &normal,
+                    false,
+                )?;
 
                 canvas.write_pixel(x, y, &color);
             }
@@ -106,7 +110,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
     let light_color = WHITE;
     let light = point_light(&light_position, &light_color);
 
-    let pixels: Vec<(usize, usize, Color)> = (0..canvas_size)
+    (0..canvas_size)
         .into_par_iter()
         .flat_map(|y| {
             let world_y = half - pixel_size * y as Float;
@@ -120,10 +124,14 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
                     let point = r.position(hit.t);
                     let normal = hit.object.normal_at(&point)?;
                     let eye = -r.direction;
-                    let color = hit
-                        .object
-                        .material
-                        .lighting(&light, &point, &eye, &normal, false);
+                    let color = hit.object.material.lighting(
+                        &hit.object,
+                        &light,
+                        &point,
+                        &eye,
+                        &normal,
+                        false,
+                    )?;
 
                     Ok::<(usize, usize, Color), String>((x, y, color))
                 } else {
@@ -131,14 +139,9 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
                 }
             })
         })
-        .flatten()
-        .collect();
-
-    for (x, y, color) in pixels {
-        canvas.write_pixel(x, y, &color);
-    }
-
-    //canvas.write_pixel(x, y, &color);
+        .collect::<Result<Vec<(usize, usize, Color)>, String>>()?
+        .iter()
+        .for_each(|(x, y, color)| canvas.write_pixel(*x, *y, color));
 
     Ok(canvas)
 }
@@ -170,9 +173,14 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
         wall_material,
     );
 
-    let middle = build_sphere(1.0, color(0.1, 1.0, 0.5), translation(-0.5, 1.0, 0.5));
-    let right = build_sphere(0.5, color(0.5, 1.0, 0.1), translation(1.5, 0.5, -0.5));
-    let left = build_sphere(0.33, color(1.0, 0.8, 0.1), translation(-1.5, 0.33, -0.75));
+    let middle = build_sphere(1.0, color(0.1, 1.0, 0.5), translation(-0.5, 1.0, 0.5), None);
+    let right = build_sphere(0.5, color(0.5, 1.0, 0.1), translation(1.5, 0.5, -0.5), None);
+    let left = build_sphere(
+        0.33,
+        color(1.0, 0.8, 0.1),
+        translation(-1.5, 0.33, -0.75),
+        None,
+    );
 
     world
         .objects
@@ -190,16 +198,19 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
         1.0,
         color(0.1, 1.0, 0.5),
         translation(-0.5, 1.0, 0.5),
+        None,
     ));
     world.objects.push(build_sphere(
         0.5,
         color(0.5, 1.0, 0.1),
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        None,
     ));
     world.objects.push(build_sphere(
         0.33,
         color(1.0, 0.8, 0.1),
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+        None,
     ));
 
     camera.render(&world)
@@ -237,11 +248,13 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
         0.5,
         color(0.5, 1.0, 0.1),
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        Some(stripe_pattern(&color(0.0, 1.0, 0.0), &color(1.0, 1.0, 0.0))),
     ));
     world.objects.push(build_sphere(
         0.33,
         color(1.0, 0.8, 0.1),
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+        Some(stripe_pattern(&color(0.0, 0.0, 1.0), &color(0.0, 1.0, 1.0))),
     ));
 
     camera.render(&world)
@@ -280,13 +293,19 @@ fn build_plane_walls() -> Vec<Object> {
     vec![floor, wall]
 }
 
-fn build_sphere(scale: Float, color: Color, translation: Matrix) -> Object {
+fn build_sphere(
+    scale: Float,
+    color: Color,
+    translation: Matrix,
+    pattern: Option<Pattern>,
+) -> Object {
     Object::new_sphere(
         translation * scaling(scale, scale, scale),
         Material {
             color,
             diffuse: 0.7,
             specular: 0.3,
+            pattern,
             ..Default::default()
         },
     )
