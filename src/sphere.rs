@@ -48,7 +48,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {
-        let r = ray(point(0., 0., -5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 0., -5.), &vector(0., 0., 1.));
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
         assert_eq!(xs.len(), 2);
@@ -59,7 +59,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn a_ray_intersects_a_sphere_at_a_tangent() {
-        let r = ray(point(0., 1., -5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 1., -5.), &vector(0., 0., 1.));
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
         assert_eq!(xs.len(), 2);
@@ -70,7 +70,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn a_ray_misses_a_sphere() {
-        let r = ray(point(0., 2., -5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 2., -5.), &vector(0., 0., 1.));
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
         assert_eq!(xs.len(), 0);
@@ -79,7 +79,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn a_ray_originates_inside_a_sphere() {
-        let r = ray(point(0., 0., 0.), vector(0., 0., 1.));
+        let r = ray(&point(0., 0., 0.), &vector(0., 0., 1.));
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
         assert_eq!(xs.len(), 2);
@@ -90,7 +90,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn a_sphere_is_behind_a_ray() {
-        let r = ray(point(0., 0., 5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 0., 5.), &vector(0., 0., 1.));
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
         assert_eq!(xs.len(), 2);
@@ -115,7 +115,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn intersecting_a_scaled_sphere_with_a_ray() {
-        let r = ray(point(0., 0., -5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 0., -5.), &vector(0., 0., 1.));
         let mut s = sphere();
         s.set_transform(&scaling(2., 2., 2.));
         let xs = s.intersect(&r).unwrap();
@@ -126,7 +126,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn intersecting_a_translated_sphere_with_a_ray() {
-        let r = ray(point(0., 0., -5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 0., -5.), &vector(0., 0., 1.));
         let mut s = sphere();
         s.set_transform(&translation(5., 0., 0.));
         let xs = s.intersect(&r).unwrap();

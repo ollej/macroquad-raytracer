@@ -40,7 +40,7 @@ fn generate_circle(canvas_size: usize) -> Result<Canvas, String> {
         for x in 0..canvas_size {
             let world_x = -half + pixel_size * x as Float;
             let position = point(world_x, world_y, wall_z);
-            let r = ray(ray_origin, (position - ray_origin).normalize());
+            let r = ray(&ray_origin, &(position - ray_origin).normalize());
             let xs = shape.intersect(&r)?;
             if xs.hit().is_some() {
                 canvas.write_pixel(x, y, &color);
@@ -64,14 +64,14 @@ fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
 
     let light_position = point(-10., 10., -10.);
     let light_color = WHITE;
-    let light = point_light(light_position, light_color);
+    let light = point_light(&light_position, &light_color);
 
     for y in 0..canvas_size {
         let world_y = half - pixel_size * y as Float;
         for x in 0..canvas_size {
             let world_x = -half + pixel_size * x as Float;
             let position = point(world_x, world_y, wall_z);
-            let r = ray(ray_origin, (position - ray_origin).normalize());
+            let r = ray(&ray_origin, &(position - ray_origin).normalize());
             let xs = sphere.intersect(&r)?;
             if let Some(hit) = xs.hit() {
                 let point = r.position(hit.t);
@@ -103,7 +103,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
 
     let light_position = point(-10., 10., -10.);
     let light_color = WHITE;
-    let light = point_light(light_position, light_color);
+    let light = point_light(&light_position, &light_color);
 
     let pixels: Vec<(usize, usize, Color)> = (0..canvas_size)
         .into_par_iter()
@@ -113,7 +113,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
             (0..canvas_size).into_par_iter().map(move |x| {
                 let world_x = -half + pixel_size * x as Float;
                 let position = point(world_x, world_y, wall_z);
-                let r = ray(ray_origin, (position - ray_origin).normalize());
+                let r = ray(&ray_origin, &(position - ray_origin).normalize());
                 let xs = sphere.intersect(&r)?;
                 if let Some(hit) = xs.hit() {
                     let point = r.position(hit.t);
@@ -197,7 +197,7 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
         },
     );
 
-    let light_source = point_light(point(-10.0, 10.0, -10.0), color(1.0, 1.0, 1.0));
+    let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
         objects: vec![floor, left_wall, right_wall, middle, left, right],
         light: Some(light_source),
@@ -256,7 +256,7 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
         },
     );
 
-    let light_source = point_light(point(-10.0, 10.0, -10.0), color(1.0, 1.0, 1.0));
+    let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
         objects: vec![floor, wall, middle, left, right],
         light: Some(light_source),

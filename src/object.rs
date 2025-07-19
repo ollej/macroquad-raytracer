@@ -128,7 +128,7 @@ mod test_chapter_9_shapes {
 
     #[test]
     fn intersecting_a_scaled_shape_with_a_ray() {
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let mut s = test_shape();
         s.set_transform(&scaling(2.0, 2.0, 2.0));
         s.intersect(&r).unwrap();
@@ -139,7 +139,7 @@ mod test_chapter_9_shapes {
 
     #[test]
     fn intersecting_a_translated_shape_with_a_ray() {
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let mut s = test_shape();
         s.set_transform(&translation(5.0, 0.0, 0.0));
         s.intersect(&r).unwrap();

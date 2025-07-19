@@ -42,7 +42,7 @@ mod test_chapter_9_planes {
     #[test]
     fn intersect_with_a_ray_parallel_to_the_plane() {
         let p = Plane {};
-        let r = ray(point(0.0, 10.0, 0.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 10.0, 0.0), &vector(0.0, 0.0, 1.0));
         let xs = p.intersect(&r);
         assert!(xs.is_empty());
     }
@@ -50,7 +50,7 @@ mod test_chapter_9_planes {
     #[test]
     fn intersect_with_a_coplanar_ray() {
         let p = Plane {};
-        let r = ray(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let xs = p.intersect(&r);
         assert!(xs.is_empty());
     }
@@ -58,7 +58,7 @@ mod test_chapter_9_planes {
     #[test]
     fn a_ray_intersecting_a_plane_from_above() {
         let p = Plane {};
-        let r = ray(point(0.0, 1.0, 0.0), vector(0.0, -1.0, 0.0));
+        let r = ray(&point(0.0, 1.0, 0.0), &vector(0.0, -1.0, 0.0));
         let xs = p.intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0], 1.0);
@@ -67,7 +67,7 @@ mod test_chapter_9_planes {
     #[test]
     fn a_ray_intersecting_a_plane_from_below() {
         let p = Plane {};
-        let r = ray(point(0.0, -1.0, 0.0), vector(0.0, 1.0, 0.0));
+        let r = ray(&point(0.0, -1.0, 0.0), &vector(0.0, 1.0, 0.0));
         let xs = p.intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0], 1.0);

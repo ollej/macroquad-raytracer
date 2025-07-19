@@ -36,13 +36,16 @@ pub struct World {
 impl Default for World {
     fn default() -> World {
         let mut s1 = sphere();
-        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0);
+        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0, None);
         s1.set_material(&m);
         let mut s2 = sphere();
         s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
         World {
             objects: vec![s1, s2],
-            light: Some(point_light(point(-10.0, 10.0, -10.), color(1.0, 1.0, 1.0))),
+            light: Some(point_light(
+                &point(-10.0, 10.0, -10.),
+                &color(1.0, 1.0, 1.0),
+            )),
         }
     }
 }
@@ -103,7 +106,7 @@ impl World {
             let v = light.position - point;
             let distance = v.magnitude();
             let direction = v.normalize();
-            let r = ray(point.clone(), direction);
+            let r = ray(point, &direction);
             self.intersect(&r)
                 .ok()
                 .map(|intersections| intersections.hit())
@@ -129,9 +132,9 @@ mod test_chapter_7_world {
 
     #[test]
     fn the_default_world() {
-        let light = point_light(point(-10.0, 10.0, -10.), color(1.0, 1.0, 1.0));
+        let light = point_light(&point(-10.0, 10.0, -10.), &color(1.0, 1.0, 1.0));
         let mut s1 = sphere();
-        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0);
+        let m = Material::new(color(0.8, 1.0, 0.6), 0.1, 0.7, 0.2, 200.0, None);
         s1.set_material(&m);
         let mut s2 = sphere();
         s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
@@ -147,7 +150,7 @@ mod test_chapter_7_world {
     #[test]
     fn intersect_a_world_with_a_ray() {
         let w = default_world();
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let xs = intersect_world(&w, &r).unwrap();
         assert_eq!(xs.len(), 4);
         assert_eq!(xs[0].t, 4.0);
@@ -159,7 +162,7 @@ mod test_chapter_7_world {
     #[test]
     fn shading_an_intersection() {
         let w = default_world();
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.first().unwrap();
         let i = intersection(4.0, &shape);
         let comps = i.prepare_computations(&r).unwrap();
@@ -173,8 +176,8 @@ mod test_chapter_7_world {
     #[test]
     fn shading_an_intersection_from_the_inside() {
         let mut w = default_world();
-        w.set_light(&point_light(point(0.0, 0.25, 0.0), color(1.0, 1.0, 1.0)));
-        let r = ray(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
+        w.set_light(&point_light(&point(0.0, 0.25, 0.0), &color(1.0, 1.0, 1.0)));
+        let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.get(1).unwrap();
         let i = intersection(0.5, &shape);
         let comps = i.prepare_computations(&r).unwrap();
@@ -185,7 +188,7 @@ mod test_chapter_7_world {
     #[test]
     fn the_color_when_a_ray_misses() {
         let w = default_world();
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 1.0, 0.0));
         let c = color_at(&w, &r).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
 
@@ -196,7 +199,7 @@ mod test_chapter_7_world {
     #[test]
     fn the_color_when_a_ray_hits() {
         let w = default_world();
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let c = w.color_at(&r).unwrap();
         assert_eq!(c, color(0.38066, 0.47583, 0.2855));
     }
@@ -209,7 +212,7 @@ mod test_chapter_7_world {
         let mut inner = w.objects[1];
         inner.material.ambient = 1.0;
         w.objects[1] = inner;
-        let r = ray(point(0.0, 0.0, 0.75), vector(0.0, 0.0, -1.0));
+        let r = ray(&point(0.0, 0.0, 0.75), &vector(0.0, 0.0, -1.0));
         let c = w.color_at(&r).unwrap();
         assert_eq!(c, inner.material.color);
     }
@@ -250,12 +253,12 @@ mod test_chapter_8_shadows {
     #[test]
     fn shade_hit_is_given_an_intersection_in_shadow() {
         let mut w = world();
-        w.set_light(&point_light(point(0.0, 0.0, -10.0), color(1.0, 1.0, 1.0)));
+        w.set_light(&point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0)));
         let s1 = sphere();
         w.objects.push(s1);
         let s2 = Object::new_sphere(translation(0.0, 0.0, 10.0), Material::default());
         w.objects.push(s2);
-        let r = ray(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, 5.0), &vector(0.0, 0.0, 1.0));
         let i = intersection(4.0, &s2);
         let comps = prepare_computations(&i, &r).unwrap();
         let c = w.shade_hit(&comps);

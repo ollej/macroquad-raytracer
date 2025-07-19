@@ -1,4 +1,4 @@
-use crate::{color::*, float::*, light::*, tuple::*};
+use crate::{color::*, float::*, light::*, pattern::*, tuple::*};
 
 pub fn material() -> Material {
     Material::default()
@@ -22,6 +22,7 @@ pub struct Material {
     pub diffuse: Float,
     pub specular: Float,
     pub shininess: Float,
+    pub pattern: Option<Pattern>,
 }
 
 impl Material {
@@ -31,6 +32,7 @@ impl Material {
         diffuse: Float,
         specular: Float,
         shininess: Float,
+        pattern: Option<Pattern>,
     ) -> Self {
         Material {
             color,
@@ -38,7 +40,12 @@ impl Material {
             diffuse,
             specular,
             shininess,
+            pattern,
         }
+    }
+
+    pub fn set_pattern(&mut self, pattern: Pattern) {
+        self.pattern = Some(pattern);
     }
 
     pub fn lighting(
@@ -49,8 +56,14 @@ impl Material {
         normalv: &Vector,
         in_shadow: bool,
     ) -> Color {
+        // Use color from pattern if available
+        let color = self
+            .pattern
+            .map(|pattern| pattern.stripe_at(point))
+            .unwrap_or(self.color);
+
         // Combine the surface color with the light's color/intensity
-        let effective_color = self.color * light.intensity;
+        let effective_color = color * light.intensity;
 
         // Compute the ambient contribution
         let ambient = effective_color * self.ambient;
@@ -97,7 +110,7 @@ impl Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Material::new(color(1.0, 1.0, 1.0), 0.1, 0.9, 0.9, 200.0)
+        Material::new(color(1.0, 1.0, 1.0), 0.1, 0.9, 0.9, 200.0, None)
     }
 }
 
@@ -129,7 +142,7 @@ mod test_chapter_6_material {
         let (m, position) = test_common::setup();
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
-        let light = point_light(point(0., 0., -10.), color(1., 1., 1.));
+        let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
         let result = lighting(&m, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(1.9, 1.9, 1.9));
     }
@@ -139,7 +152,7 @@ mod test_chapter_6_material {
         let (m, position) = test_common::setup();
         let eyev = vector(0., 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = vector(0., 0., -1.);
-        let light = point_light(point(0., 0., -10.), color(1., 1., 1.));
+        let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
         let result = lighting(&m, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(1.0, 1.0, 1.0));
     }
@@ -149,7 +162,7 @@ mod test_chapter_6_material {
         let (m, position) = test_common::setup();
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
-        let light = point_light(point(0., 10., -10.), color(1., 1., 1.));
+        let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
         let result = lighting(&m, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(0.7364, 0.7364, 0.7364));
     }
@@ -159,7 +172,7 @@ mod test_chapter_6_material {
         let (m, position) = test_common::setup();
         let eyev = vector(0., -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = vector(0., 0., -1.);
-        let light = point_light(point(0., 10., -10.), color(1., 1., 1.));
+        let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
         let result = lighting(&m, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(1.6364, 1.6364, 1.6364));
     }
@@ -174,9 +187,32 @@ mod test_chapter_8_shadows {
         let (m, position) = test_common::setup();
         let eyev = vector(0.0, 0.0, -1.0);
         let normalv = vector(0.0, 0.0, -1.0);
-        let light = point_light(point(0.0, 0.0, -10.0), color(1.0, 1.0, 1.0));
+        let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
         let in_shadow = true;
         let result = m.lighting(&light, &position, &eyev, &normalv, in_shadow);
         assert_eq!(result, color(0.1, 0.1, 0.1));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_10_material_pattern {
+    #![allow(non_snake_case)]
+
+    use super::*;
+
+    #[test]
+    fn lighting_with_a_pattern_applied() {
+        let mut m = Material::default();
+        m.set_pattern(stripe_pattern(&color(1.0, 1.0, 1.0), &color(0.0, 0.0, 0.0)));
+        m.ambient = 1.0;
+        m.diffuse = 0.0;
+        m.specular = 0.0;
+        let eyev = vector(0.0, 0.0, -1.0);
+        let normalv = vector(0.0, 0.0, -1.0);
+        let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
+        let c1 = lighting(&m, &light, &point(0.9, 0.0, 0.0), &eyev, &normalv, false);
+        let c2 = lighting(&m, &light, &point(1.1, 0.0, 0.0), &eyev, &normalv, false);
+        assert_eq!(c1, color(1.0, 1.0, 1.0));
+        assert_eq!(c2, color(0.0, 0.0, 0.0));
     }
 }

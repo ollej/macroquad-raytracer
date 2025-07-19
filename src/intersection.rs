@@ -137,7 +137,7 @@ mod test_chapter_5_intersections {
 
     #[test]
     fn intersect_sets_the_object_on_the_intersection() {
-        let r = ray(point(0., 0., -5.), vector(0., 0., 1.));
+        let r = ray(&point(0., 0., -5.), &vector(0., 0., 1.));
         let s = sphere();
         let xs = s.intersect(&r).unwrap();
         assert_eq!(xs.len(), 2);
@@ -202,7 +202,7 @@ mod test_chapter_7_world_intersections {
 
     #[test]
     fn precomputing_the_state_of_an_intersection() {
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = sphere();
         let i = intersection(4.0, &shape);
         let comps = prepare_computations(&i, &r).unwrap();
@@ -218,7 +218,7 @@ mod test_chapter_7_world_intersections {
 
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_outside() {
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = sphere();
         let i = intersection(4.0, &shape);
         let comps = prepare_computations(&i, &r).unwrap();
@@ -227,7 +227,7 @@ mod test_chapter_7_world_intersections {
 
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_inside() {
-        let r = ray(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let shape = sphere();
         let i = intersection(1.0, &shape);
         let comps = prepare_computations(&i, &r).unwrap();
@@ -249,7 +249,7 @@ mod test_chapter_8_shadows {
 
     #[test]
     fn the_hit_should_offset_the_point() {
-        let r = ray(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = Object::new(translation(0.0, 0.0, 1.0));
         let i = intersection(5.0, &shape);
         let comps = prepare_computations(&i, &r).unwrap();

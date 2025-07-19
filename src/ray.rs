@@ -41,8 +41,8 @@ impl Mul<&Matrix> for &Ray {
     }
 }
 
-pub fn ray(origin: Point, direction: Vector) -> Ray {
-    Ray::new(origin, direction)
+pub fn ray(origin: &Point, direction: &Vector) -> Ray {
+    Ray::new(origin.to_owned(), direction.to_owned())
 }
 
 pub fn position(ray: &Ray, t: Float) -> Point {
@@ -63,7 +63,7 @@ mod test_chapter_5_ray {
     fn creating_and_querying_a_ray() {
         let origin = point(1., 2., 3.);
         let direction = vector(4., 5., 6.);
-        let r = ray(origin, direction);
+        let r = ray(&origin, &direction);
         assert_eq!(r.origin, origin);
         assert_eq!(r.direction, direction);
         let r = Ray::new(origin, direction);
@@ -73,7 +73,7 @@ mod test_chapter_5_ray {
 
     #[test]
     fn computing_a_point_from_a_distance() {
-        let r = ray(point(2., 3., 4.), vector(1., 0., 0.));
+        let r = ray(&point(2., 3., 4.), &vector(1., 0., 0.));
         assert_eq!(position(&r, 0.), point(2., 3., 4.));
         assert_eq!(position(&r, 1.), point(3., 3., 4.));
         assert_eq!(position(&r, -1.), point(1., 3., 4.));
@@ -86,7 +86,7 @@ mod test_chapter_5_ray {
 
     #[test]
     fn translating_a_ray() {
-        let r = ray(point(1., 2., 3.), vector(0., 1., 0.));
+        let r = ray(&point(1., 2., 3.), &vector(0., 1., 0.));
         let m = translation(3., 4., 5.);
         let r2 = transform(&r, &m);
         assert_eq!(r2.origin, point(4., 6., 8.));
@@ -96,7 +96,7 @@ mod test_chapter_5_ray {
 
     #[test]
     fn scaling_a_ray() {
-        let r = ray(point(1., 2., 3.), vector(0., 1., 0.));
+        let r = ray(&point(1., 2., 3.), &vector(0., 1., 0.));
         let m = scaling(2., 3., 4.);
         let r2 = transform(&r, &m);
         assert_eq!(r2.origin, point(2., 6., 12.));

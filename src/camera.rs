@@ -51,7 +51,7 @@ impl Camera {
         let origin = self.transform.inverse()? * point(0.0, 0.0, 0.0);
         let direction = (pixel - origin).normalize();
 
-        Ok(ray(origin, direction))
+        Ok(ray(&origin, &direction))
     }
 
     pub fn render(&self, world: &World) -> Result<Canvas, String> {
