@@ -1,14 +1,23 @@
-use crate::{color::*, tuple::*};
+use crate::{color::*, matrix::*, object::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Pattern {
     pub a: Color,
     pub b: Color,
+    pub transform: Matrix,
 }
 
 impl Pattern {
     pub fn new(a: Color, b: Color) -> Pattern {
-        Pattern { a, b }
+        Pattern {
+            a,
+            b,
+            transform: IDENTITY_MATRIX,
+        }
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix) {
+        self.transform = transform;
     }
 
     pub fn stripe_at(&self, point: &Point) -> Color {
@@ -17,6 +26,12 @@ impl Pattern {
         } else {
             self.b
         }
+    }
+
+    pub fn stripe_at_object(&self, object: &Object, point: &Point) -> Result<Color, String> {
+        let object_point = object.transform.inverse()? * point;
+        let pattern_point = self.transform.inverse()? * object_point;
+        Ok(self.stripe_at(&pattern_point))
     }
 }
 
@@ -33,6 +48,8 @@ mod test_chapter_10_pattern {
     #![allow(non_snake_case)]
 
     use super::*;
+
+    use crate::sphere::*;
 
     #[test]
     fn creating_a_stripe_pattern() {
@@ -70,5 +87,39 @@ mod test_chapter_10_pattern {
         assert_eq!(stripe_at(&pattern, &point(-0.1, 0.0, 0.0)), BLACK);
         assert_eq!(stripe_at(&pattern, &point(-1.0, 0.0, 0.0)), BLACK);
         assert_eq!(stripe_at(&pattern, &point(-1.1, 0.0, 0.0)), WHITE);
+    }
+
+    #[test]
+    fn stripes_with_an_object_transformation() {
+        let mut object = sphere();
+        object.set_transform(&scaling(2.0, 2.0, 2.0));
+        let pattern = stripe_pattern(&WHITE, &BLACK);
+        let c = pattern
+            .stripe_at_object(&object, &point(1.5, 0.0, 0.0))
+            .unwrap();
+        assert_eq!(c, WHITE);
+    }
+
+    #[test]
+    fn stripes_with_a_pattern_transformation() {
+        let object = sphere();
+        let mut pattern = stripe_pattern(&WHITE, &BLACK);
+        pattern.set_transform(scaling(2.0, 2.0, 2.0));
+        let c = pattern
+            .stripe_at_object(&object, &point(1.5, 0.0, 0.0))
+            .unwrap();
+        assert_eq!(c, WHITE);
+    }
+
+    #[test]
+    fn stripes_with_both_an_object_and_a_pattern_transformation() {
+        let mut object = sphere();
+        object.set_transform(&scaling(2.0, 2.0, 2.0));
+        let mut pattern = stripe_pattern(&WHITE, &BLACK);
+        pattern.set_transform(translation(0.5, 0.0, 0.0));
+        let c = pattern
+            .stripe_at_object(&object, &point(2.5, 0.0, 0.0))
+            .unwrap();
+        assert_eq!(c, WHITE);
     }
 }
