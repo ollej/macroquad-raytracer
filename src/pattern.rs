@@ -5,6 +5,7 @@ pub enum Texture {
     Striped(Color, Color),
     Gradient(Color, Color),
     Ring(Color, Color),
+    Checkers(Color, Color),
 }
 
 impl Texture {
@@ -24,6 +25,13 @@ impl Texture {
             }
             Texture::Ring(a, b) => {
                 if (point.x.powf(2.0) + point.z.powf(2.0)).sqrt().floor() % 2.0 == 0.0 {
+                    *a
+                } else {
+                    *b
+                }
+            }
+            Texture::Checkers(a, b) => {
+                if (point.x.floor() + point.y.floor() + point.z.floor()) % 2.0 == 0.0 {
                     *a
                 } else {
                     *b
@@ -77,6 +85,13 @@ pub fn ring_pattern(a: &Color, b: &Color) -> Pattern {
     Pattern::new(IDENTITY_MATRIX, Texture::Ring(a.to_owned(), b.to_owned()))
 }
 
+pub fn checkers_pattern(a: &Color, b: &Color) -> Pattern {
+    Pattern::new(
+        IDENTITY_MATRIX,
+        Texture::Checkers(a.to_owned(), b.to_owned()),
+    )
+}
+
 pub fn stripe_texture(a: &Color, b: &Color) -> Texture {
     Texture::Striped(a.to_owned(), b.to_owned())
 }
@@ -87,6 +102,10 @@ pub fn gradient_texture(a: &Color, b: &Color) -> Texture {
 
 pub fn ring_texture(a: &Color, b: &Color) -> Texture {
     Texture::Ring(a.to_owned(), b.to_owned())
+}
+
+pub fn checkers_texture(a: &Color, b: &Color) -> Texture {
+    Texture::Checkers(a.to_owned(), b.to_owned())
 }
 
 pub fn pattern_at_shape(texture: &Texture, point: &Point) -> Color {
@@ -201,5 +220,27 @@ mod test_chapter_10_pattern {
         assert_eq!(texture.color_at(&point(0.0, 0.0, 1.0)), BLACK);
         // 0.708 = just slightly more than √ 2/2;
         assert_eq!(texture.color_at(&point(0.708, 0.0, 0.708)), BLACK);
+    }
+
+    #[test]
+    fn checkers_should_repeat_in_x() {
+        let texture = checkers_texture(&WHITE, &BLACK);
+        assert_eq!(texture.color_at(&point(0.0, 0.0, 0.0)), WHITE);
+        assert_eq!(texture.color_at(&point(0.99, 0.0, 0.0)), WHITE);
+        assert_eq!(texture.color_at(&point(1.01, 0.0, 0.0)), BLACK);
+    }
+
+    fn checkers_should_repeat_in_y() {
+        let texture = checkers_texture(&WHITE, &BLACK);
+        assert_eq!(texture.color_at(&point(0.0, 0.0, 0.0)), WHITE);
+        assert_eq!(texture.color_at(&point(0.0, 0.99, 0.0)), WHITE);
+        assert_eq!(texture.color_at(&point(0.0, 1.01, 0.0)), BLACK);
+    }
+
+    fn checkers_should_repeat_in_z() {
+        let texture = checkers_texture(&WHITE, &BLACK);
+        assert_eq!(texture.color_at(&point(0.0, 0.0, 0.0)), WHITE);
+        assert_eq!(texture.color_at(&point(0.0, 0.0, 0.99)), WHITE);
+        assert_eq!(texture.color_at(&point(0.0, 0.0, 1.01)), BLACK);
     }
 }

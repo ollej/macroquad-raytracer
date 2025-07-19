@@ -222,7 +222,10 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
     let floor_material = Material {
         color: WHITE,
         specular: 0.0,
-        pattern: Some(ring_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5))),
+        pattern: Some(checkers_pattern(
+            &color(1.0, 0.9, 0.9),
+            &color(0.4, 0.4, 0.5),
+        )),
         ..Default::default()
     };
 
@@ -230,17 +233,14 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
         .objects
         .push(Object::new_plane(IDENTITY_MATRIX, floor_material));
     let mut wall_material = floor_material.clone();
-    wall_material.set_pattern(gradient_pattern(
-        &color(1.0, 0.9, 0.9),
-        &color(0.4, 0.4, 0.5),
-    ));
+    wall_material.set_pattern(ring_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5)));
     world.objects.push(Object::new_plane(
         translation(0.0, 0.0, 2.5) * rotation_x(PI / 2.0),
         wall_material,
     ));
 
-    let mut pattern = stripe_pattern(&color(1.0, 0.0, 0.0), &color(0.0, 1.0, 0.0));
-    pattern.set_transform(rotation_z(PI / 4.0) * rotation_y(PI / 4.0) * scaling(0.2, 0.2, 0.2));
+    let mut pattern = gradient_pattern(&color(1.0, 0.0, 0.0), &color(0.0, 1.0, 0.0));
+    pattern.set_transform(rotation_x(-PI / 4.0) * rotation_z(-PI / 4.0) * scaling(0.6, 0.6, 0.6));
     world.objects.push(Object::new_sphere(
         translation(-0.5, 1.0, 0.5),
         Material {
@@ -251,17 +251,22 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
             ..Default::default()
         },
     ));
+    let mut sphere_pattern = stripe_pattern(&color(0.0, 0.0, 1.0), &color(0.0, 1.0, 1.0));
+    sphere_pattern
+        .set_transform(rotation_z(PI / 4.0) * rotation_y(PI / 4.0) * scaling(0.4, 0.4, 0.4));
     world.objects.push(build_sphere(
         0.5,
         color(0.5, 1.0, 0.1),
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        Some(stripe_pattern(&color(0.0, 1.0, 0.0), &color(1.0, 1.0, 0.0))),
+        Some(sphere_pattern),
     ));
+    let mut stripe_pattern = stripe_pattern(&color(0.0, 1.0, 0.0), &color(1.0, 1.0, 0.0));
+    stripe_pattern.set_transform(rotation_x(PI / 4.0) * rotation_z(PI / 4.0));
     world.objects.push(build_sphere(
         0.33,
         color(1.0, 0.8, 0.1),
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
-        Some(stripe_pattern(&color(0.0, 0.0, 1.0), &color(0.0, 1.0, 1.0))),
+        Some(stripe_pattern),
     ));
 
     camera.render(&world)
