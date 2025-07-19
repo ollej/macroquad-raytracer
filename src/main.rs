@@ -219,19 +219,24 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
 fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
     let (camera, mut world) = setup_scene(canvas_size);
 
-    let plane_material = Material {
+    let floor_material = Material {
         color: WHITE,
         specular: 0.0,
-        pattern: Some(stripe_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5))),
+        pattern: Some(ring_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5))),
         ..Default::default()
     };
 
     world
         .objects
-        .push(Object::new_plane(IDENTITY_MATRIX, plane_material));
+        .push(Object::new_plane(IDENTITY_MATRIX, floor_material));
+    let mut wall_material = floor_material.clone();
+    wall_material.set_pattern(gradient_pattern(
+        &color(1.0, 0.9, 0.9),
+        &color(0.4, 0.4, 0.5),
+    ));
     world.objects.push(Object::new_plane(
         translation(0.0, 0.0, 2.5) * rotation_x(PI / 2.0),
-        plane_material,
+        wall_material,
     ));
 
     let mut pattern = stripe_pattern(&color(1.0, 0.0, 0.0), &color(0.0, 1.0, 0.0));
