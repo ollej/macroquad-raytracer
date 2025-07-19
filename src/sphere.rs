@@ -1,4 +1,6 @@
-use crate::{float::*, intersection::*, object::*, ray::*, tuple::*};
+use crate::{
+    float::*, intersection::*, material::*, matrix::*, object::*, ray::*, shape::*, tuple::*,
+};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Sphere {}
@@ -30,6 +32,18 @@ pub fn sphere() -> Object {
     Object::empty()
 }
 
+pub fn glass_sphere() -> Object {
+    Object {
+        transform: IDENTITY_MATRIX,
+        material: Material {
+            transparency: 1.0,
+            refractive_index: 1.5,
+            ..Default::default()
+        },
+        shape: Shape::Sphere(Sphere {}),
+    }
+}
+
 pub fn intersect(object: &Object, ray: &Ray) -> Result<Intersections, String> {
     object.intersect(ray)
 }
@@ -43,8 +57,6 @@ mod test_chapter_5_intersections {
     #![allow(non_snake_case)]
 
     use super::*;
-
-    use crate::matrix::*;
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {
@@ -139,7 +151,6 @@ mod test_chapter_6_normals {
     #![allow(non_snake_case)]
 
     use super::*;
-    use crate::matrix::*;
     use std::f64::consts::PI;
 
     #[test]
@@ -218,8 +229,6 @@ mod test_chapter_6_sphere_material {
 
     use super::*;
 
-    use crate::material::*;
-
     #[test]
     fn a_sphere_has_a_default_material() {
         let s = sphere();
@@ -234,5 +243,19 @@ mod test_chapter_6_sphere_material {
         m.ambient = 1.;
         s.material = m;
         assert_eq!(s.material, m);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_11_refraction {
+    #![allow(non_snake_case)]
+
+    use super::*;
+    #[test]
+    fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
+        let s = glass_sphere();
+        assert_eq!(s.transform, IDENTITY_MATRIX);
+        assert_eq!(s.material.transparency, 1.0);
+        assert_eq!(s.material.refractive_index, 1.5);
     }
 }
