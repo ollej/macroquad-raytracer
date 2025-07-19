@@ -1,3 +1,4 @@
+use macroquad::prelude::scene;
 use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
@@ -143,6 +144,8 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
 }
 
 fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
     let wall_material = Material {
         color: color(1.0, 0.9, 0.9),
         specular: 0.0,
@@ -167,39 +170,87 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
         wall_material,
     );
 
-    let middle = Object::new_sphere(
+    let middle = build_sphere(1.0, color(0.1, 1.0, 0.5), translation(-0.5, 1.0, 0.5));
+    let right = build_sphere(0.5, color(0.5, 1.0, 0.1), translation(1.5, 0.5, -0.5));
+    let left = build_sphere(0.33, color(1.0, 0.8, 0.1), translation(-1.5, 0.33, -0.75));
+
+    world
+        .objects
+        .extend(vec![floor, left_wall, right_wall, middle, right, left]);
+
+    camera.render(&world)
+}
+
+fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.append(&mut build_plane_walls());
+
+    world.objects.push(build_sphere(
+        1.0,
+        color(0.1, 1.0, 0.5),
+        translation(-0.5, 1.0, 0.5),
+    ));
+    world.objects.push(build_sphere(
+        0.5,
+        color(0.5, 1.0, 0.1),
+        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+    ));
+    world.objects.push(build_sphere(
+        0.33,
+        color(1.0, 0.8, 0.1),
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+    ));
+
+    camera.render(&world)
+}
+
+fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    let plane_material = Material {
+        color: WHITE,
+        specular: 0.0,
+        pattern: Some(stripe_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5))),
+        ..Default::default()
+    };
+
+    world
+        .objects
+        .push(Object::new_plane(IDENTITY_MATRIX, plane_material));
+    world.objects.push(Object::new_plane(
+        translation(0.0, 0.0, 2.5) * rotation_x(PI / 2.0),
+        plane_material,
+    ));
+
+    world.objects.push(Object::new_sphere(
         translation(-0.5, 1.0, 0.5),
         Material {
-            color: color(0.1, 1.0, 0.5),
+            color: WHITE,
             diffuse: 0.7,
             specular: 0.3,
+            pattern: Some(stripe_pattern(&color(1.0, 0.0, 0.0), &color(0.0, 1.0, 0.0))),
             ..Default::default()
         },
-    );
-
-    let right = Object::new_sphere(
+    ));
+    world.objects.push(build_sphere(
+        0.5,
+        color(0.5, 1.0, 0.1),
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        Material {
-            color: color(0.5, 1.0, 0.1),
-            diffuse: 0.7,
-            specular: 0.3,
-            ..Default::default()
-        },
-    );
-
-    let left = Object::new_sphere(
+    ));
+    world.objects.push(build_sphere(
+        0.33,
+        color(1.0, 0.8, 0.1),
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
-        Material {
-            color: color(1.0, 0.8, 0.1),
-            diffuse: 0.7,
-            specular: 0.3,
-            ..Default::default()
-        },
-    );
+    ));
 
+    camera.render(&world)
+}
+
+fn setup_scene(canvas_size: usize) -> (Camera, World) {
     let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
-        objects: vec![floor, left_wall, right_wall, middle, left, right],
+        objects: vec![],
         light: Some(light_source),
     };
 
@@ -210,10 +261,10 @@ fn generate_scene(canvas_size: usize) -> Result<Canvas, String> {
         &vector(0.0, 1.0, 0.0),
     );
 
-    camera.render(&world)
+    (camera, world)
 }
 
-fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
+fn build_plane_walls() -> Vec<Object> {
     let floor_material = Material {
         color: color(1.0, 0.9, 0.9),
         specular: 0.0,
@@ -226,50 +277,19 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
         floor_material,
     );
 
-    let middle = Object::new_sphere(
-        translation(-0.5, 1.0, 0.5),
+    vec![floor, wall]
+}
+
+fn build_sphere(scale: Float, color: Color, translation: Matrix) -> Object {
+    Object::new_sphere(
+        translation * scaling(scale, scale, scale),
         Material {
-            color: color(0.1, 1.0, 0.5),
+            color,
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
         },
-    );
-
-    let right = Object::new_sphere(
-        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        Material {
-            color: color(0.5, 1.0, 0.1),
-            diffuse: 0.7,
-            specular: 0.3,
-            ..Default::default()
-        },
-    );
-
-    let left = Object::new_sphere(
-        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
-        Material {
-            color: color(1.0, 0.8, 0.1),
-            diffuse: 0.7,
-            specular: 0.3,
-            ..Default::default()
-        },
-    );
-
-    let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
-    let world = World {
-        objects: vec![floor, wall, middle, left, right],
-        light: Some(light_source),
-    };
-
-    let mut camera = camera(canvas_size, canvas_size / 2, PI / 3.0);
-    camera.transform = view_transform(
-        &point(0.0, 1.5, -5.0),
-        &point(0.0, 1.0, 0.0),
-        &vector(0.0, 1.0, 0.0),
-    );
-
-    camera.render(&world)
+    )
 }
 
 #[macroquad::main(window_conf())]
@@ -284,6 +304,7 @@ async fn main() -> Result<(), String> {
         Image::SphereRayon => generate_sphere_rayon(options.size)?,
         Image::Scene => generate_scene(options.size)?,
         Image::ScenePlane => generate_scene_plane(options.size)?,
+        Image::ScenePattern => generate_scene_pattern(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
