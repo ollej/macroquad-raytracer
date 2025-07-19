@@ -95,7 +95,7 @@ impl Material {
             // reflect_dot_eye represents the cosine of the angle between the
             // reflection vector and the eye vector. A negative number means the
             // light reflects away from the eye.
-            let reflectv = reflect(-lightv, normalv);
+            let reflectv = (-lightv).reflect(normalv);
             let reflect_dot_eye = reflectv.dot(eyev);
 
             let specular: Color = if reflect_dot_eye <= 0. {

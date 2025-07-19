@@ -26,6 +26,7 @@ impl Intersection {
             normalv = -normalv;
         }
         let over_point = point + normalv * EPSILON;
+        let reflectv = ray.direction.reflect(&normalv);
         Ok(PreparedComputations {
             t: self.t,
             object: self.object,
@@ -33,6 +34,7 @@ impl Intersection {
             over_point,
             eyev,
             normalv,
+            reflectv,
             inside,
         })
     }
@@ -86,6 +88,7 @@ pub struct PreparedComputations {
     pub over_point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
+    pub reflectv: Vector,
     pub inside: bool,
 }
 
@@ -255,5 +258,29 @@ mod test_chapter_8_shadows {
         let comps = prepare_computations(&i, &r).unwrap();
         assert!(comps.over_point.z < -EPSILON / 2.0);
         assert!(comps.point.z > comps.over_point.z);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_11_reflection {
+    #![allow(non_snake_case)]
+
+    use super::*;
+
+    use crate::plane::*;
+
+    #[test]
+    fn precomputing_the_reflection_vector() {
+        let shape = plane();
+        let r = ray(
+            &point(0.0, 1.0, -1.0),
+            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+        );
+        let i = intersection(2_f64.sqrt(), &shape);
+        let comps = prepare_computations(&i, &r).unwrap();
+        assert_eq!(
+            comps.reflectv,
+            vector(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
+        );
     }
 }
