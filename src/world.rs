@@ -81,7 +81,7 @@ impl World {
     pub fn shade_hit(&self, prepared_computations: &PreparedComputations) -> Result<Color, String> {
         let shadowed = self.is_shadowed(&prepared_computations.over_point);
 
-        match &self.light {
+        let surface = match &self.light {
             Some(light) => prepared_computations.object.material.lighting(
                 &prepared_computations.object,
                 light,
@@ -89,9 +89,13 @@ impl World {
                 &prepared_computations.eyev,
                 &prepared_computations.normalv,
                 shadowed,
-            ),
-            None => Ok(BLACK),
-        }
+            )?,
+            None => BLACK,
+        };
+
+        let reflected = self.reflected_color(&prepared_computations)?;
+
+        Ok(surface + reflected)
     }
 
     pub fn color_at(&self, ray: &Ray) -> Result<Color, String> {
@@ -319,5 +323,22 @@ mod test_chapter_11_reflection {
         let comps = i.prepare_computations(&r).unwrap();
         let c = w.reflected_color(&comps).unwrap();
         assert_eq!(c, color(0.1903322, 0.237915, 0.142749));
+    }
+
+    #[test]
+    fn the_shade_hit_for_a_reflective_material() {
+        let mut w = default_world();
+        let mut shape = plane();
+        shape.material.reflective = 0.5;
+        shape.set_transform(&translation(0.0, -1.0, 0.0));
+        w.objects.push(shape);
+        let r = ray(
+            &point(0.0, 0.0, -3.0),
+            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+        );
+        let i = intersection(2.0_f64.sqrt(), &shape);
+        let comps = i.prepare_computations(&r).unwrap();
+        let c = w.shade_hit(&comps).unwrap();
+        assert_eq!(c, color(0.876757, 0.924340, 0.829174));
     }
 }
