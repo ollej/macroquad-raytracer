@@ -30,6 +30,7 @@ pub enum Image {
     Scene,
     ScenePlane,
     ScenePattern,
+    SceneReflection,
 }
 
 impl clap::ValueEnum for Image {
@@ -42,6 +43,7 @@ impl clap::ValueEnum for Image {
             Self::Scene,
             Self::ScenePlane,
             Self::ScenePattern,
+            Self::SceneReflection,
         ]
     }
 
@@ -54,6 +56,7 @@ impl clap::ValueEnum for Image {
             Self::Scene => Some(clap::builder::PossibleValue::new("scene")),
             Self::ScenePlane => Some(clap::builder::PossibleValue::new("scene-plane")),
             Self::ScenePattern => Some(clap::builder::PossibleValue::new("scene-pattern")),
+            Self::SceneReflection => Some(clap::builder::PossibleValue::new("scene-reflection")),
         }
     }
 }
@@ -66,7 +69,7 @@ pub struct AppOptions {
     pub directory: PathBuf,
 
     /// Generate this image
-    #[arg(short, long, default_value = "scene-pattern")]
+    #[arg(short, long, default_value = "scene-reflection")]
     pub image: Image,
 
     /// Save output as an image of this type

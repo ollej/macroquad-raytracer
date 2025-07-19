@@ -218,20 +218,11 @@ fn generate_scene_plane(canvas_size: usize) -> Result<Canvas, String> {
 fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
     let (camera, mut world) = setup_scene(canvas_size);
 
-    let floor_material = Material {
-        color: WHITE,
-        specular: 0.0,
-        pattern: Some(checkers_pattern(
-            &color(1.0, 0.9, 0.9),
-            &color(0.4, 0.4, 0.5),
-        )),
-        ..Default::default()
-    };
+    let floor = build_floor_plane();
 
-    world
-        .objects
-        .push(Object::new_plane(IDENTITY_MATRIX, floor_material));
-    let mut wall_material = floor_material.clone();
+    world.objects.push(floor);
+
+    let mut wall_material = floor.material.clone();
     wall_material.set_pattern(ring_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5)));
     world.objects.push(Object::new_plane(
         translation(0.0, 0.0, 2.5) * rotation_x(PI / 2.0),
@@ -271,6 +262,38 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
+fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.push(build_floor_plane());
+
+    world.objects.push(Object::new_sphere(
+        translation(-0.5, 1.0, 0.5),
+        Material {
+            color: color(0.8, 0.3, 0.3),
+            diffuse: 0.8,
+            specular: 0.3,
+            reflective: 0.8,
+            pattern: None,
+            ..Default::default()
+        },
+    ));
+    world.objects.push(build_sphere(
+        0.9,
+        color(0.5, 1.0, 0.1),
+        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        None,
+    ));
+    world.objects.push(build_sphere(
+        0.8,
+        color(1.0, 0.8, 0.1),
+        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+        None,
+    ));
+
+    camera.render(&world)
+}
+
 fn setup_scene(canvas_size: usize) -> (Camera, World) {
     let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
@@ -304,6 +327,20 @@ fn build_plane_walls() -> Vec<Object> {
     vec![floor, wall]
 }
 
+fn build_floor_plane() -> Object {
+    let floor_material = Material {
+        color: WHITE,
+        specular: 0.0,
+        reflective: 0.5,
+        pattern: Some(checkers_pattern(
+            &color(1.0, 0.9, 0.9),
+            &color(0.4, 0.4, 0.5),
+        )),
+        ..Default::default()
+    };
+    Object::new_plane(IDENTITY_MATRIX, floor_material)
+}
+
 fn build_sphere(
     scale: Float,
     color: Color,
@@ -335,6 +372,7 @@ async fn main() -> Result<(), String> {
         Image::Scene => generate_scene(options.size)?,
         Image::ScenePlane => generate_scene_plane(options.size)?,
         Image::ScenePattern => generate_scene_pattern(options.size)?,
+        Image::SceneReflection => generate_scene_reflection(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
