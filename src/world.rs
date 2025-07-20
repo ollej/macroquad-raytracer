@@ -112,7 +112,7 @@ impl World {
         let intersections = self.intersect(ray)?;
         match intersections.hit() {
             Some(hit) => {
-                let prepared_computations = hit.prepare_computations(ray)?;
+                let prepared_computations = hit.prepare_computations(ray, &intersections)?;
                 self.shade_hit(&prepared_computations, remaining)
             }
             None => Ok(BLACK),
@@ -212,7 +212,7 @@ mod test_chapter_7_world {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.first().unwrap();
         let i = intersection(4.0, &shape);
-        let comps = i.prepare_computations(&r).unwrap();
+        let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = shade_hit(&w, &comps, 0).unwrap();
         assert_eq!(c, color(0.38066, 0.47583, 0.2855));
 
@@ -227,7 +227,7 @@ mod test_chapter_7_world {
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.get(1).unwrap();
         let i = intersection(0.5, &shape);
-        let comps = i.prepare_computations(&r).unwrap();
+        let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = w.shade_hit(&comps, 0).unwrap();
         assert_eq!(c, color(0.90498, 0.90498, 0.90498));
     }
@@ -307,7 +307,7 @@ mod test_chapter_8_shadows {
         w.objects.push(s2);
         let r = ray(&point(0.0, 0.0, 5.0), &vector(0.0, 0.0, 1.0));
         let i = intersection(4.0, &s2);
-        let comps = prepare_computations(&i, &r).unwrap();
+        let comps = prepare_computations(&i, &r, &intersections(vec![i])).unwrap();
         let c = w.shade_hit(&comps, 0).unwrap();
         assert_eq!(c, color(0.1, 0.1, 0.1));
     }
@@ -326,7 +326,7 @@ mod test_chapter_11_reflection {
         let mut shape = w.objects[1];
         shape.material.ambient = 1.0;
         let i = intersection(1.0, &shape);
-        let comps = i.prepare_computations(&r).unwrap();
+        let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = w.reflected_color(&comps, 0).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
@@ -343,7 +343,7 @@ mod test_chapter_11_reflection {
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
         let i = intersection(2.0_f64.sqrt(), &shape);
-        let comps = i.prepare_computations(&r).unwrap();
+        let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = w.reflected_color(&comps, 1).unwrap();
         assert_eq!(c, color(0.1903322, 0.237915, 0.142749));
     }
@@ -360,7 +360,7 @@ mod test_chapter_11_reflection {
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
         let i = intersection(2.0_f64.sqrt(), &shape);
-        let comps = i.prepare_computations(&r).unwrap();
+        let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = w.shade_hit(&comps, 1).unwrap();
         assert_eq!(c, color(0.876757, 0.924340, 0.829174));
     }
@@ -394,7 +394,7 @@ mod test_chapter_11_reflection {
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
         let i = intersection(2.0_f64.sqrt(), &shape);
-        let comps = i.prepare_computations(&r).unwrap();
+        let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = w.reflected_color(&comps, 0).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }

@@ -17,7 +17,11 @@ impl Intersection {
         self.t > 0.
     }
 
-    pub fn prepare_computations(&self, ray: &Ray) -> Result<PreparedComputations, String> {
+    pub fn prepare_computations(
+        &self,
+        ray: &Ray,
+        xs: &Intersections,
+    ) -> Result<PreparedComputations, String> {
         let point = ray.position(self.t);
         let eyev = -ray.direction;
         let mut normalv = self.object.normal_at(&point)?;
@@ -27,6 +31,33 @@ impl Intersection {
         }
         let over_point = point + normalv * EPSILON;
         let reflectv = ray.direction.reflect(&normalv);
+
+        let mut n1: Float = 1.0;
+        let mut n2: Float = 1.0;
+        let mut containers: Vec<Object> = vec![];
+        for i in xs.inner().iter() {
+            if i == self {
+                n1 = containers
+                    .last()
+                    .map(|object| object.material.refractive_index)
+                    .unwrap_or(1.0);
+            }
+
+            if containers.contains(&i.object) {
+                containers.retain(|element| *element != i.object)
+            } else {
+                containers.push(i.object);
+            }
+
+            if i == self {
+                n2 = containers
+                    .last()
+                    .map(|object| object.material.refractive_index)
+                    .unwrap_or(1.0);
+                break;
+            }
+        }
+
         Ok(PreparedComputations {
             t: self.t,
             object: self.object,
@@ -36,6 +67,8 @@ impl Intersection {
             normalv,
             reflectv,
             inside,
+            n1,
+            n2,
         })
     }
 }
@@ -90,6 +123,8 @@ pub struct PreparedComputations {
     pub normalv: Vector,
     pub reflectv: Vector,
     pub inside: bool,
+    pub n1: Float,
+    pub n2: Float,
 }
 
 pub fn intersection(t: Float, object: &Object) -> Intersection {
@@ -107,8 +142,9 @@ pub fn hit(intersections: &Intersections) -> Option<Intersection> {
 pub fn prepare_computations(
     intersection: &Intersection,
     ray: &Ray,
+    xs: &Intersections,
 ) -> Result<PreparedComputations, String> {
-    intersection.prepare_computations(ray)
+    intersection.prepare_computations(ray, xs)
 }
 
 #[cfg(test)]
@@ -208,14 +244,14 @@ mod test_chapter_7_world_intersections {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = sphere();
         let i = intersection(4.0, &shape);
-        let comps = prepare_computations(&i, &r).unwrap();
+        let comps = prepare_computations(&i, &r, &intersections(vec![i])).unwrap();
         assert_eq!(comps.t, i.t);
         assert_eq!(comps.object, i.object);
         assert_eq!(comps.point, point(0.0, 0.0, -1.0));
         assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
 
-        let comps2 = i.prepare_computations(&r).unwrap();
+        let comps2 = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         assert_eq!(comps, comps2);
     }
 
@@ -224,7 +260,7 @@ mod test_chapter_7_world_intersections {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = sphere();
         let i = intersection(4.0, &shape);
-        let comps = prepare_computations(&i, &r).unwrap();
+        let comps = prepare_computations(&i, &r, &intersections(vec![i])).unwrap();
         assert_eq!(comps.inside, false);
     }
 
@@ -233,7 +269,7 @@ mod test_chapter_7_world_intersections {
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let shape = sphere();
         let i = intersection(1.0, &shape);
-        let comps = prepare_computations(&i, &r).unwrap();
+        let comps = prepare_computations(&i, &r, &intersections(vec![i])).unwrap();
         assert_eq!(comps.point, point(0.0, 0.0, 1.0));
         assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
         assert_eq!(comps.inside, true);
@@ -255,7 +291,7 @@ mod test_chapter_8_shadows {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = Object::new(translation(0.0, 0.0, 1.0));
         let i = intersection(5.0, &shape);
-        let comps = prepare_computations(&i, &r).unwrap();
+        let comps = prepare_computations(&i, &r, &intersections(vec![i])).unwrap();
         assert!(comps.over_point.z < -EPSILON / 2.0);
         assert!(comps.point.z > comps.over_point.z);
     }
@@ -267,7 +303,7 @@ mod test_chapter_11_reflection {
 
     use super::*;
 
-    use crate::plane::*;
+    use crate::{matrix::*, plane::*, sphere::*};
 
     #[test]
     fn precomputing_the_reflection_vector() {
@@ -277,10 +313,46 @@ mod test_chapter_11_reflection {
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
         let i = intersection(2_f64.sqrt(), &shape);
-        let comps = prepare_computations(&i, &r).unwrap();
+        let comps = prepare_computations(&i, &r, &intersections(vec![i])).unwrap();
         assert_eq!(
             comps.reflectv,
             vector(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
         );
+    }
+
+    #[test]
+    fn finding_n1_and_n2_at_various_intersections() {
+        let mut A = glass_sphere();
+        A.set_transform(&scaling(2.0, 2.0, 2.0));
+        A.material.refractive_index = 1.5;
+        let mut B = glass_sphere();
+        B.set_transform(&translation(0.0, 0.0, -0.25));
+        B.material.refractive_index = 2.0;
+        let mut C = glass_sphere();
+        C.set_transform(&translation(0.0, 0.0, 0.25));
+        C.material.refractive_index = 2.5;
+        let r = ray(&point(0.0, 0.0, -4.0), &vector(0.0, 0.0, 1.0));
+        let xs = intersections(vec![
+            Intersection::new(2.0, A),
+            Intersection::new(2.75, B),
+            Intersection::new(3.25, C),
+            Intersection::new(4.75, B),
+            Intersection::new(5.25, C),
+            Intersection::new(6.0, A),
+        ]);
+
+        let examples = vec![
+            (1.0, 1.5),
+            (1.5, 2.0),
+            (2.0, 2.5),
+            (2.5, 2.5),
+            (2.5, 1.5),
+            (1.5, 1.0),
+        ];
+        for (idx, (n1, n2)) in examples.iter().enumerate() {
+            let comps = prepare_computations(&xs[idx], &r, &xs).unwrap();
+            assert_eq_float!(comps.n1, n1);
+            assert_eq_float!(comps.n2, n2);
+        }
     }
 }
