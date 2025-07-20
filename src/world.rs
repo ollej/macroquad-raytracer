@@ -160,13 +160,18 @@ impl World {
         prepared_computations: &PreparedComputations,
         remaining: usize,
     ) -> Color {
-        if remaining < 1 {
-            BLACK
-        } else if prepared_computations.object.material.transparency == 0.0 {
-            BLACK
-        } else {
-            WHITE
+        if remaining < 1 || prepared_computations.object.material.transparency == 0.0 {
+            return BLACK;
         }
+        let n_ratio = prepared_computations.n1 / prepared_computations.n2;
+        let cos_i = prepared_computations
+            .eyev
+            .dot(&prepared_computations.normalv);
+        let sin2_t = n_ratio.powf(2.0) * (1.0 - cos_i.powf(2.0));
+        if sin2_t > 1.0 {
+            return BLACK;
+        }
+        WHITE
     }
 }
 
@@ -440,6 +445,27 @@ mod test_chapter_11_reflection {
         ]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
         let c = w.refracted_color(&comps, 0);
+        assert_eq!(c, color(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn the_refracted_color_under_total_internal_reflection() {
+        let w = default_world();
+        let mut shape = w.objects[0];
+        shape.material.transparency = 1.0;
+        shape.material.refractive_index = 1.5;
+        let r = ray(
+            &point(0.0, 0.0, 2.0_f64.sqrt() / 2.0),
+            &vector(0.0, 1.0, 0.0),
+        );
+        let xs = intersections(vec![
+            Intersection::new(-2.0_f64.sqrt() / 2.0, shape),
+            Intersection::new(2.0_f64.sqrt() / 2.0, shape),
+        ]);
+        // NOTE: this time you're inside the sphere, so you need;
+        // to look at the second intersection, xs[1], not xs[0];
+        let comps = prepare_computations(&xs[1], &r, &xs).unwrap();
+        let c = w.refracted_color(&comps, 5);
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 }
