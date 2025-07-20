@@ -154,6 +154,18 @@ impl World {
                 .map(|c| c * prepared_computations.object.material.reflective)
         }
     }
+
+    fn refracted_color(
+        &self,
+        prepared_computations: &PreparedComputations,
+        remaining: usize,
+    ) -> Color {
+        if prepared_computations.object.material.transparency == 0.0 {
+            BLACK
+        } else {
+            WHITE
+        }
+    }
 }
 
 #[cfg(test)]
@@ -396,6 +408,20 @@ mod test_chapter_11_reflection {
         let i = intersection(2.0_f64.sqrt(), &shape);
         let comps = i.prepare_computations(&r, &intersections(vec![i])).unwrap();
         let c = w.reflected_color(&comps, 0).unwrap();
+        assert_eq!(c, color(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn the_refracted_color_with_an_opaque_surface() {
+        let w = default_world();
+        let shape = w.objects.first().unwrap();
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
+        let xs = intersections(vec![
+            Intersection::new(4.0, *shape),
+            Intersection::new(6.0, *shape),
+        ]);
+        let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
+        let c = w.refracted_color(&comps, 5);
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 }
