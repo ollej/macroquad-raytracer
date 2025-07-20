@@ -30,6 +30,7 @@ impl Intersection {
             normalv = -normalv;
         }
         let over_point = point + normalv * EPSILON;
+        let under_point = point - normalv * EPSILON;
         let reflectv = ray.direction.reflect(&normalv);
 
         let mut n1: Float = 1.0;
@@ -63,6 +64,7 @@ impl Intersection {
             object: self.object,
             point,
             over_point,
+            under_point,
             eyev,
             normalv,
             reflectv,
@@ -119,6 +121,7 @@ pub struct PreparedComputations {
     pub object: Object,
     pub point: Point,
     pub over_point: Point,
+    pub under_point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
     pub reflectv: Vector,
@@ -354,5 +357,17 @@ mod test_chapter_11_reflection {
             assert_eq_float!(comps.n1, n1);
             assert_eq_float!(comps.n2, n2);
         }
+    }
+
+    #[test]
+    fn the_under_point_is_offset_below_the_surface() {
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
+        let mut shape = glass_sphere();
+        shape.set_transform(&translation(0.0, 0.0, 1.0));
+        let i = intersection(5.0, &shape);
+        let xs = intersections(vec![i]);
+        let comps = i.prepare_computations(&r, &xs).unwrap();
+        assert!(comps.under_point.z > EPSILON / 2.0);
+        assert!(comps.point.z < comps.under_point.z);
     }
 }
