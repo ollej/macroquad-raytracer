@@ -160,7 +160,9 @@ impl World {
         prepared_computations: &PreparedComputations,
         remaining: usize,
     ) -> Color {
-        if prepared_computations.object.material.transparency == 0.0 {
+        if remaining < 1 {
+            BLACK
+        } else if prepared_computations.object.material.transparency == 0.0 {
             BLACK
         } else {
             WHITE
@@ -422,6 +424,22 @@ mod test_chapter_11_reflection {
         ]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
         let c = w.refracted_color(&comps, 5);
+        assert_eq!(c, color(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn the_refracted_color_at_the_maximum_recursive_depth() {
+        let w = default_world();
+        let mut shape = w.objects[0];
+        shape.material.transparency = 1.0;
+        shape.material.refractive_index = 1.5;
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
+        let xs = intersections(vec![
+            Intersection::new(4.0, shape),
+            Intersection::new(6.0, shape),
+        ]);
+        let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
+        let c = w.refracted_color(&comps, 0);
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 }
