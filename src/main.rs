@@ -278,11 +278,16 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
             ..Default::default()
         },
     ));
-    world.objects.push(build_sphere(
-        0.9,
-        color(0.5, 1.0, 0.1),
+    world.objects.push(Object::new_sphere(
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        None,
+        Material {
+            color: color(0.5, 1.0, 0.1),
+            diffuse: 0.8,
+            specular: 0.3,
+            transparency: 1.0,
+            refractive_index: 0.8,
+            ..Default::default()
+        },
     ));
     world.objects.push(build_sphere(
         0.8,
