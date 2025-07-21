@@ -142,6 +142,26 @@ impl PreparedComputations {
     pub fn sin2_t(&self) -> Float {
         self.n_ratio().powf(2.0) * (1.0 - self.cos_i().powf(2.0))
     }
+
+    pub fn schlick(&self) -> Float {
+        // Find the cosine of the angle between the eye and normal vectors.
+        let mut cos = self.cos_i();
+
+        // Total internal reflection can only occur if n1 > n2
+        if self.n1 > self.n2 {
+            let sin2_t = self.n_ratio().powf(2.0) * (1.0 - cos.powf(2.0));
+            if sin2_t > 1.0 {
+                return 1.0;
+            }
+
+            // Compute cosine of theta_t using trig identity.
+            cos = f64::sqrt(1.0 - sin2_t);
+        }
+
+        let r0 = ((self.n1 - self.n2) / (self.n1 + self.n2)).powf(2.0);
+
+        r0 + (1.0 - r0) * (1.0 - cos).powf(5.0)
+    }
 }
 
 pub fn intersection(t: Float, object: &Object) -> Intersection {
@@ -383,5 +403,44 @@ mod test_chapter_11_reflection {
         let comps = i.prepare_computations(&r, &xs).unwrap();
         assert!(comps.under_point.z > EPSILON / 2.0);
         assert!(comps.point.z < comps.under_point.z);
+    }
+
+    #[test]
+    fn the_schlick_approximation_under_total_internal_reflection() {
+        let shape = glass_sphere();
+        let r = ray(
+            &point(0.0, 0.0, f64::sqrt(2.0) / 2.0),
+            &vector(0.0, 1.0, 0.0),
+        );
+        let xs = intersections(vec![
+            Intersection::new(-f64::sqrt(2.0) / 2.0, shape),
+            Intersection::new(f64::sqrt(2.0) / 2.0, shape),
+        ]);
+        let comps = prepare_computations(&xs[1], &r, &xs).unwrap();
+        let reflectance = comps.schlick();
+        assert_eq_float!(reflectance, 1.0);
+    }
+
+    #[test]
+    fn the_schlick_approximation_with_a_perpendicular_viewing_angle() {
+        let shape = glass_sphere();
+        let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 1.0, 0.0));
+        let xs = intersections(vec![
+            Intersection::new(-1.0, shape),
+            Intersection::new(1.0, shape),
+        ]);
+        let comps = prepare_computations(&xs[1], &r, &xs).unwrap();
+        let reflectance = comps.schlick();
+        assert_eq_float!(reflectance, 0.04);
+    }
+
+    #[test]
+    fn the_schlick_approximation_with_small_angle_and_n2_greater_than_n1() {
+        let shape = glass_sphere();
+        let r = ray(&point(0.0, 0.99, -2.0), &vector(0.0, 0.0, 1.0));
+        let xs = intersections(vec![Intersection::new(1.8589, shape)]);
+        let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
+        let reflectance = comps.schlick();
+        assert_eq_float!(reflectance, 0.48873);
     }
 }
