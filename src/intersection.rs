@@ -130,6 +130,20 @@ pub struct PreparedComputations {
     pub n2: Float,
 }
 
+impl PreparedComputations {
+    pub fn n_ratio(&self) -> Float {
+        self.n1 / self.n2
+    }
+
+    pub fn cos_i(&self) -> Float {
+        self.eyev.dot(&self.normalv)
+    }
+
+    pub fn sin2_t(&self) -> Float {
+        self.n_ratio().powf(2.0) * (1.0 - self.cos_i().powf(2.0))
+    }
+}
+
 pub fn intersection(t: Float, object: &Object) -> Intersection {
     Intersection::new(t, object.to_owned())
 }

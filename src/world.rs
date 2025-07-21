@@ -138,40 +138,48 @@ impl World {
 
     fn reflected_color(
         &self,
-        prepared_computations: &PreparedComputations,
+        comps: &PreparedComputations,
         remaining: usize,
     ) -> Result<Color, String> {
         if remaining < 1 {
             Ok(BLACK)
-        } else if prepared_computations.object.material.reflective == 0.0 {
+        } else if comps.object.material.reflective == 0.0 {
             Ok(BLACK)
         } else {
-            let reflect_ray = ray(
-                &prepared_computations.over_point,
-                &prepared_computations.reflectv,
-            );
+            let reflect_ray = ray(&comps.over_point, &comps.reflectv);
             self.color_at(&reflect_ray, remaining - 1)
-                .map(|c| c * prepared_computations.object.material.reflective)
+                .map(|c| c * comps.object.material.reflective)
         }
     }
 
     fn refracted_color(
         &self,
-        prepared_computations: &PreparedComputations,
+        comps: &PreparedComputations,
         remaining: usize,
-    ) -> Color {
-        if remaining < 1 || prepared_computations.object.material.transparency == 0.0 {
-            return BLACK;
+    ) -> Result<Color, String> {
+        if remaining == 0 || comps.object.material.transparency == 0.0 {
+            return Ok(BLACK);
         }
-        let n_ratio = prepared_computations.n1 / prepared_computations.n2;
-        let cos_i = prepared_computations
-            .eyev
-            .dot(&prepared_computations.normalv);
-        let sin2_t = n_ratio.powf(2.0) * (1.0 - cos_i.powf(2.0));
+
+        let n_ratio = comps.n_ratio();
+        let cos_i = comps.cos_i();
+        let sin2_t = n_ratio * n_ratio * (1.0 - cos_i * cos_i);
+
         if sin2_t > 1.0 {
-            return BLACK;
+            return Ok(BLACK);
         }
-        WHITE
+
+        // Find cos(theta_t) via trigonometric identity
+        let cos_t = f64::sqrt(1.0 - sin2_t);
+        // Compute the direction of the refracted ray
+        let direction = comps.normalv * (n_ratio * cos_i - cos_t) - comps.eyev * n_ratio;
+        // Create the refracted ray
+        let refract_ray = Ray::new(comps.under_point, direction);
+        // Find the color of the refracted ray, making sure to multiply
+        // by the transparency value to account for any opacity
+        let color =
+            self.color_at(&refract_ray, remaining - 1)? * comps.object.material.transparency;
+        Ok(color)
     }
 }
 
@@ -334,9 +342,13 @@ mod test_chapter_8_shadows {
 
 #[cfg(test)]
 mod test_chapter_11_reflection {
+    #![allow(non_snake_case)]
+
     use super::*;
 
     use crate::plane::*;
+
+    use crate::pattern::test_pattern;
 
     #[test]
     fn the_reflected_color_for_a_nonreflective_material() {
@@ -428,7 +440,7 @@ mod test_chapter_11_reflection {
             Intersection::new(6.0, *shape),
         ]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
-        let c = w.refracted_color(&comps, 5);
+        let c = w.refracted_color(&comps, 5).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 
@@ -444,7 +456,7 @@ mod test_chapter_11_reflection {
             Intersection::new(6.0, shape),
         ]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
-        let c = w.refracted_color(&comps, 0);
+        let c = w.refracted_color(&comps, 0).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
     }
 
@@ -465,7 +477,30 @@ mod test_chapter_11_reflection {
         // NOTE: this time you're inside the sphere, so you need;
         // to look at the second intersection, xs[1], not xs[0];
         let comps = prepare_computations(&xs[1], &r, &xs).unwrap();
-        let c = w.refracted_color(&comps, 5);
+        let c = w.refracted_color(&comps, 5).unwrap();
         assert_eq!(c, color(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn the_refracted_color_with_a_refracted_ray() {
+        let mut w = default_world();
+        let mut A = w.objects[0];
+        A.material.ambient = 1.0;
+        A.material.set_pattern(test_pattern());
+        w.objects[0] = A;
+        let mut B = w.objects[1];
+        B.material.transparency = 1.0;
+        B.material.refractive_index = 1.5;
+        w.objects[1] = B;
+        let r = ray(&point(0.0, 0.0, 0.1), &vector(0.0, 1.0, 0.0));
+        let xs = intersections(vec![
+            Intersection::new(-0.9899, A),
+            Intersection::new(-0.4899, B),
+            Intersection::new(0.4899, B),
+            Intersection::new(0.9899, A),
+        ]);
+        let comps = prepare_computations(&xs[2], &r, &xs).unwrap();
+        let c = w.refracted_color(&comps, 5).unwrap();
+        assert_eq!(c, color(0.0, 0.99888, 0.04725));
     }
 }

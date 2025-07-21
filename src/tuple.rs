@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::{float::*, matrix::*};
+use crate::{float::*, matrix::*, ray::*};
 
 pub fn tuple(x: Float, y: Float, z: Float, w: Float) -> Tuple {
     Tuple::new(x, y, z, w)
@@ -82,6 +82,12 @@ impl Tuple {
             b: self.z as f32,
             a: 1.0,
         }
+    }
+}
+
+impl Point {
+    pub fn ray(&self, direction: &Vector) -> Ray {
+        Ray::new(self.to_owned(), direction.to_owned())
     }
 }
 
