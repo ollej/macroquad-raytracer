@@ -267,6 +267,7 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
 
     world.objects.push(build_floor_plane());
 
+    // Mirror sphere
     world.objects.push(Object::new_sphere(
         translation(-0.5, 1.0, 0.5),
         Material {
@@ -275,7 +276,6 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
             diffuse: 0.4,
             specular: 0.3,
             reflective: 0.8,
-            pattern: None,
             ..Default::default()
         },
     ));
@@ -288,6 +288,7 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
             ..Default::default()
         },
     ));
+    // Transparent sphere
     world.objects.push(Object::new_sphere(
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
         Material {
@@ -307,6 +308,137 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
         color(1.0, 0.8, 0.1),
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
         None,
+    ));
+
+    camera.render(&world)
+}
+
+fn generate_scene_cube(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    // Walls
+    let mut wall_pattern = stripe_pattern(&color(0.2, 0.8, 0.8), &color(0.8, 0.8, 0.4));
+    wall_pattern.set_transform(rotation_z(PI / 2.0) * scaling(0.1, 0.1, 0.1));
+    world.objects.push(Object::new_cube(
+        //* rotation_z(-PI / 2.0)
+        //* rotation_y(-PI / 2.0)
+        rotation_y(-PI / 4.0) * translation(-12.5, -12.5, -12.5) * scaling(25.0, 25.0, 25.0), //, //rotation_y(PI / 2.0), // * translation(-15.0, -15.0, -15.0) * scaling(30.0, 30.0, 30.0)
+        Material {
+            color: color(1.0, 0.0, 0.0),
+            pattern: Some(wall_pattern),
+            ..Default::default()
+        },
+    ));
+
+    // Floor
+    let mut floor_pattern = checkers_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5));
+    floor_pattern.set_transform(scaling(0.01, 0.01, 0.01));
+    world.objects.push(Object::new_cube(
+        translation(-50.0, 28.0, -50.0) * scaling(100.0, 30.0, 100.0),
+        Material {
+            color: color(1.0, 0.0, 0.0),
+            specular: 0.0,
+            reflective: 0.1,
+            pattern: Some(floor_pattern),
+            ..Default::default()
+        },
+    ));
+
+    // Table
+    world.objects.push(Object::new_cube(
+        translation(-0.25, -0.25, 5.0) * scaling(2.0, 0.1, 1.25),
+        Material {
+            color: color(1.0, 0.0, 0.0),
+            ambient: 0.2,
+            diffuse: 0.8,
+            ..Default::default()
+        },
+    ));
+    let leg_material = Material {
+        color: color(0.54, 0.27, 0.21),
+        ..Default::default()
+    };
+    world.objects.push(Object::new_cube(
+        translation(-2.1, -1.2, 4.8) * scaling(0.1, 1.0, 0.1),
+        leg_material,
+    ));
+    world.objects.push(Object::new_cube(
+        translation(-2.1, -1.2, 6.0) * scaling(0.1, 1.0, 0.1),
+        leg_material,
+    ));
+    world.objects.push(Object::new_cube(
+        translation(1.6, -1.2, 4.8) * scaling(0.1, 1.0, 0.1),
+        leg_material,
+    ));
+    world.objects.push(Object::new_cube(
+        translation(1.6, -1.2, 6.0) * scaling(0.1, 1.0, 0.1),
+        leg_material,
+    ));
+
+    // Box on table
+    world.objects.push(Object::new_cube(
+        translation(-0.1, -0.1, 5.0) * scaling(0.2, 0.1, 0.2),
+        Material {
+            color: color(0.65, 0.43, 0.58),
+            ambient: 0.2,
+            diffuse: 0.8,
+            ..Default::default()
+        },
+    ));
+
+    // Diamond box
+    world.objects.push(Object::new_cube(
+        translation(-5.0, -1.0, 6.5)
+            * rotation_z(PI / 4.0)
+            * rotation_x(PI / 4.0)
+            * scaling(0.6, 0.6, 0.6),
+        Material {
+            color: color(0.1, 0.1, 0.1),
+            ambient: 0.1,
+            diffuse: 0.1,
+            specular: 1.0,
+            shininess: 300.0,
+            transparency: 0.9,
+            reflective: 0.6,
+            refractive_index: 2.417, // Diamond
+            ..Default::default()
+        },
+    ));
+
+    // Mirror box
+    world.objects.push(Object::new_cube(
+        translation(3.5, -1.0, 10.0) * rotation_y(PI / 4.8) * scaling(1.2, 6.0, 0.1),
+        Material {
+            color: color(0.1, 0.1, 0.1),
+            ambient: 0.2,
+            diffuse: 0.6,
+            specular: 0.3,
+            reflective: 0.8,
+            ..Default::default()
+        },
+    ));
+
+    // Floor boxes
+    world.objects.push(Object::new_cube(
+        translation(4.5, -1.5, 6.0) * scaling(0.5, 0.5, 0.5),
+        Material {
+            color: color(0.6, 0.3, 0.8),
+            ..Default::default()
+        },
+    ));
+    world.objects.push(Object::new_cube(
+        translation(4.3, -0.6, 5.8) * rotation_y(PI / 4.0) * scaling(0.3, 0.3, 0.3),
+        Material {
+            color: color(0.8, 0.6, 0.3),
+            ..Default::default()
+        },
+    ));
+    world.objects.push(Object::new_cube(
+        translation(3.5, -1.65, 5.5) * rotation_z(PI / 6.0) * scaling(0.2, 0.2, 0.2),
+        Material {
+            color: color(0.6, 0.8, 0.3),
+            ..Default::default()
+        },
     ));
 
     camera.render(&world)
@@ -377,6 +509,18 @@ fn build_sphere(
     )
 }
 
+fn build_cube(color: Color, translation: Matrix) -> Object {
+    Object::new_sphere(
+        translation,
+        Material {
+            color,
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    )
+}
+
 #[macroquad::main(window_conf())]
 async fn main() -> Result<(), String> {
     let options = AppOptions::parse();
@@ -391,6 +535,7 @@ async fn main() -> Result<(), String> {
         Image::ScenePlane => generate_scene_plane(options.size)?,
         Image::ScenePattern => generate_scene_pattern(options.size)?,
         Image::SceneReflection => generate_scene_reflection(options.size)?,
+        Image::SceneCube => generate_scene_cube(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
