@@ -1,9 +1,10 @@
-use crate::{float::*, plane::*, ray::*, sphere::*, tuple::*};
+use crate::{cube::*, float::*, plane::*, ray::*, sphere::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Shape {
     Sphere(Sphere),
     Plane(Plane),
+    Cube(Cube),
 }
 
 impl Shape {
@@ -11,6 +12,7 @@ impl Shape {
         match self {
             Shape::Sphere(sphere) => sphere.normal_at(p),
             Shape::Plane(plane) => plane.normal_at(p),
+            Shape::Cube(cube) => cube.normal_at(p),
         }
     }
 
@@ -18,6 +20,7 @@ impl Shape {
         match self {
             Shape::Sphere(sphere) => sphere.intersect(ray),
             Shape::Plane(plane) => plane.intersect(ray),
+            Shape::Cube(cube) => cube.intersect(ray),
         }
     }
 }

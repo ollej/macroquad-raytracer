@@ -270,8 +270,9 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
     world.objects.push(Object::new_sphere(
         translation(-0.5, 1.0, 0.5),
         Material {
-            color: color(0.8, 0.3, 0.3),
-            diffuse: 0.8,
+            color: color(0.1, 0.1, 0.1),
+            ambient: 0.2,
+            diffuse: 0.4,
             specular: 0.3,
             reflective: 0.8,
             pattern: None,
@@ -279,12 +280,24 @@ fn generate_scene_reflection(canvas_size: usize) -> Result<Canvas, String> {
         },
     ));
     world.objects.push(Object::new_sphere(
-        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        translation(1.3, 1.0, 1.5) * scaling(0.8, 0.8, 0.8),
         Material {
-            color: color(0.5, 1.0, 0.1),
+            color: color(0.1, 0.7, 0.2),
             diffuse: 0.8,
             specular: 0.3,
-            transparency: 1.0,
+            ..Default::default()
+        },
+    ));
+    world.objects.push(Object::new_sphere(
+        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+        Material {
+            color: color(1.0, 1.0, 1.0),
+            ambient: 0.1,
+            diffuse: 0.1,
+            specular: 1.0,
+            shininess: 300.0,
+            transparency: 0.9,
+            reflective: 0.9,
             refractive_index: 0.8,
             ..Default::default()
         },

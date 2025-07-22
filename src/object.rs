@@ -1,5 +1,6 @@
 use crate::{
-    intersection::*, material::*, matrix::*, plane::*, ray::*, shape::*, sphere::*, tuple::*,
+    cube::*, intersection::*, material::*, matrix::*, plane::*, ray::*, shape::*, sphere::*,
+    tuple::*,
 };
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -39,6 +40,14 @@ impl Object {
             transform,
             material,
             shape: Shape::Plane(Plane {}),
+        }
+    }
+
+    pub fn new_cube(transform: Matrix, material: Material) -> Self {
+        Self {
+            transform,
+            material,
+            shape: Shape::Cube(Cube {}),
         }
     }
 

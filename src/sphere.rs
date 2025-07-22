@@ -6,6 +6,10 @@ use crate::{
 pub struct Sphere {}
 
 impl Sphere {
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
         let sphere_to_ray = ray.origin - point(0., 0., 0.);
         let a = ray.direction.dot(&ray.direction);
@@ -251,6 +255,7 @@ mod test_chapter_11_refraction {
     #![allow(non_snake_case)]
 
     use super::*;
+
     #[test]
     fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
         let s = glass_sphere();
