@@ -1,6 +1,4 @@
-use crate::{
-    float::*, intersection::*, material::*, matrix::*, object::*, ray::*, shape::*, tuple::*,
-};
+use crate::{float::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
 use std::mem;
 
@@ -26,6 +24,10 @@ impl Cube {
             .min_by(|a: &&Float, b: &&Float| a.total_cmp(b))
             .unwrap()
             .to_owned();
+
+        if tmin > tmax {
+            return vec![];
+        }
 
         vec![tmin, tmax]
     }
@@ -85,12 +87,31 @@ mod test_chapter_12_cube {
             ),
         ];
 
-        for example in examples.iter() {
-            let r = ray(&example.1, &example.2);
+        for (_name, origin, direction, t1, t2) in examples.iter() {
+            let r = ray(&origin, &direction);
             let xs = c.intersect(&r).unwrap();
             assert_eq!(xs.len(), 2);
-            assert_eq!(xs[0].t, example.3);
-            assert_eq!(xs[1].t, example.4);
+            assert_eq_float!(xs[0].t, t1);
+            assert_eq_float!(xs[1].t, t2);
+        }
+    }
+
+    #[test]
+    fn a_ray_misses_a_cube() {
+        let examples = vec![
+            (point(-2.0, 0.0, 0.0), vector(0.2673, 0.5345, 0.8018)),
+            (point(0.0, -2.0, 0.0), vector(0.8018, 0.2673, 0.5345)),
+            (point(0.0, 0.0, -2.0), vector(0.5345, 0.8018, 0.2673)),
+            (point(2.0, 0.0, 2.0), vector(0.0, 0.0, -1.0)),
+            (point(0.0, 2.0, 2.0), vector(0.0, -1.0, 0.0)),
+            (point(2.0, 2.0, 0.0), vector(-1.0, 0.0, 0.0)),
+        ];
+
+        let c = cube();
+        for (origin, direction) in examples.iter() {
+            let r = ray(&origin, &direction);
+            let xs = c.intersect(&r).unwrap();
+            assert_eq!(xs.len(), 0);
         }
     }
 }
