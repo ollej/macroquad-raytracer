@@ -4,7 +4,7 @@ use crate::{float::*, matrix::IDENTITY_MATRIX, object::*, prelude::Material, ray
 pub struct Plane {}
 
 impl Plane {
-    pub fn normal_at(&self, _p: &Point) -> Point {
+    pub fn normal_at(&self, _p: &Point) -> Vector {
         vector(0.0, 1.0, 0.0)
     }
 
