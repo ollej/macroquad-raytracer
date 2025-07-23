@@ -16,11 +16,11 @@ impl Shape {
         }
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
         match self {
-            Shape::Sphere(sphere) => sphere.intersect(ray),
-            Shape::Plane(plane) => plane.intersect(ray),
-            Shape::Cube(cube) => cube.intersect(ray),
+            Shape::Sphere(sphere) => sphere.local_intersect(ray),
+            Shape::Plane(plane) => plane.local_intersect(ray),
+            Shape::Cube(cube) => cube.local_intersect(ray),
         }
     }
 }

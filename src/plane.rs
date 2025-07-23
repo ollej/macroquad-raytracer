@@ -8,7 +8,7 @@ impl Plane {
         vector(0.0, 1.0, 0.0)
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
         if ray.direction.y.abs() < EPSILON {
             vec![]
         } else {
@@ -40,18 +40,18 @@ mod test_chapter_9_planes {
     }
 
     #[test]
-    fn intersect_with_a_ray_parallel_to_the_plane() {
+    fn local_intersect_with_a_ray_parallel_to_the_plane() {
         let p = Plane {};
         let r = ray(&point(0.0, 10.0, 0.0), &vector(0.0, 0.0, 1.0));
-        let xs = p.intersect(&r);
+        let xs = p.local_intersect(&r);
         assert!(xs.is_empty());
     }
 
     #[test]
-    fn intersect_with_a_coplanar_ray() {
+    fn local_intersect_with_a_coplanar_ray() {
         let p = Plane {};
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
-        let xs = p.intersect(&r);
+        let xs = p.local_intersect(&r);
         assert!(xs.is_empty());
     }
 
@@ -59,7 +59,7 @@ mod test_chapter_9_planes {
     fn a_ray_intersecting_a_plane_from_above() {
         let p = Plane {};
         let r = ray(&point(0.0, 1.0, 0.0), &vector(0.0, -1.0, 0.0));
-        let xs = p.intersect(&r);
+        let xs = p.local_intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0], 1.0);
     }
@@ -68,7 +68,7 @@ mod test_chapter_9_planes {
     fn a_ray_intersecting_a_plane_from_below() {
         let p = Plane {};
         let r = ray(&point(0.0, -1.0, 0.0), &vector(0.0, 1.0, 0.0));
-        let xs = p.intersect(&r);
+        let xs = p.local_intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0], 1.0);
     }

@@ -10,7 +10,7 @@ impl Cube {
         Self {}
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
         let (xtmin, xtmax) = self.check_axis(&ray.origin.x, &ray.direction.x);
         let (ytmin, ytmax) = self.check_axis(&ray.origin.y, &ray.direction.y);
         let (ztmin, ztmax) = self.check_axis(&ray.origin.z, &ray.direction.z);

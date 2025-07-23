@@ -10,7 +10,7 @@ impl Sphere {
         Self {}
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
         let sphere_to_ray = ray.origin - point(0., 0., 0.);
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.direction.dot(&sphere_to_ray);

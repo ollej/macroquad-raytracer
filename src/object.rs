@@ -64,7 +64,7 @@ impl Object {
     }
 
     pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
-        let intersections = self.shape.intersect(&self.transformed_ray(ray)?);
+        let intersections = self.shape.local_intersect(&self.transformed_ray(ray)?);
 
         Ok(Intersections::new(
             intersections
