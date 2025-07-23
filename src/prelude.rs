@@ -3,6 +3,7 @@ pub use crate::camera::*;
 pub use crate::canvas::*;
 pub use crate::color::*;
 pub use crate::cube::*;
+pub use crate::cylinder::*;
 pub use crate::float::*;
 pub use crate::intersection::*;
 pub use crate::light::*;

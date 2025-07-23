@@ -3,6 +3,7 @@ pub mod camera;
 pub mod canvas;
 pub mod color;
 pub mod cube;
+pub mod cylinder;
 pub mod float;
 pub mod intersection;
 pub mod light;
