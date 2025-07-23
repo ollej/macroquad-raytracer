@@ -444,6 +444,52 @@ fn generate_scene_cube(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
+fn generate_scene_cylinder(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.push(build_floor_plane());
+
+    world.objects.push(Object::new_cylinder(
+        scaling(0.1, 0.1, 0.1),
+        Material {
+            color: color(0.1, 0.1, 0.1),
+            shininess: 250.0,
+            transparency: 0.6,
+            reflective: 0.9,
+            refractive_index: 1.52, // Glass
+            ..Default::default()
+        },
+    ));
+    world.objects.push(Object::new_cylinder(
+        translation(0.0, 1.0, 0.0) * rotation_z(PI / 2.0) * scaling(0.1, 0.1, 0.1),
+        colored_material(0.07, 0.50, 0.53),
+    ));
+    world.objects.push(Object::new_cylinder(
+        translation(0.0, 1.0, 0.0) * rotation_z(PI / 3.0) * scaling(0.1, 0.1, 0.1),
+        colored_material(0.33, 0.27, 0.40),
+    ));
+    world.objects.push(Object::new_cylinder(
+        translation(0.0, 1.0, 0.0) * rotation_z(PI / 1.5) * scaling(0.1, 0.1, 0.1),
+        colored_material(0.80, 0.46, 0.45),
+    ));
+    world.objects.push(Object::new_cylinder(
+        translation(0.0, 1.0, 0.0)
+            * rotation_y(PI / 4.0)
+            * rotation_x(PI / 2.0)
+            * scaling(0.1, 0.1, 0.1),
+        colored_material(0.93, 0.71, 0.38),
+    ));
+    world.objects.push(Object::new_cylinder(
+        translation(0.0, 1.0, 0.0)
+            * rotation_y(-PI / 4.0)
+            * rotation_x(PI / 2.0)
+            * scaling(0.1, 0.1, 0.1),
+        colored_material(0.86, 0.53, 0.40),
+    ));
+
+    camera.render(&world)
+}
+
 fn setup_scene(canvas_size: usize) -> (Camera, World) {
     let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
@@ -509,6 +555,13 @@ fn build_sphere(
     )
 }
 
+fn colored_material(r: Float, g: Float, b: Float) -> Material {
+    Material {
+        color: color(r, g, b),
+        ..Default::default()
+    }
+}
+
 fn build_cube(color: Color, translation: Matrix) -> Object {
     Object::new_sphere(
         translation,
@@ -536,6 +589,7 @@ async fn main() -> Result<(), String> {
         Image::ScenePattern => generate_scene_pattern(options.size)?,
         Image::SceneReflection => generate_scene_reflection(options.size)?,
         Image::SceneCube => generate_scene_cube(options.size)?,
+        Image::SceneCylinder => generate_scene_cylinder(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
