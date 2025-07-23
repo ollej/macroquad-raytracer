@@ -508,6 +508,52 @@ fn generate_scene_cylinder(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
+fn generate_scene_cone(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.push(build_floor_plane());
+
+    world.objects.push(Object::new_sphere(
+        translation(0.0, 2.2, 1.0) * scaling(0.4, 0.4, 0.4),
+        Material {
+            color: color(1.0, 0.77, 0.85),
+            diffuse: 0.9,
+            specular: 0.3,
+            ..Default::default()
+        },
+    ));
+    world.objects.push(Object::new_sphere(
+        translation(0.3, 1.8, 1.0) * scaling(0.4, 0.4, 0.4),
+        Material {
+            color: color(0.76, 0.95, 0.82),
+            diffuse: 0.9,
+            specular: 0.3,
+            ..Default::default()
+        },
+    ));
+    world.objects.push(Object::new_sphere(
+        translation(-0.3, 1.8, 1.0) * scaling(0.4, 0.4, 0.4),
+        Material {
+            color: color(0.99, 0.96, 0.79),
+            diffuse: 0.9,
+            specular: 0.3,
+            ..Default::default()
+        },
+    ));
+    world.objects.push(unit_cone_upsidedown(
+        false,
+        translation(0.0, 0.0, 1.0) * scaling(0.5, 1.5, 0.4),
+        Material {
+            color: color(1.0, 0.80, 0.52),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    ));
+
+    camera.render(&world)
+}
+
 fn setup_scene(canvas_size: usize) -> (Camera, World) {
     let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
@@ -608,6 +654,7 @@ async fn main() -> Result<(), String> {
         Image::SceneReflection => generate_scene_reflection(options.size)?,
         Image::SceneCube => generate_scene_cube(options.size)?,
         Image::SceneCylinder => generate_scene_cylinder(options.size)?,
+        Image::SceneCone => generate_scene_cone(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();

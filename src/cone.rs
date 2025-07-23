@@ -147,6 +147,26 @@ pub fn infinite_cone(translation: Matrix, material: Material) -> Object {
     Object::new_cone(-f64::INFINITY, f64::INFINITY, false, translation, material)
 }
 
+pub fn unit_cone(closed: bool, transform: Matrix, material: Material) -> Object {
+    Object::new_cone(
+        -1.0,
+        0.0,
+        closed,
+        translation(0.0, 1.0, 0.0) * transform,
+        material,
+    )
+}
+
+pub fn unit_cone_upsidedown(closed: bool, transform: Matrix, material: Material) -> Object {
+    Object::new_cone(
+        0.0,
+        1.0,
+        closed,
+        translation(0.0, 0.0, 0.0) * transform,
+        material,
+    )
+}
+
 #[cfg(test)]
 mod test_chapter_13_cone {
     use super::*;
