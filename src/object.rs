@@ -54,13 +54,14 @@ impl Object {
     pub fn new_cylinder(
         minimum: Float,
         maximum: Float,
+        closed: bool,
         transform: Matrix,
         material: Material,
     ) -> Self {
         Self {
             transform,
             material,
-            shape: Shape::Cylinder(Cylinder::new(minimum, maximum)),
+            shape: Shape::Cylinder(Cylinder::new(minimum, maximum, closed)),
         }
     }
 
