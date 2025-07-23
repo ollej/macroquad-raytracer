@@ -1,6 +1,6 @@
 use crate::{
-    cube::*, cylinder::*, intersection::*, material::*, matrix::*, plane::*, ray::*, shape::*,
-    sphere::*, tuple::*,
+    cube::*, cylinder::*, float::*, intersection::*, material::*, matrix::*, plane::*, ray::*,
+    shape::*, sphere::*, tuple::*,
 };
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -51,11 +51,16 @@ impl Object {
         }
     }
 
-    pub fn new_cylinder(transform: Matrix, material: Material) -> Self {
+    pub fn new_cylinder(
+        minimum: Float,
+        maximum: Float,
+        transform: Matrix,
+        material: Material,
+    ) -> Self {
         Self {
             transform,
             material,
-            shape: Shape::Cylinder(Cylinder {}),
+            shape: Shape::Cylinder(Cylinder::new(minimum, maximum)),
         }
     }
 
