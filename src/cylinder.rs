@@ -33,7 +33,7 @@ impl Cylinder {
     }
 
     pub fn normal_at(&self, p: &Point) -> Vector {
-        p - &point(0., 0., 0.)
+        vector(p.x, 0.0, p.z)
     }
 }
 
@@ -86,6 +86,23 @@ mod test_chapter_13_cylinder {
             assert_eq!(xs.len(), 2);
             assert_eq_float!(xs[0].t, t0);
             assert_eq_float!(xs[1].t, t1);
+        }
+    }
+
+    #[test]
+    fn normal_vector_on_a_cylinder() {
+        let cyl = cylinder();
+
+        let examples = vec![
+            (point(1.0, 0.0, 0.0), vector(1.0, 0.0, 0.0)),
+            (point(0.0, 5.0, -1.0), vector(0.0, 0.0, -1.0)),
+            (point(0.0, -2.0, 1.0), vector(0.0, 0.0, 1.0)),
+            (point(-1.0, 1.0, 0.0), vector(-1.0, 0.0, 0.0)),
+        ];
+
+        for (point, normal) in examples.iter() {
+            let n = cyl.normal_at(point).unwrap();
+            assert_eq!(n, *normal);
         }
     }
 }
