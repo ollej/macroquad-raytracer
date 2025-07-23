@@ -2,6 +2,7 @@ pub mod app_options;
 pub mod camera;
 pub mod canvas;
 pub mod color;
+pub mod cone;
 pub mod cube;
 pub mod cylinder;
 pub mod float;

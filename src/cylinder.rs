@@ -44,7 +44,7 @@ impl Cylinder {
         xs
     }
 
-    pub fn normal_at(&self, p: &Point) -> Vector {
+    pub fn local_normal_at(&self, p: &Point) -> Vector {
         // Compute the square of the distance from the y axis
         let distance = p.x.powf(2.0) + p.z.powf(2.0);
 
@@ -198,7 +198,7 @@ mod test_chapter_13_cylinder {
         ];
 
         for (point, normal) in examples.iter() {
-            let n = cyl.normal_at(point);
+            let n = cyl.local_normal_at(point);
             assert_eq!(n, *normal);
         }
     }
@@ -271,7 +271,7 @@ mod test_chapter_13_cylinder {
         ];
 
         for (p, normal) in examples.iter() {
-            let n = cyl.normal_at(p);
+            let n = cyl.local_normal_at(p);
             assert_eq!(n, *normal);
         }
     }

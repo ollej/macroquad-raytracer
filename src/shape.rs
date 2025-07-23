@@ -1,4 +1,4 @@
-use crate::{cube::*, cylinder::*, float::*, plane::*, ray::*, sphere::*, tuple::*};
+use crate::{cone::*, cube::*, cylinder::*, float::*, plane::*, ray::*, sphere::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Shape {
@@ -6,15 +6,17 @@ pub enum Shape {
     Plane(Plane),
     Cube(Cube),
     Cylinder(Cylinder),
+    Cone(Cone),
 }
 
 impl Shape {
     pub fn normal_at(&self, p: &Point) -> Point {
         match self {
-            Shape::Sphere(sphere) => sphere.normal_at(p),
-            Shape::Plane(plane) => plane.normal_at(p),
-            Shape::Cube(cube) => cube.normal_at(p),
-            Shape::Cylinder(cylinder) => cylinder.normal_at(p),
+            Shape::Sphere(sphere) => sphere.local_normal_at(p),
+            Shape::Plane(plane) => plane.local_normal_at(p),
+            Shape::Cube(cube) => cube.local_normal_at(p),
+            Shape::Cylinder(cylinder) => cylinder.local_normal_at(p),
+            Shape::Cone(cone) => cone.local_normal_at(p),
         }
     }
 
@@ -24,6 +26,7 @@ impl Shape {
             Shape::Plane(plane) => plane.local_intersect(ray),
             Shape::Cube(cube) => cube.local_intersect(ray),
             Shape::Cylinder(cylinder) => cylinder.local_intersect(ray),
+            Shape::Cone(cone) => cone.local_intersect(ray),
         }
     }
 }

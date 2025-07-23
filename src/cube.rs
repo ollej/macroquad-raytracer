@@ -24,7 +24,7 @@ impl Cube {
         vec![tmin, tmax]
     }
 
-    pub fn normal_at(&self, point: &Point) -> Vector {
+    pub fn local_normal_at(&self, point: &Point) -> Vector {
         let maxc = point.x.abs().max(point.y.abs().max(point.z.abs()));
         if maxc == point.x.abs() {
             vector(point.x, 0.0, 0.0)

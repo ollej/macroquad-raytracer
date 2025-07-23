@@ -449,8 +449,11 @@ fn generate_scene_cylinder(canvas_size: usize) -> Result<Canvas, String> {
 
     world.objects.push(build_floor_plane());
 
-    world.objects.push(infinite_cylinder(
-        scaling(0.1, 0.1, 0.1),
+    world.objects.push(Object::new_cylinder(
+        -12.0,
+        12.0,
+        true,
+        translation(0.0, 1.0, 0.0) * scaling(0.1, 0.1, 0.1),
         Material {
             color: color(0.1, 0.1, 0.1),
             shininess: 250.0,
@@ -460,26 +463,41 @@ fn generate_scene_cylinder(canvas_size: usize) -> Result<Canvas, String> {
             ..Default::default()
         },
     ));
-    world.objects.push(infinite_cylinder(
+    world.objects.push(Object::new_cylinder(
+        -12.0,
+        12.0,
+        true,
         translation(0.0, 1.0, 0.0) * rotation_z(PI / 2.0) * scaling(0.1, 0.1, 0.1),
         colored_material(0.07, 0.50, 0.53),
     ));
-    world.objects.push(infinite_cylinder(
+    world.objects.push(Object::new_cylinder(
+        -12.0,
+        12.0,
+        true,
         translation(0.0, 1.0, 0.0) * rotation_z(PI / 3.0) * scaling(0.1, 0.1, 0.1),
         colored_material(0.33, 0.27, 0.40),
     ));
-    world.objects.push(infinite_cylinder(
+    world.objects.push(Object::new_cylinder(
+        -12.0,
+        12.0,
+        true,
         translation(0.0, 1.0, 0.0) * rotation_z(PI / 1.5) * scaling(0.1, 0.1, 0.1),
         colored_material(0.80, 0.46, 0.45),
     ));
-    world.objects.push(infinite_cylinder(
+    world.objects.push(Object::new_cylinder(
+        -12.0,
+        12.0,
+        true,
         translation(0.0, 1.0, 0.0)
             * rotation_y(PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(0.1, 0.1, 0.1),
         colored_material(0.93, 0.71, 0.38),
     ));
-    world.objects.push(infinite_cylinder(
+    world.objects.push(Object::new_cylinder(
+        -12.0,
+        12.0,
+        true,
         translation(0.0, 1.0, 0.0)
             * rotation_y(-PI / 4.0)
             * rotation_x(PI / 2.0)

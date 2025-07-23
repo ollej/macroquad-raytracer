@@ -27,7 +27,7 @@ impl Sphere {
         vec![t1, t2]
     }
 
-    pub fn normal_at(&self, p: &Point) -> Vector {
+    pub fn local_normal_at(&self, p: &Point) -> Vector {
         p - &point(0., 0., 0.)
     }
 }
