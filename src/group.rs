@@ -148,4 +148,24 @@ mod test_chapter_14_group {
         let p = s.world_to_object(&point(-2.0, 0.0, -10.0)).unwrap();
         assert_eq!(p, point(0.0, 0.0, -1.0));
     }
+
+    #[test]
+    fn converting_a_normal_from_object_to_world_space() {
+        let g1 = &mut empty_group();
+        g1.set_transform(&rotation_y(PI / 2.0));
+        let g2 = &mut empty_group();
+        g2.set_transform(&scaling(1.0, 2.0, 3.0));
+        g1.add_child(g2);
+        let s = &mut sphere();
+        s.set_transform(&translation(5.0, 0.0, 0.0));
+        g2.add_child(s);
+        let n = s
+            .normal_to_world(&vector(
+                f64::sqrt(3.0) / 3.0,
+                f64::sqrt(3.0) / 3.0,
+                f64::sqrt(3.0) / 3.0,
+            ))
+            .unwrap();
+        assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
+    }
 }

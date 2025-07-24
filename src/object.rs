@@ -134,6 +134,17 @@ impl Object {
         Ok(inverse_transform * point)
     }
 
+    pub fn normal_to_world(&self, normal: &Vector) -> Result<Vector, String> {
+        let mut normal = self.transform.inverse()?.transpose() * normal;
+        normal.w = 0.0;
+        let normalized_normal = normal.normalize();
+        if let Some(parent) = &self.parent {
+            parent.normal_to_world(&normalized_normal)
+        } else {
+            Ok(normalized_normal)
+        }
+    }
+
     pub fn add_child(&mut self, child: &mut Object) {
         child.parent = Some(Arc::new(self.clone()));
         self.shape.add_child(child);
