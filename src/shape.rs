@@ -35,4 +35,11 @@ impl Shape {
             Shape::Group(group) => group.local_intersect(ray, object),
         }
     }
+
+    pub fn add_child(&mut self, child: &mut Object) {
+        match self {
+            Shape::Group(group) => group.add_child(child),
+            _ => unreachable!(),
+        }
+    }
 }

@@ -3,11 +3,14 @@ use crate::{
     plane::*, ray::*, shape::*, sphere::*, tuple::*,
 };
 
-#[derive(PartialEq, Clone, Debug)]
+use std::sync::Arc;
+
+#[derive(Clone, Debug)]
 pub struct Object {
     pub transform: Matrix,
     pub material: Material,
     pub shape: Shape,
+    pub parent: Option<Arc<Object>>,
 }
 
 impl Object {
@@ -16,6 +19,7 @@ impl Object {
             transform: IDENTITY_MATRIX,
             material: Material::default(),
             shape: Shape::Sphere(Sphere {}),
+            parent: None,
         }
     }
 
@@ -24,6 +28,7 @@ impl Object {
             transform: matrix,
             material: Material::default(),
             shape: Shape::Sphere(Sphere {}),
+            parent: None,
         }
     }
 
@@ -32,6 +37,7 @@ impl Object {
             transform,
             material,
             shape: Shape::Sphere(Sphere {}),
+            parent: None,
         }
     }
 
@@ -40,6 +46,7 @@ impl Object {
             transform,
             material,
             shape: Shape::Plane(Plane {}),
+            parent: None,
         }
     }
 
@@ -48,6 +55,7 @@ impl Object {
             transform,
             material,
             shape: Shape::Cube(Cube {}),
+            parent: None,
         }
     }
 
@@ -62,6 +70,7 @@ impl Object {
             transform,
             material,
             shape: Shape::Cylinder(Cylinder::new(minimum, maximum, closed)),
+            parent: None,
         }
     }
 
@@ -76,14 +85,16 @@ impl Object {
             transform,
             material,
             shape: Shape::Cone(Cone::new(minimum, maximum, closed)),
+            parent: None,
         }
     }
 
-    pub fn new_group(transform: Matrix, material: Material, children: Vec<Object>) -> Self {
+    pub fn new_group(transform: Matrix, material: Material) -> Self {
         Self {
             transform,
             material,
-            shape: Shape::Group(Group::new(children)),
+            shape: Shape::Group(Group::new(vec![])),
+            parent: None,
         }
     }
 
@@ -112,6 +123,21 @@ impl Object {
         world_normal.w = 0.0;
         Ok(world_normal.normalize())
     }
+
+    pub fn world_to_object(&self, p: &Point) -> Result<Point, String> {
+        let inverse_transform = self.transform.inverse()?;
+        let point = if let Some(parent) = &self.parent {
+            parent.world_to_object(p)?
+        } else {
+            *p
+        };
+        Ok(inverse_transform * point)
+    }
+
+    pub fn add_child(&mut self, child: &mut Object) {
+        child.parent = Some(Arc::new(self.clone()));
+        self.shape.add_child(child);
+    }
 }
 
 impl Default for Object {
@@ -120,7 +146,16 @@ impl Default for Object {
             transform: IDENTITY_MATRIX,
             material: Material::default(),
             shape: Shape::Sphere(Sphere {}),
+            parent: None,
         }
+    }
+}
+
+impl PartialEq for Object {
+    fn eq(&self, other: &Self) -> bool {
+        self.transform == other.transform
+            && self.material == other.material
+            && self.shape == other.shape
     }
 }
 

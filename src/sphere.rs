@@ -1,6 +1,4 @@
-use crate::{
-    float::*, intersection::*, material::*, matrix::*, object::*, ray::*, shape::*, tuple::*,
-};
+use crate::{intersection::*, material::*, matrix::*, object::*, ray::*, shape::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Sphere {}
@@ -46,6 +44,7 @@ pub fn glass_sphere() -> Object {
             ..Default::default()
         },
         shape: Shape::Sphere(Sphere {}),
+        parent: None,
     }
 }
 
@@ -62,6 +61,8 @@ mod test_chapter_5_intersections {
     #![allow(non_snake_case)]
 
     use super::*;
+
+    use crate::float::*;
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {

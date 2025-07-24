@@ -28,18 +28,30 @@ impl Group {
     pub fn local_normal_at(&self, _p: &Point) -> Vector {
         unreachable!()
     }
+
+    pub fn add_child(&mut self, child: &mut Object) {
+        self.children.push(Arc::new(child.to_owned()));
+    }
 }
 
 pub fn empty_group() -> Object {
-    Object::new_group(IDENTITY_MATRIX, Material::default(), vec![])
+    Object::new_group(IDENTITY_MATRIX, Material::default())
 }
 
-pub fn untransformed_group(children: Vec<Object>) -> Object {
-    Object::new_group(IDENTITY_MATRIX, Material::default(), children)
+pub fn untransformed_group(children: &mut Vec<Object>) -> Object {
+    let mut object = Object::new_group(IDENTITY_MATRIX, Material::default());
+    children
+        .iter_mut()
+        .for_each(|child| object.add_child(child));
+    object
 }
 
-pub fn group(transform: Matrix, children: Vec<Object>) -> Object {
-    Object::new_group(transform, Material::default(), children)
+pub fn group(transform: Matrix, children: &mut Vec<Object>) -> Object {
+    let mut object = Object::new_group(transform, Material::default());
+    children
+        .iter_mut()
+        .for_each(|child| object.add_child(child));
+    object
 }
 
 #[cfg(test)]
@@ -47,6 +59,8 @@ mod test_chapter_14_group {
     use super::*;
 
     use crate::{shape::*, sphere::*};
+
+    use std::f64::consts::PI;
 
     #[test]
     fn creating_a_new_group() {
@@ -60,8 +74,9 @@ mod test_chapter_14_group {
 
     #[test]
     fn adding_a_child_to_a_group() {
-        let s = Object::empty();
-        let g = Object::new_group(IDENTITY_MATRIX, Material::default(), vec![s.clone()]);
+        let mut s = Object::empty();
+        let mut g = empty_group();
+        g.add_child(&mut s);
         match g.shape {
             Shape::Group(group) => {
                 assert_eq!(group.children.len(), 1);
@@ -82,18 +97,19 @@ mod test_chapter_14_group {
 
     #[test]
     fn intersecting_a_ray_with_a_nonempty_group() {
-        let s1 = sphere();
+        let mut s1 = sphere();
         let mut s2 = sphere();
         s2.set_transform(&translation(0.0, 0.0, -3.0));
         let mut s3 = sphere();
         s3.set_transform(&translation(5.0, 0.0, 0.0));
-        let g = Object::new_group(
-            IDENTITY_MATRIX,
-            Material::default(),
-            vec![s1.clone(), s2.clone(), s3],
-        );
+        let mut g = empty_group();
+        g.add_child(&mut s1);
+        g.add_child(&mut s2);
+        g.add_child(&mut s3);
+
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let xs = g.intersect(&r).unwrap();
+
         assert_eq!(xs.len(), 4);
         assert_eq!(xs[0].object, s2);
         assert_eq!(xs[1].object, s2);
@@ -105,10 +121,31 @@ mod test_chapter_14_group {
     fn intersecting_a_transformed_group() {
         let mut s = sphere();
         s.set_transform(&translation(5.0, 0.0, 0.0));
-        let mut g = Object::new_group(IDENTITY_MATRIX, Material::default(), vec![s]);
+
+        let mut g = empty_group();
         g.set_transform(&scaling(2.0, 2.0, 2.0));
+        g.add_child(&mut s);
+
         let r = ray(&point(10.0, 0.0, -10.0), &vector(0.0, 0.0, 1.0));
         let xs = g.intersect(&r).unwrap();
+
         assert_eq!(xs.len(), 2);
+    }
+
+    #[test]
+    fn converting_a_point_from_world_to_object_space() {
+        let g1 = &mut empty_group();
+        g1.set_transform(&rotation_y(PI / 2.0));
+
+        let g2 = &mut empty_group();
+        g2.set_transform(&scaling(2.0, 2.0, 2.0));
+        g1.add_child(g2);
+
+        let s = &mut sphere();
+        s.set_transform(&translation(5.0, 0.0, 0.0));
+        g2.add_child(s);
+
+        let p = s.world_to_object(&point(-2.0, 0.0, -10.0)).unwrap();
+        assert_eq!(p, point(0.0, 0.0, -1.0));
     }
 }
