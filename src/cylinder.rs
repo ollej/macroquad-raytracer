@@ -33,7 +33,9 @@ impl Cylinder {
 
         // Ray is parallel to the y axis
         if a != 0.0 {
-            xs.append(&mut self.intersect_walls(a, ray));
+            let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
+            let c = ray.origin.x.powf(2.0) + ray.origin.z.powf(2.0) - 1.0;
+            xs.append(&mut self.intersect_walls(a, b, c, ray));
         }
 
         // Intersect with end caps
@@ -57,9 +59,7 @@ impl Cylinder {
         }
     }
 
-    fn intersect_walls(&self, a: Float, ray: &Ray) -> Vec<Float> {
-        let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
-        let c = ray.origin.x.powf(2.0) + ray.origin.z.powf(2.0) - 1.0;
+    fn intersect_walls(&self, a: Float, b: Float, c: Float, ray: &Ray) -> Vec<Float> {
         let discriminant = b * b - 4.0 * a * c;
 
         // Ray does not intersect the cylinder
