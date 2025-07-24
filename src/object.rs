@@ -115,13 +115,10 @@ impl Object {
         self.shape.local_intersect(&transformed_ray, self)
     }
 
-    pub fn normal_at(&self, p: &Point) -> Result<Vector, String> {
-        let transform_inverse = self.transform.inverse()?;
-        let local_point = transform_inverse * p;
-        let local_normal: Vector = self.shape.normal_at(&local_point);
-        let mut world_normal: Vector = transform_inverse.transpose() * local_normal;
-        world_normal.w = 0.0;
-        Ok(world_normal.normalize())
+    pub fn normal_at(&self, world_point: &Point) -> Result<Vector, String> {
+        let local_point = self.world_to_object(world_point)?;
+        let local_normal = self.shape.local_normal_at(&local_point);
+        self.normal_to_world(&local_normal)
     }
 
     pub fn world_to_object(&self, p: &Point) -> Result<Point, String> {

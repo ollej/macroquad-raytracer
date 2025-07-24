@@ -14,7 +14,7 @@ pub enum Shape {
 }
 
 impl Shape {
-    pub fn normal_at(&self, p: &Point) -> Point {
+    pub fn local_normal_at(&self, p: &Point) -> Point {
         match self {
             Shape::Sphere(sphere) => sphere.local_normal_at(p),
             Shape::Plane(plane) => plane.local_normal_at(p),

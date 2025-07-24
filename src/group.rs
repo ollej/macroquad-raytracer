@@ -26,7 +26,9 @@ impl Group {
     }
 
     pub fn local_normal_at(&self, _p: &Point) -> Vector {
-        unreachable!()
+        unreachable!(
+            "Normals are always computed by calling the concrete shape’s local_normal_at() method."
+        )
     }
 
     pub fn add_child(&mut self, child: &mut Object) {
@@ -166,6 +168,20 @@ mod test_chapter_14_group {
                 f64::sqrt(3.0) / 3.0,
             ))
             .unwrap();
+        assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
+    }
+
+    #[test]
+    fn finding_the_normal_on_a_child_object() {
+        let g1 = &mut empty_group();
+        g1.set_transform(&rotation_y(PI / 2.0));
+        let g2 = &mut empty_group();
+        g2.set_transform(&scaling(1.0, 2.0, 3.0));
+        g1.add_child(g2);
+        let s = &mut sphere();
+        s.set_transform(&translation(5.0, 0.0, 0.0));
+        g2.add_child(s);
+        let n = s.normal_at(&point(1.7321, 1.1547, -5.5774)).unwrap();
         assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
     }
 }

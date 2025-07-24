@@ -63,7 +63,7 @@ impl Pattern {
     }
 
     pub fn pattern_at_object(&self, object: &Object, point: &Point) -> Result<Color, String> {
-        let object_point = object.transform.inverse()? * point;
+        let object_point = object.world_to_object(point)?;
         let pattern_point = self.transform.inverse()? * object_point;
         Ok(self.texture.color_at(&pattern_point))
     }
@@ -298,5 +298,28 @@ mod test_chapter_10_pattern {
         assert_eq!(texture.color_at(&point(0.0, 0.0, 0.0)), WHITE);
         assert_eq!(texture.color_at(&point(0.0, 0.0, 0.99)), WHITE);
         assert_eq!(texture.color_at(&point(0.0, 0.0, 1.01)), BLACK);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_group {
+    use super::*;
+
+    use crate::{group::*, material::*, sphere::*};
+
+    #[test]
+    fn a_pattern_with_parent_transformation() {
+        let g1 = &mut empty_group();
+        g1.set_transform(&translation(3.0, 2.0, 1.0));
+
+        let s = &mut sphere();
+        let mut m = Material::default();
+        let p = test_pattern();
+        m.set_pattern(p);
+        s.set_material(&m);
+        g1.add_child(s);
+        let c = p.pattern_at_object(s, &point(1.0, 2.0, 3.0)).unwrap();
+
+        assert_eq!(c, color(-2.0, 0.0, 2.0));
     }
 }
