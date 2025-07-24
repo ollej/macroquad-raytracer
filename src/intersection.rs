@@ -97,6 +97,15 @@ impl Intersections {
         Intersections(intersections)
     }
 
+    pub fn from_object(intersections: Vec<Float>, object: &Object) -> Self {
+        Self::new(
+            intersections
+                .iter()
+                .map(|t| Intersection::new(*t, object))
+                .collect(),
+        )
+    }
+
     pub fn inner(&self) -> &Vec<Intersection> {
         &self.0
     }
@@ -107,6 +116,10 @@ impl Intersections {
 
     pub fn hit(&self) -> Option<Intersection> {
         self.0.iter().find(|i| i.positive()).cloned()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 

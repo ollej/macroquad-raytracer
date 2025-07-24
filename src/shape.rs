@@ -1,5 +1,6 @@
 use crate::{
-    cone::*, cube::*, cylinder::*, float::*, group::*, plane::*, ray::*, sphere::*, tuple::*,
+    cone::*, cube::*, cylinder::*, group::*, intersection::*, object::*, plane::*, ray::*,
+    sphere::*, tuple::*,
 };
 
 #[derive(PartialEq, Clone, Debug)]
@@ -24,14 +25,14 @@ impl Shape {
         }
     }
 
-    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Result<Intersections, String> {
         match self {
-            Shape::Sphere(sphere) => sphere.local_intersect(ray),
-            Shape::Plane(plane) => plane.local_intersect(ray),
-            Shape::Cube(cube) => cube.local_intersect(ray),
-            Shape::Cylinder(cylinder) => cylinder.local_intersect(ray),
-            Shape::Cone(cone) => cone.local_intersect(ray),
-            Shape::Group(group) => group.local_intersect(ray),
+            Shape::Sphere(sphere) => Ok(sphere.local_intersect(ray, object)),
+            Shape::Plane(plane) => Ok(plane.local_intersect(ray, object)),
+            Shape::Cube(cube) => Ok(cube.local_intersect(ray, object)),
+            Shape::Cylinder(cylinder) => Ok(cylinder.local_intersect(ray, object)),
+            Shape::Cone(cone) => Ok(cone.local_intersect(ray, object)),
+            Shape::Group(group) => group.local_intersect(ray, object),
         }
     }
 }

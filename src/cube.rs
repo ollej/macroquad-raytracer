@@ -1,4 +1,4 @@
-use crate::{float::*, material::*, matrix::*, object::*, ray::*, tuple::*};
+use crate::{float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
 use std::mem;
 
@@ -10,7 +10,7 @@ impl Cube {
         Self {}
     }
 
-    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
         let (xtmin, xtmax) = self.check_axis(&ray.origin.x, &ray.direction.x);
         let (ytmin, ytmax) = self.check_axis(&ray.origin.y, &ray.direction.y);
         let (ztmin, ztmax) = self.check_axis(&ray.origin.z, &ray.direction.z);
@@ -18,10 +18,11 @@ impl Cube {
         let tmax = xtmax.min(ytmax.min(ztmax));
 
         if tmin > tmax {
-            return vec![];
+            return Intersections::empty();
         }
 
-        vec![tmin, tmax]
+        let xs = vec![tmin, tmax];
+        Intersections::from_object(xs, object)
     }
 
     pub fn local_normal_at(&self, point: &Point) -> Vector {

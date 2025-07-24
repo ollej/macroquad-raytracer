@@ -79,11 +79,11 @@ impl Object {
         }
     }
 
-    pub fn new_group(transform: Matrix, material: Material) -> Self {
+    pub fn new_group(transform: Matrix, material: Material, children: Vec<Object>) -> Self {
         Self {
             transform,
             material,
-            shape: Shape::Group(Group::new()),
+            shape: Shape::Group(Group::new(children)),
         }
     }
 
@@ -100,14 +100,8 @@ impl Object {
     }
 
     pub fn intersect(&self, ray: &Ray) -> Result<Intersections, String> {
-        let intersections = self.shape.local_intersect(&self.transformed_ray(ray)?);
-
-        Ok(Intersections::new(
-            intersections
-                .iter()
-                .map(|t| Intersection::new(*t, self))
-                .collect(),
-        ))
+        let transformed_ray = self.transformed_ray(ray)?;
+        self.shape.local_intersect(&transformed_ray, self)
     }
 
     pub fn normal_at(&self, p: &Point) -> Result<Vector, String> {

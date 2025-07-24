@@ -10,7 +10,7 @@ impl Sphere {
         Self {}
     }
 
-    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
         let sphere_to_ray = ray.origin - point(0., 0., 0.);
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.direction.dot(&sphere_to_ray);
@@ -18,13 +18,14 @@ impl Sphere {
         let discriminant = b * b - 4. * a * c;
 
         if discriminant < 0. {
-            return vec![];
+            return Intersections::empty();
         }
 
         let t1 = (-b - discriminant.sqrt()) / (2. * a);
         let t2 = (-b + discriminant.sqrt()) / (2. * a);
 
-        vec![t1, t2]
+        let xs = vec![t1, t2];
+        Intersections::from_object(xs, object)
     }
 
     pub fn local_normal_at(&self, p: &Point) -> Vector {

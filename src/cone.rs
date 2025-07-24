@@ -42,7 +42,7 @@ impl Cone {
         }
     }
 
-    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
         let a = ray.direction.x.powf(2.0) - ray.direction.y.powf(2.0) + ray.direction.z.powf(2.0);
         let b = 2.0 * ray.origin.x * ray.direction.x - 2.0 * ray.origin.y * ray.direction.y
             + 2.0 * ray.origin.z * ray.direction.z;
@@ -64,7 +64,7 @@ impl Cone {
             xs.append(&mut self.intersect_caps(ray));
         }
 
-        xs
+        Intersections::from_object(xs, object)
     }
 }
 
@@ -120,9 +120,13 @@ pub fn unit_cone_upsidedown(closed: bool, transform: Matrix, material: Material)
 mod test_chapter_13_cone {
     use super::*;
 
+    fn test_cone() -> Object {
+        infinite_cone(IDENTITY_MATRIX, Material::default())
+    }
+
     #[test]
     fn intersecting_a_cone_with_a_ray() {
-        let shape = Cone::infinite();
+        let shape = test_cone();
 
         let examples = vec![
             (point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0), 5.0, 5.0),
@@ -143,26 +147,26 @@ mod test_chapter_13_cone {
         for (origin, direction, t0, t1) in examples.iter() {
             let normalized_direction = direction.normalize();
             let r = ray(&origin, &normalized_direction);
-            let xs = shape.local_intersect(&r);
+            let xs = shape.intersect(&r).unwrap();
             assert_eq!(xs.len(), 2);
-            assert_eq_float!(xs[0], t0);
-            assert_eq_float!(xs[1], t1);
+            assert_eq_float!(xs[0].t, t0);
+            assert_eq_float!(xs[1].t, t1);
         }
     }
 
     #[test]
     fn intersecting_a_cone_with_a_ray_parallel_to_one_of_its_halves() {
-        let shape = Cone::infinite();
+        let shape = test_cone();
         let direction = vector(0.0, 1.0, 1.0).normalize();
         let r = ray(&point(0.0, 0.0, -1.0), &direction);
-        let xs = shape.local_intersect(&r);
+        let xs = shape.intersect(&r).unwrap();
         assert_eq!(xs.len(), 1);
-        assert_eq_float!(xs[0], 0.35355);
+        assert_eq_float!(xs[0].t, 0.35355);
     }
 
     #[test]
     fn intersecting_a_cones_end_caps() {
-        let shape = Cone::new(-0.5, 0.5, true);
+        let shape = cone(-0.5, 0.5, true);
 
         let examples = vec![
             (point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0), 0),
@@ -173,7 +177,7 @@ mod test_chapter_13_cone {
         for (origin, direction, count) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&origin, &direction);
-            let xs = shape.local_intersect(&r);
+            let xs = shape.intersect(&r).unwrap();
             assert_eq!(xs.len(), *count);
         }
     }

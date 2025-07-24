@@ -26,7 +26,7 @@ impl Cylinder {
         }
     }
 
-    pub fn local_intersect(&self, ray: &Ray) -> Vec<Float> {
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
         let a = ray.direction.x.powf(2.0) + ray.direction.z.powf(2.0);
 
         let mut xs = vec![];
@@ -43,7 +43,7 @@ impl Cylinder {
             xs.append(&mut self.intersect_caps(ray));
         }
 
-        xs
+        Intersections::from_object(xs, object)
     }
 
     pub fn local_normal_at(&self, p: &Point) -> Vector {
@@ -92,9 +92,13 @@ pub fn infinite_cylinder(translation: Matrix, material: Material) -> Object {
 mod test_chapter_13_cylinder {
     use super::*;
 
+    fn test_cylinder() -> Object {
+        infinite_cylinder(IDENTITY_MATRIX, Material::default())
+    }
+
     #[test]
     fn a_ray_misses_a_cylinder() {
-        let cyl = Cylinder::infinite();
+        let cyl = test_cylinder();
 
         let examples = vec![
             (point(1.0, 0.0, 0.0), vector(0.0, 1.0, 0.0)),
@@ -105,14 +109,14 @@ mod test_chapter_13_cylinder {
         for (origin, direction) in examples.iter() {
             let normalized_direction = direction.normalize();
             let r = ray(&origin, &normalized_direction);
-            let xs = cyl.local_intersect(&r);
+            let xs = cyl.intersect(&r).unwrap();
             assert_eq!(xs.len(), 0);
         }
     }
 
     #[test]
     fn a_ray_strikes_a_cylinder() {
-        let cyl = Cylinder::infinite();
+        let cyl = test_cylinder();
 
         let examples = vec![
             (point(1.0, 0.0, -5.0), vector(0.0, 0.0, 1.0), 5.0, 5.0),
@@ -128,11 +132,11 @@ mod test_chapter_13_cylinder {
         for (origin, direction, t0, t1) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&origin, &direction);
-            let xs = cyl.local_intersect(&r);
+            let xs = cyl.intersect(&r).unwrap();
 
             assert_eq!(xs.len(), 2);
-            assert_eq_float!(xs[0], t0);
-            assert_eq_float!(xs[1], t1);
+            assert_eq_float!(xs[0].t, t0);
+            assert_eq_float!(xs[1].t, t1);
         }
     }
 
@@ -189,7 +193,7 @@ mod test_chapter_13_cylinder {
 
     #[test]
     fn intersecting_the_caps_of_a_closed_cylinder() {
-        let cyl = Cylinder::new(1.0, 2.0, true);
+        let cyl = cylinder(1.0, 2.0, true);
 
         let examples = vec![
             (point(0.0, 3.0, 0.0), vector(0.0, -1.0, 0.0), 2),
@@ -202,7 +206,7 @@ mod test_chapter_13_cylinder {
         for (p, direction, count) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&p, &direction);
-            let xs = cyl.local_intersect(&r);
+            let xs = cyl.intersect(&r).unwrap();
             assert_eq!(xs.len(), *count);
         }
     }
