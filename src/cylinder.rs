@@ -1,6 +1,6 @@
-use {core::f64, std::mem};
+use core::f64;
 
-use crate::{float::*, material::*, matrix::*, object::*, ray::*, tuple::*};
+use crate::{float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cylinder {
@@ -58,69 +58,19 @@ impl Cylinder {
             vector(p.x, 0.0, p.z)
         }
     }
+}
 
-    fn intersect_walls(&self, a: Float, b: Float, c: Float, ray: &Ray) -> Vec<Float> {
-        let discriminant = b * b - 4.0 * a * c;
-
-        // Ray does not intersect the cylinder
-        if discriminant < 0.0 {
-            return vec![];
-        }
-
-        // Ray intersects with the cylinder
-        let t0 = &mut ((-b - f64::sqrt(discriminant)) / (2.0 * a));
-        let t1 = &mut ((-b + f64::sqrt(discriminant)) / (2.0 * a));
-        if t0 > t1 {
-            mem::swap(t0, t1);
-        }
-
-        let mut xs = vec![];
-
-        let y0 = ray.origin.y + *t0 * ray.direction.y;
-        if self.minimum < y0 && y0 < self.maximum {
-            xs.push(*t0);
-        }
-        let y1 = ray.origin.y + *t1 * ray.direction.y;
-        if self.minimum < y1 && y1 < self.maximum {
-            xs.push(*t1);
-        }
-
-        xs
+impl CylinderIntersection for Cylinder {
+    fn minimum(&self) -> Float {
+        self.minimum
     }
 
-    fn intersect_caps(&self, ray: &Ray) -> Vec<Float> {
-        let mut xs = vec![];
-
-        // Caps only matter if the cylinder might possibly be
-        // intersected by the ray.
-        if ray.direction.y == 0.0 {
-            return vec![];
-        }
-
-        // Check for an intersection with the lower end cap by intersecting
-        // the ray with the plane at y=cyl.minimum
-        let t = (self.minimum - ray.origin.y) / ray.direction.y;
-        if self.check_cap(ray, &t) {
-            xs.push(t);
-        }
-
-        // Check for an intersection with the upper end cap by intersecting
-        // the ray with the plane at y=cyl.maximum
-        let t = (self.maximum - ray.origin.y) / ray.direction.y;
-        if self.check_cap(ray, &t) {
-            xs.push(t);
-        }
-
-        xs
+    fn maximum(&self) -> Float {
+        self.maximum
     }
 
-    // A helper function to reduce duplication.
-    // checks to see if the intersection at `t` is within a radius
-    // of 1 (the radius of your cylinders) from the y axis.
-    fn check_cap(&self, ray: &Ray, t: &Float) -> bool {
-        let x = ray.origin.x + t * ray.direction.x;
-        let z = ray.origin.z + t * ray.direction.z;
-        (x.powf(2.0) + z.powf(2.0)) <= 1.0
+    fn radius(&self, _plane: Float) -> Float {
+        1.0
     }
 }
 
