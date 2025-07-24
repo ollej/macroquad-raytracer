@@ -6,6 +6,7 @@ pub use crate::cone::*;
 pub use crate::cube::*;
 pub use crate::cylinder::*;
 pub use crate::float::*;
+pub use crate::group::*;
 pub use crate::intersection::*;
 pub use crate::light::*;
 pub use crate::macroquad::*;

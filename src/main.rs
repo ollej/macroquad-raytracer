@@ -114,6 +114,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
         .flat_map(|y| {
             let world_y = half - pixel_size * y as Float;
             let light = light.clone();
+            let sphere = sphere.clone();
             (0..canvas_size).into_par_iter().map(move |x| {
                 let world_x = -half + pixel_size * x as Float;
                 let position = point(world_x, world_y, wall_z);
@@ -220,7 +221,7 @@ fn generate_scene_pattern(canvas_size: usize) -> Result<Canvas, String> {
 
     let floor = build_floor_plane();
 
-    world.objects.push(floor);
+    world.objects.push(floor.clone());
 
     let mut wall_material = floor.material.clone();
     wall_material.set_pattern(ring_pattern(&color(1.0, 0.9, 0.9), &color(0.4, 0.4, 0.5)));

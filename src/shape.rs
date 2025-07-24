@@ -1,12 +1,15 @@
-use crate::{cone::*, cube::*, cylinder::*, float::*, plane::*, ray::*, sphere::*, tuple::*};
+use crate::{
+    cone::*, cube::*, cylinder::*, float::*, group::*, plane::*, ray::*, sphere::*, tuple::*,
+};
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Shape {
     Sphere(Sphere),
     Plane(Plane),
     Cube(Cube),
     Cylinder(Cylinder),
     Cone(Cone),
+    Group(Group),
 }
 
 impl Shape {
@@ -17,6 +20,7 @@ impl Shape {
             Shape::Cube(cube) => cube.local_normal_at(p),
             Shape::Cylinder(cylinder) => cylinder.local_normal_at(p),
             Shape::Cone(cone) => cone.local_normal_at(p),
+            Shape::Group(group) => group.local_normal_at(p),
         }
     }
 
@@ -27,6 +31,7 @@ impl Shape {
             Shape::Cube(cube) => cube.local_intersect(ray),
             Shape::Cylinder(cylinder) => cylinder.local_intersect(ray),
             Shape::Cone(cone) => cone.local_intersect(ray),
+            Shape::Group(group) => group.local_intersect(ray),
         }
     }
 }

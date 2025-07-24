@@ -1,9 +1,9 @@
 use crate::{
-    cone::*, cube::*, cylinder::*, float::*, intersection::*, material::*, matrix::*, plane::*,
-    ray::*, shape::*, sphere::*, tuple::*,
+    cone::*, cube::*, cylinder::*, float::*, group::*, intersection::*, material::*, matrix::*,
+    plane::*, ray::*, shape::*, sphere::*, tuple::*,
 };
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct Object {
     pub transform: Matrix,
     pub material: Material,
@@ -79,6 +79,14 @@ impl Object {
         }
     }
 
+    pub fn new_group(transform: Matrix, material: Material) -> Self {
+        Self {
+            transform,
+            material,
+            shape: Shape::Group(Group::new()),
+        }
+    }
+
     pub fn set_transform(&mut self, matrix: &Matrix) {
         self.transform = matrix.to_owned();
     }
@@ -97,7 +105,7 @@ impl Object {
         Ok(Intersections::new(
             intersections
                 .iter()
-                .map(|t| Intersection::new(*t, self.to_owned()))
+                .map(|t| Intersection::new(*t, self))
                 .collect(),
         ))
     }

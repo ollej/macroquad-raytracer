@@ -6,6 +6,7 @@ pub mod cone;
 pub mod cube;
 pub mod cylinder;
 pub mod float;
+pub mod group;
 pub mod intersection;
 pub mod light;
 pub mod macroquad;
