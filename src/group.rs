@@ -100,4 +100,15 @@ mod test_chapter_14_group {
         assert_eq!(xs[2].object, s1);
         assert_eq!(xs[3].object, s1);
     }
+
+    #[test]
+    fn intersecting_a_transformed_group() {
+        let mut s = sphere();
+        s.set_transform(&translation(5.0, 0.0, 0.0));
+        let mut g = Object::new_group(IDENTITY_MATRIX, Material::default(), vec![s]);
+        g.set_transform(&scaling(2.0, 2.0, 2.0));
+        let r = ray(&point(10.0, 0.0, -10.0), &vector(0.0, 0.0, 1.0));
+        let xs = g.intersect(&r).unwrap();
+        assert_eq!(xs.len(), 2);
+    }
 }
