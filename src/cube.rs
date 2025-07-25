@@ -1,4 +1,6 @@
-use crate::{float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
+use crate::{
+    bounds::*, float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*,
+};
 
 use std::mem;
 
@@ -56,6 +58,8 @@ impl Cube {
         (tmin.to_owned(), tmax.to_owned())
     }
 }
+
+impl Bounds for Cube {}
 
 pub fn cube() -> Object {
     Object::new_cube(IDENTITY_MATRIX, Material::default())
@@ -133,5 +137,19 @@ mod test_chapter_12_cube {
             let actual_normal = c.normal_at(&p).unwrap();
             assert_eq!(actual_normal, *expected_normal);
         }
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_cubes_bounds {
+    use super::*;
+
+    #[test]
+    fn cubes_have_a_default_bounding_box() {
+        let s = cube();
+        assert_eq!(
+            s.bounding_box,
+            bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
+        );
     }
 }

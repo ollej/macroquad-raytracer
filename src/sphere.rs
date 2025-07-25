@@ -1,4 +1,4 @@
-use crate::{intersection::*, material::*, matrix::*, object::*, ray::*, shape::*, tuple::*};
+use crate::{bounds::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Sphere {}
@@ -31,21 +31,21 @@ impl Sphere {
     }
 }
 
+impl Bounds for Sphere {}
+
 pub fn sphere() -> Object {
     Object::empty()
 }
 
 pub fn glass_sphere() -> Object {
-    Object {
-        transform: IDENTITY_MATRIX,
-        material: Material {
+    Object::new_sphere(
+        IDENTITY_MATRIX,
+        Material {
             transparency: 1.0,
             refractive_index: 1.5,
             ..Default::default()
         },
-        shape: Shape::Sphere(Sphere {}),
-        parent: None,
-    }
+    )
 }
 
 pub fn intersect(object: &Object, ray: &Ray) -> Result<Intersections, String> {
@@ -264,5 +264,19 @@ mod test_chapter_11_refraction {
         assert_eq!(s.transform, IDENTITY_MATRIX);
         assert_eq!(s.material.transparency, 1.0);
         assert_eq!(s.material.refractive_index, 1.5);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_sphere_bounds {
+    use super::*;
+
+    #[test]
+    fn spheres_have_a_default_bounding_box() {
+        let s = sphere();
+        assert_eq!(
+            s.bounding_box,
+            bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
+        );
     }
 }

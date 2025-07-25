@@ -1,6 +1,8 @@
-use core::f64;
+use crate::{
+    bounds::*, float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*,
+};
 
-use crate::{float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
+use core::f64;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cylinder {
@@ -20,7 +22,7 @@ impl Cylinder {
 
     pub fn infinite() -> Self {
         Self {
-            minimum: -f64::INFINITY,
+            minimum: f64::NEG_INFINITY,
             maximum: f64::INFINITY,
             closed: false,
         }
@@ -74,6 +76,15 @@ impl CylinderIntersection for Cylinder {
     }
 }
 
+impl Bounds for Cylinder {
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            minimum: point(-1.0, self.minimum, -1.0),
+            maximum: point(1.0, self.maximum, 1.0),
+        }
+    }
+}
+
 pub fn cylinder(minimum: Float, maximum: Float, closed: bool) -> Object {
     Object::new_cylinder(
         minimum,
@@ -85,7 +96,13 @@ pub fn cylinder(minimum: Float, maximum: Float, closed: bool) -> Object {
 }
 
 pub fn infinite_cylinder(translation: Matrix, material: Material) -> Object {
-    Object::new_cylinder(-f64::INFINITY, f64::INFINITY, false, translation, material)
+    Object::new_cylinder(
+        f64::NEG_INFINITY,
+        f64::INFINITY,
+        false,
+        translation,
+        material,
+    )
 }
 
 #[cfg(test)]
@@ -160,7 +177,7 @@ mod test_chapter_13_cylinder {
     #[test]
     fn the_default_minimum_and_maximum_for_a_cylinder() {
         let cyl = Cylinder::infinite();
-        assert_eq!(cyl.minimum, -f64::INFINITY);
+        assert_eq!(cyl.minimum, f64::NEG_INFINITY);
         assert_eq!(cyl.maximum, f64::INFINITY);
     }
 
@@ -228,5 +245,19 @@ mod test_chapter_13_cylinder {
             let n = cyl.local_normal_at(p);
             assert_eq!(n, *normal);
         }
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_cylinder_bounds {
+    use super::*;
+
+    #[test]
+    fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
+        let cyl = cylinder(1.0, 2.0, true);
+        assert_eq!(
+            cyl.bounding_box,
+            bounding_box(&point(-1.0, 1.0, -1.0), &point(1.0, 2.0, 1.0))
+        );
     }
 }

@@ -34,14 +34,6 @@ impl Tuple {
         Tuple { x, y, z, w }
     }
 
-    pub fn point(x: Float, y: Float, z: Float) -> Point {
-        Tuple { x, y, z, w: 1.0 }
-    }
-
-    pub fn vector(x: Float, y: Float, z: Float) -> Vector {
-        Tuple { x, y, z, w: 0.0 }
-    }
-
     pub fn is_vector(&self) -> bool {
         self.w == 0.0
     }
@@ -86,12 +78,29 @@ impl Tuple {
 }
 
 impl Point {
+    pub fn point(x: Float, y: Float, z: Float) -> Point {
+        Tuple { x, y, z, w: 1.0 }
+    }
+
+    pub fn empty_point() -> Point {
+        Tuple {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0,
+        }
+    }
+
     pub fn ray(&self, direction: &Vector) -> Ray {
         Ray::new(self.to_owned(), direction.to_owned())
     }
 }
 
 impl Vector {
+    pub fn vector(x: Float, y: Float, z: Float) -> Vector {
+        Tuple { x, y, z, w: 0.0 }
+    }
+
     pub fn reflect(self, normal: &Vector) -> Vector {
         self - normal * 2. * self.dot(normal)
     }
@@ -99,10 +108,10 @@ impl Vector {
 
 impl PartialEq<Tuple> for Tuple {
     fn eq(&self, other: &Tuple) -> bool {
-        (self.x - other.x).abs() < EPSILON
-            && (self.y - other.y).abs() < EPSILON
-            && (self.z - other.z).abs() < EPSILON
-            && (self.w - other.w).abs() < EPSILON
+        self.x.equals(&other.x)
+            && self.y.equals(&other.y)
+            && self.z.equals(&other.z)
+            && self.w.equals(&other.w)
     }
 }
 

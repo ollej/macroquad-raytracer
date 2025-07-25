@@ -1,5 +1,8 @@
+use core::f64;
+
 use crate::{
-    float::*, intersection::*, material::*, matrix::IDENTITY_MATRIX, object::*, ray::*, tuple::*,
+    bounds::*, float::*, intersection::*, material::*, matrix::IDENTITY_MATRIX, object::*, ray::*,
+    tuple::*,
 };
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -17,6 +20,15 @@ impl Plane {
             let t = -ray.origin.y / ray.direction.y;
             let xs = vec![t];
             Intersections::from_object(xs, object)
+        }
+    }
+}
+
+impl Bounds for Plane {
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            minimum: point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY),
+            maximum: point(f64::INFINITY, 0.0, f64::INFINITY),
         }
     }
 }
@@ -74,5 +86,23 @@ mod test_chapter_9_planes {
         let xs = p.intersect(&r).unwrap();
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].t, 1.0);
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_planes_bounds {
+    use super::*;
+
+    #[test]
+    fn planes_have_a_bounding_box_to_infinity() {
+        let p = plane();
+        let min = p.bounding_box.minimum;
+        assert_eq!(min.x, f64::NEG_INFINITY);
+        assert_eq!(min.y, 0.0);
+        assert_eq!(min.z, f64::NEG_INFINITY);
+        let max = p.bounding_box.maximum;
+        assert_eq!(max.x, f64::INFINITY);
+        assert_eq!(max.y, 0.0);
+        assert_eq!(max.z, f64::INFINITY);
     }
 }

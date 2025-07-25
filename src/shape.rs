@@ -1,6 +1,6 @@
 use crate::{
-    cone::*, cube::*, cylinder::*, group::*, intersection::*, object::*, plane::*, ray::*,
-    sphere::*, tuple::*,
+    bounds::*, cone::*, cube::*, cylinder::*, group::*, intersection::*, object::*, plane::*,
+    ray::*, sphere::*, tuple::*,
 };
 
 #[derive(PartialEq, Clone, Debug)]
@@ -40,6 +40,17 @@ impl Shape {
         match self {
             Shape::Group(group) => group.add_child(child),
             _ => unreachable!(),
+        }
+    }
+
+    pub fn bounding_box(&self) -> BoundingBox {
+        match self {
+            Shape::Sphere(sphere) => sphere.bounding_box(),
+            Shape::Plane(plane) => plane.bounding_box(),
+            Shape::Cube(cube) => cube.bounding_box(),
+            Shape::Cylinder(cylinder) => cylinder.bounding_box(),
+            Shape::Cone(cone) => cone.bounding_box(),
+            Shape::Group(group) => group.bounding_box(),
         }
     }
 }

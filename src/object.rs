@@ -1,6 +1,6 @@
 use crate::{
-    cone::*, cube::*, cylinder::*, float::*, group::*, intersection::*, material::*, matrix::*,
-    plane::*, ray::*, shape::*, sphere::*, tuple::*,
+    bounds::*, cone::*, cube::*, cylinder::*, float::*, group::*, intersection::*, material::*,
+    matrix::*, plane::*, ray::*, shape::*, sphere::*, tuple::*,
 };
 
 use std::sync::Arc;
@@ -9,52 +9,49 @@ use std::sync::Arc;
 pub struct Object {
     pub transform: Matrix,
     pub material: Material,
+    pub bounding_box: BoundingBox,
     pub shape: Shape,
     pub parent: Option<Arc<Object>>,
 }
 
 impl Object {
     pub fn empty() -> Self {
-        Self {
-            transform: IDENTITY_MATRIX,
-            material: Material::default(),
-            shape: Shape::Sphere(Sphere {}),
-            parent: None,
-        }
+        Self::new(IDENTITY_MATRIX)
     }
 
-    pub fn new(matrix: Matrix) -> Self {
-        Self {
-            transform: matrix,
-            material: Material::default(),
-            shape: Shape::Sphere(Sphere {}),
-            parent: None,
-        }
+    pub fn new(transform: Matrix) -> Self {
+        Self::new_sphere(transform, Material::default())
     }
 
     pub fn new_sphere(transform: Matrix, material: Material) -> Self {
+        let shape = Shape::Sphere(Sphere {});
         Self {
             transform,
             material,
-            shape: Shape::Sphere(Sphere {}),
+            bounding_box: shape.bounding_box(),
+            shape,
             parent: None,
         }
     }
 
     pub fn new_plane(transform: Matrix, material: Material) -> Self {
+        let shape = Shape::Plane(Plane {});
         Self {
             transform,
             material,
-            shape: Shape::Plane(Plane {}),
+            bounding_box: shape.bounding_box(),
+            shape,
             parent: None,
         }
     }
 
     pub fn new_cube(transform: Matrix, material: Material) -> Self {
+        let shape = Shape::Cube(Cube {});
         Self {
             transform,
             material,
-            shape: Shape::Cube(Cube {}),
+            bounding_box: shape.bounding_box(),
+            shape,
             parent: None,
         }
     }
@@ -66,10 +63,12 @@ impl Object {
         transform: Matrix,
         material: Material,
     ) -> Self {
+        let shape = Shape::Cylinder(Cylinder::new(minimum, maximum, closed));
         Self {
             transform,
             material,
-            shape: Shape::Cylinder(Cylinder::new(minimum, maximum, closed)),
+            bounding_box: shape.bounding_box(),
+            shape,
             parent: None,
         }
     }
@@ -81,19 +80,23 @@ impl Object {
         transform: Matrix,
         material: Material,
     ) -> Self {
+        let shape = Shape::Cone(Cone::new(minimum, maximum, closed));
         Self {
             transform,
             material,
-            shape: Shape::Cone(Cone::new(minimum, maximum, closed)),
+            bounding_box: shape.bounding_box(),
+            shape,
             parent: None,
         }
     }
 
     pub fn new_group(transform: Matrix, material: Material) -> Self {
+        let shape = Shape::Group(Group::empty());
         Self {
             transform,
             material,
-            shape: Shape::Group(Group::new(vec![])),
+            bounding_box: shape.bounding_box(),
+            shape,
             parent: None,
         }
     }
@@ -143,19 +146,15 @@ impl Object {
     }
 
     pub fn add_child(&mut self, child: &mut Object) {
-        child.parent = Some(Arc::new(self.clone()));
+        child.parent = Some(Arc::new(self.to_owned()));
         self.shape.add_child(child);
+        self.bounding_box = self.shape.bounding_box();
     }
 }
 
 impl Default for Object {
     fn default() -> Self {
-        Self {
-            transform: IDENTITY_MATRIX,
-            material: Material::default(),
-            shape: Shape::Sphere(Sphere {}),
-            parent: None,
-        }
+        Object::empty()
     }
 }
 
@@ -164,6 +163,17 @@ impl PartialEq for Object {
         self.transform == other.transform
             && self.material == other.material
             && self.shape == other.shape
+            && self.parent == other.parent
+        //&& self.bounding_box == other.bounding_box
+    }
+}
+
+#[cfg(test)]
+mod test_common {
+    use super::*;
+
+    pub fn test_shape() -> Object {
+        Object::empty()
     }
 }
 
@@ -171,12 +181,9 @@ impl PartialEq for Object {
 mod test_chapter_9_shapes {
     #![allow(non_snake_case)]
 
+    use super::test_common::*;
     use super::*;
     use std::f64::consts::PI;
-
-    fn test_shape() -> Object {
-        Object::empty()
-    }
 
     #[test]
     fn the_default_transformation() {
@@ -247,5 +254,20 @@ mod test_chapter_9_shapes {
             .normal_at(&point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0))
             .unwrap();
         assert_eq!(n, vector(0.0, 0.97014, -0.24254));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_object_bounds {
+    use super::test_common::*;
+    use super::*;
+
+    #[test]
+    fn objects_have_a_bounding_box_field_set_to_the_default_bounding_box() {
+        let s = test_shape();
+        assert_eq!(
+            s.bounding_box,
+            bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
+        );
     }
 }

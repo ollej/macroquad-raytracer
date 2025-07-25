@@ -1,4 +1,6 @@
-use crate::{float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
+use crate::{
+    bounds::*, float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*,
+};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cone {
@@ -18,7 +20,7 @@ impl Cone {
 
     pub fn infinite() -> Self {
         Self {
-            minimum: -f64::INFINITY,
+            minimum: f64::NEG_INFINITY,
             maximum: f64::INFINITY,
             closed: false,
         }
@@ -82,6 +84,15 @@ impl CylinderIntersection for Cone {
     }
 }
 
+impl Bounds for Cone {
+    fn bounding_box(&self) -> BoundingBox {
+        BoundingBox {
+            minimum: point(-1.0, self.minimum, -1.0),
+            maximum: point(1.0, self.maximum, 1.0),
+        }
+    }
+}
+
 pub fn cone(minimum: Float, maximum: Float, closed: bool) -> Object {
     Object::new_cone(
         minimum,
@@ -93,7 +104,13 @@ pub fn cone(minimum: Float, maximum: Float, closed: bool) -> Object {
 }
 
 pub fn infinite_cone(translation: Matrix, material: Material) -> Object {
-    Object::new_cone(-f64::INFINITY, f64::INFINITY, false, translation, material)
+    Object::new_cone(
+        f64::NEG_INFINITY,
+        f64::INFINITY,
+        false,
+        translation,
+        material,
+    )
 }
 
 pub fn unit_cone(closed: bool, transform: Matrix, material: Material) -> Object {
@@ -196,5 +213,19 @@ mod test_chapter_13_cone {
             let n = shape.local_normal_at(p);
             assert_eq!(n, *normal);
         }
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_cone_bounds {
+    use super::*;
+
+    #[test]
+    fn cone_have_a_bounding_box_matching_minimum_and_maximum() {
+        let c = cone(1.0, 2.0, true);
+        assert_eq!(
+            c.bounding_box,
+            bounding_box(&point(-1.0, 1.0, -1.0), &point(1.0, 2.0, 1.0))
+        );
     }
 }

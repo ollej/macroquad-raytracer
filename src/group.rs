@@ -1,4 +1,4 @@
-use crate::{intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
+use crate::{bounds::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
 use std::sync::Arc;
 
@@ -12,6 +12,10 @@ impl Group {
         Self {
             children: children.iter().map(|i| Arc::new(i.to_owned())).collect(),
         }
+    }
+
+    pub fn empty() -> Self {
+        Self { children: vec![] }
     }
 
     pub fn local_intersect(&self, ray: &Ray, _object: &Object) -> Result<Intersections, String> {
@@ -33,6 +37,15 @@ impl Group {
 
     pub fn add_child(&mut self, child: &mut Object) {
         self.children.push(Arc::new(child.to_owned()));
+    }
+}
+
+impl Bounds for Group {
+    fn bounding_box(&self) -> BoundingBox {
+        self.children
+            .iter()
+            .map(|child| &child.bounding_box * child.transform)
+            .sum()
     }
 }
 
@@ -183,5 +196,27 @@ mod test_chapter_14_group {
         g2.add_child(s);
         let n = s.normal_at(&point(1.7321, 1.1547, -5.5774)).unwrap();
         assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
+    }
+}
+
+#[cfg(test)]
+mod test_chapter_14_group_bounds {
+    use super::*;
+
+    use crate::cube::*;
+
+    #[test]
+    fn groups_have_a_bounding_box_containing_all_children() {
+        let mut g = empty_group();
+        let c1 = &mut cube();
+        c1.set_transform(&translation(-1.0, -1.0, -1.0));
+        let c2 = &mut cube();
+        c2.set_transform(&translation(1.0, 1.0, 1.0));
+        g.add_child(c1);
+        g.add_child(c2);
+        assert_eq!(
+            g.bounding_box,
+            bounding_box(&point(-2.0, -2.0, -2.0), &point(2.0, 2.0, 2.0))
+        );
     }
 }

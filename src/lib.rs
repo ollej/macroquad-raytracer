@@ -1,4 +1,5 @@
 pub mod app_options;
+pub mod bounds;
 pub mod camera;
 pub mod canvas;
 pub mod color;
