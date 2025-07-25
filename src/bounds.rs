@@ -112,4 +112,51 @@ mod test_chapter_14_bounds {
         assert_eq!(b.minimum, point(-1.0, -1.0, -1.0));
         assert_eq!(b.maximum, point(1.0, 1.0, 1.0));
     }
+
+    #[test]
+    fn bounds_can_be_compared() {
+        let b = default_bounding_box();
+        assert_eq!(b, default_bounding_box());
+    }
+
+    #[test]
+    fn bounds_can_be_added() {
+        let b1 = default_bounding_box();
+        let b2 = bounding_box(&point(0.0, -2.0, -3.0), &point(0.0, 1.0, 2.0));
+        assert_eq!(
+            b1 + b2,
+            bounding_box(&point(-1.0, -2.0, -3.0), &point(1.0, 1.0, 2.0))
+        );
+    }
+
+    #[test]
+    fn add_point_to_bounding_box() {
+        let b = default_bounding_box();
+        let p = point(5.0, -5.0, 0.0);
+        assert_eq!(
+            b + p,
+            bounding_box(&point(-1.0, -5.0, -1.0), &point(5.0, 1.0, 1.0))
+        );
+    }
+
+    #[test]
+    fn sum_bounding_boxes() {
+        let b1 = default_bounding_box();
+        let b2 = bounding_box(&point(0.0, -2.0, -3.0), &point(0.0, 1.0, 2.0));
+        let bbs: Vec<BoundingBox> = vec![b1, b2];
+        assert_eq!(
+            bbs.into_iter().sum::<BoundingBox>(),
+            bounding_box(&point(-1.0, -2.0, -3.0), &point(1.0, 1.0, 2.0))
+        );
+    }
+
+    #[test]
+    fn multiply_bounding_boxes() {
+        let b = default_bounding_box();
+        let m = translation(1.0, -1.0, 1.0);
+        assert_eq!(
+            b * m,
+            bounding_box(&point(0.0, -2.0, 0.0), &point(2.0, 0.0, 2.0))
+        );
+    }
 }
