@@ -12,14 +12,14 @@ pub struct BoundingBox {
 }
 
 impl BoundingBox {
-    fn new(minimum: &Point, maximum: &Point) -> BoundingBox {
+    pub fn new(minimum: &Point, maximum: &Point) -> BoundingBox {
         BoundingBox {
             minimum: minimum.to_owned(),
             maximum: maximum.to_owned(),
         }
     }
 
-    fn empty() -> BoundingBox {
+    pub fn empty() -> BoundingBox {
         BoundingBox {
             minimum: Point::infinity_point(),
             maximum: Point::neg_infinity_point(),
@@ -96,7 +96,7 @@ impl Add for BoundingBox {
     type Output = BoundingBox;
 
     fn add(self, rhs: BoundingBox) -> Self::Output {
-        (self + rhs.minimum) + rhs.maximum
+        self + rhs.minimum + rhs.maximum
     }
 }
 

@@ -137,11 +137,10 @@ impl Object {
     pub fn normal_to_world(&self, normal: &Vector) -> Result<Vector, String> {
         let mut normal = self.transform.inverse()?.transpose() * normal;
         normal.w = 0.0;
-        let normalized_normal = normal.normalize();
         if let Some(parent) = &self.parent {
-            parent.normal_to_world(&normalized_normal)
+            parent.normal_to_world(&normal.normalize())
         } else {
-            Ok(normalized_normal)
+            Ok(normal.normalize())
         }
     }
 

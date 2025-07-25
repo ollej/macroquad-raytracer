@@ -594,9 +594,9 @@ fn hexagon_side() -> Object {
 fn hexagon() -> Object {
     let mut hex = empty_group();
     for n in 0..=5 {
-        let mut side = hexagon_side();
+        let side = &mut hexagon_side();
         side.set_transform(rotation_y(n as Float * PI / 3.0));
-        hex.add_child(&mut side);
+        hex.add_child(side);
     }
     hex
 }
