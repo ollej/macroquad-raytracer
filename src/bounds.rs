@@ -21,8 +21,8 @@ impl BoundingBox {
 
     fn empty() -> BoundingBox {
         BoundingBox {
-            minimum: Point::empty_point(),
-            maximum: Point::empty_point(),
+            minimum: Point::infinity_point(),
+            maximum: Point::neg_infinity_point(),
         }
     }
 
@@ -92,11 +92,11 @@ impl Mul<Matrix> for &BoundingBox {
     }
 }
 
-impl Add<BoundingBox> for BoundingBox {
+impl Add for BoundingBox {
     type Output = BoundingBox;
 
     fn add(self, rhs: BoundingBox) -> Self::Output {
-        self + rhs.minimum + rhs.maximum
+        (self + rhs.minimum) + rhs.maximum
     }
 }
 
@@ -106,14 +106,14 @@ impl Add<Point> for BoundingBox {
     fn add(self, rhs: Point) -> Self::Output {
         BoundingBox {
             minimum: Point::point(
-                f64::min(self.minimum.x, rhs.x),
-                f64::min(self.minimum.y, rhs.y),
-                f64::min(self.minimum.z, rhs.z),
+                self.minimum.x.min(rhs.x),
+                self.minimum.y.min(rhs.y),
+                self.minimum.z.min(rhs.z),
             ),
             maximum: Point::point(
-                f64::max(self.maximum.x, rhs.x),
-                f64::max(self.maximum.y, rhs.y),
-                f64::max(self.maximum.z, rhs.z),
+                self.maximum.x.max(rhs.x),
+                self.maximum.y.max(rhs.y),
+                self.maximum.z.max(rhs.z),
             ),
         }
     }

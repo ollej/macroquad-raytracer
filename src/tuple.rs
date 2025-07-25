@@ -1,3 +1,4 @@
+use core::f64;
 use std::ops;
 
 use crate::{float::*, matrix::*, ray::*};
@@ -83,12 +84,15 @@ impl Point {
     }
 
     pub fn empty_point() -> Point {
-        Tuple {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-            w: 1.0,
-        }
+        Self::point(0.0, 0.0, 0.0)
+    }
+
+    pub fn infinity_point() -> Point {
+        Self::point(f64::INFINITY, f64::INFINITY, f64::INFINITY)
+    }
+
+    pub fn neg_infinity_point() -> Point {
+        Self::point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY)
     }
 
     pub fn ray(&self, direction: &Vector) -> Ray {
