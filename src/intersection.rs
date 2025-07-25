@@ -236,12 +236,6 @@ pub trait CylinderIntersection {
     fn intersect_caps(&self, ray: &Ray) -> Vec<Float> {
         let mut xs = vec![];
 
-        // Caps only matter if the cylinder might possibly be
-        // intersected by the ray.
-        if ray.direction.y == 0.0 {
-            return vec![];
-        }
-
         // Check for an intersection with the lower end cap by intersecting
         // the ray with the plane at y=cyl.minimum
         if let Some(t) = self.check_cap(ray, self.minimum()) {

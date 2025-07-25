@@ -15,12 +15,12 @@ impl Cube {
         let tmin = xtmin.max(ytmin.max(ztmin));
         let tmax = xtmax.min(ytmax.min(ztmax));
 
-        if tmin > tmax {
-            return Intersections::empty();
+        if tmax < 0.0 || tmin > tmax {
+            Intersections::empty()
+        } else {
+            let xs = vec![tmin, tmax];
+            Intersections::from_object(xs, object)
         }
-
-        let xs = vec![tmin, tmax];
-        Intersections::from_object(xs, object)
     }
 
     pub fn local_normal_at(&self, point: &Point) -> Vector {
@@ -87,6 +87,7 @@ mod test_chapter_12_cube {
             (point(2.0, 0.0, 2.0), vector(0.0, 0.0, -1.0)),
             (point(0.0, 2.0, 2.0), vector(0.0, -1.0, 0.0)),
             (point(2.0, 2.0, 0.0), vector(-1.0, 0.0, 0.0)),
+            (point(0.0, 0.0, 2.0), vector(0.0, 0.0, 1.0)),
         ];
 
         let c = cube();
