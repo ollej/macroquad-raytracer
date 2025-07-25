@@ -1,4 +1,4 @@
-use crate::{float::*, matrix::*, ray::*, tuple::*};
+use crate::{intersection::*, matrix::*, ray::*, tuple::*};
 
 use std::{
     iter::{Iterator, Sum},
@@ -45,8 +45,8 @@ impl BoundingBox {
             self.minimum.z,
             self.maximum.z,
         );
-        let tmax = xtmax.min(ytmax.min(ztmax));
 
+        let tmax = xtmax.min(ytmax.min(ztmax));
         if tmax < 0.0 {
             false
         } else {
@@ -54,31 +54,9 @@ impl BoundingBox {
             tmin <= tmax
         }
     }
-
-    fn check_axis(
-        &self,
-        origin: Float,
-        direction: Float,
-        minimum: Float,
-        maximum: Float,
-    ) -> (Float, Float) {
-        let tmin_numerator = minimum - origin;
-        let tmax_numerator = maximum - origin;
-        let (tmin, tmax) = if direction.abs() >= EPSILON {
-            ((tmin_numerator / direction), (tmax_numerator / direction))
-        } else {
-            (
-                (tmin_numerator * f64::INFINITY),
-                (tmax_numerator * f64::INFINITY),
-            )
-        };
-        if tmin > tmax {
-            (tmax, tmin)
-        } else {
-            (tmin, tmax)
-        }
-    }
 }
+
+impl Axis for BoundingBox {}
 
 impl Default for BoundingBox {
     fn default() -> Self {

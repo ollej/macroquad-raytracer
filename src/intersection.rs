@@ -177,6 +177,28 @@ impl PreparedComputations {
     }
 }
 
+pub trait Axis {
+    fn check_axis(
+        &self,
+        origin: Float,
+        direction: Float,
+        minimum: Float,
+        maximum: Float,
+    ) -> (Float, Float) {
+        let tmin_numerator = minimum - origin;
+        let tmax_numerator = maximum - origin;
+
+        let tmin = tmin_numerator / direction;
+        let tmax = tmax_numerator / direction;
+
+        if tmin > tmax {
+            (tmax, tmin)
+        } else {
+            (tmin, tmax)
+        }
+    }
+}
+
 pub trait CylinderIntersection {
     fn minimum(&self) -> Float;
     fn maximum(&self) -> Float;

@@ -1,6 +1,4 @@
-use crate::{
-    bounds::*, float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*,
-};
+use crate::{bounds::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cube {}
@@ -11,9 +9,9 @@ impl Cube {
     }
 
     pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
-        let (xtmin, xtmax) = self.check_axis(ray.origin.x, ray.direction.x);
-        let (ytmin, ytmax) = self.check_axis(ray.origin.y, ray.direction.y);
-        let (ztmin, ztmax) = self.check_axis(ray.origin.z, ray.direction.z);
+        let (xtmin, xtmax) = self.check_axis(ray.origin.x, ray.direction.x, -1.0, 1.0);
+        let (ytmin, ytmax) = self.check_axis(ray.origin.y, ray.direction.y, -1.0, 1.0);
+        let (ztmin, ztmax) = self.check_axis(ray.origin.z, ray.direction.z, -1.0, 1.0);
         let tmin = xtmin.max(ytmin.max(ztmin));
         let tmax = xtmax.min(ytmax.min(ztmax));
 
@@ -35,26 +33,9 @@ impl Cube {
             vector(0.0, 0.0, point.z)
         }
     }
-
-    fn check_axis(&self, origin: Float, direction: Float) -> (Float, Float) {
-        let tmin_numerator = -1.0 - origin;
-        let tmax_numerator = 1.0 - origin;
-        let (tmin, tmax) = if direction.abs() >= EPSILON {
-            ((tmin_numerator / direction), (tmax_numerator / direction))
-        } else {
-            (
-                (tmin_numerator * f64::INFINITY),
-                (tmax_numerator * f64::INFINITY),
-            )
-        };
-        if tmin > tmax {
-            (tmax, tmin)
-        } else {
-            (tmin, tmax)
-        }
-    }
 }
 
+impl Axis for Cube {}
 impl Bounds for Cube {}
 
 pub fn cube() -> Object {
@@ -64,6 +45,8 @@ pub fn cube() -> Object {
 #[cfg(test)]
 mod test_chapter_12_cube {
     use super::*;
+
+    use crate::float::*;
 
     #[test]
     fn a_ray_intersects_a_cube() {
