@@ -2,8 +2,6 @@ use crate::{
     bounds::*, float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*,
 };
 
-use std::mem;
-
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cube {}
 
@@ -13,9 +11,9 @@ impl Cube {
     }
 
     pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
-        let (xtmin, xtmax) = self.check_axis(&ray.origin.x, &ray.direction.x);
-        let (ytmin, ytmax) = self.check_axis(&ray.origin.y, &ray.direction.y);
-        let (ztmin, ztmax) = self.check_axis(&ray.origin.z, &ray.direction.z);
+        let (xtmin, xtmax) = self.check_axis(ray.origin.x, ray.direction.x);
+        let (ytmin, ytmax) = self.check_axis(ray.origin.y, ray.direction.y);
+        let (ztmin, ztmax) = self.check_axis(ray.origin.z, ray.direction.z);
         let tmin = xtmin.max(ytmin.max(ztmin));
         let tmax = xtmax.min(ytmax.min(ztmax));
 
@@ -38,24 +36,22 @@ impl Cube {
         }
     }
 
-    fn check_axis(&self, origin: &Float, direction: &Float) -> (Float, Float) {
+    fn check_axis(&self, origin: Float, direction: Float) -> (Float, Float) {
         let tmin_numerator = -1.0 - origin;
         let tmax_numerator = 1.0 - origin;
         let (tmin, tmax) = if direction.abs() >= EPSILON {
-            (
-                &mut (tmin_numerator / direction),
-                &mut (tmax_numerator / direction),
-            )
+            ((tmin_numerator / direction), (tmax_numerator / direction))
         } else {
             (
-                &mut (tmin_numerator * f64::INFINITY),
-                &mut (tmax_numerator * f64::INFINITY),
+                (tmin_numerator * f64::INFINITY),
+                (tmax_numerator * f64::INFINITY),
             )
         };
         if tmin > tmax {
-            mem::swap(tmin, tmax);
+            (tmax, tmin)
+        } else {
+            (tmin, tmax)
         }
-        (tmin.to_owned(), tmax.to_owned())
     }
 }
 

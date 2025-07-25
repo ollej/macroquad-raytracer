@@ -18,15 +18,19 @@ impl Group {
         Self { children: vec![] }
     }
 
-    pub fn local_intersect(&self, ray: &Ray, _object: &Object) -> Result<Intersections, String> {
-        Ok(Intersections::new(
-            self.children
-                .iter()
-                .flat_map(|child| child.intersect(ray))
-                .map(|intersections| intersections.inner().clone())
-                .flatten()
-                .collect(),
-        ))
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Result<Intersections, String> {
+        if object.bounding_box.intersects(ray) {
+            Ok(Intersections::new(
+                self.children
+                    .iter()
+                    .flat_map(|child| child.intersect(ray))
+                    .map(|intersections| intersections.inner().clone())
+                    .flatten()
+                    .collect(),
+            ))
+        } else {
+            Ok(Intersections::empty())
+        }
     }
 
     pub fn local_normal_at(&self, _p: &Point) -> Vector {

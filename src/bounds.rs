@@ -1,4 +1,4 @@
-use crate::{matrix::*, tuple::*};
+use crate::{float::*, matrix::*, ray::*, tuple::*};
 
 use std::{
     iter::{Iterator, Sum},
@@ -23,6 +23,59 @@ impl BoundingBox {
         BoundingBox {
             minimum: Point::empty_point(),
             maximum: Point::empty_point(),
+        }
+    }
+
+    pub fn intersects(&self, ray: &Ray) -> bool {
+        let (xtmin, xtmax) = self.check_axis(
+            ray.origin.x,
+            ray.direction.x,
+            self.minimum.x,
+            self.maximum.x,
+        );
+        let (ytmin, ytmax) = self.check_axis(
+            ray.origin.y,
+            ray.direction.y,
+            self.minimum.y,
+            self.maximum.y,
+        );
+        let (ztmin, ztmax) = self.check_axis(
+            ray.origin.z,
+            ray.direction.z,
+            self.minimum.z,
+            self.maximum.z,
+        );
+        let tmax = xtmax.min(ytmax.min(ztmax));
+
+        if tmax < 0.0 {
+            false
+        } else {
+            let tmin = xtmin.max(ytmin.max(ztmin));
+            tmin <= tmax
+        }
+    }
+
+    fn check_axis(
+        &self,
+        origin: Float,
+        direction: Float,
+        minimum: Float,
+        maximum: Float,
+    ) -> (Float, Float) {
+        let tmin_numerator = minimum - origin;
+        let tmax_numerator = maximum - origin;
+        let (tmin, tmax) = if direction.abs() >= EPSILON {
+            ((tmin_numerator / direction), (tmax_numerator / direction))
+        } else {
+            (
+                (tmin_numerator * f64::INFINITY),
+                (tmax_numerator * f64::INFINITY),
+            )
+        };
+        if tmin > tmax {
+            (tmax, tmin)
+        } else {
+            (tmin, tmax)
         }
     }
 }
@@ -170,5 +223,45 @@ mod test_chapter_14_bounds {
             b * m,
             bounding_box(&point(0.0, -2.0, 0.0), &point(2.0, 0.0, 2.0))
         );
+    }
+
+    #[test]
+    fn a_ray_intersects_a_bounding_box() {
+        let b = default_bounding_box();
+
+        let examples = vec![
+            // ( name , origin , direction , t1 , t2 )
+            ("+x", point(5.0, 0.5, 0.0), vector(-1.0, 0.0, 0.0)),
+            ("-x", point(-5.0, 0.5, 0.0), vector(1.0, 0.0, 0.0)),
+            ("+y", point(0.5, 5.0, 0.0), vector(0.0, -1.0, 0.0)),
+            ("-y", point(0.5, -5.0, 0.0), vector(0.0, 1.0, 0.0)),
+            ("+z", point(0.5, 0.0, 5.0), vector(0.0, 0.0, -1.0)),
+            ("-z", point(0.5, 0.0, -5.0), vector(0.0, 0.0, 1.0)),
+            ("inside", point(0.0, 0.5, 0.0), vector(0.0, 0.0, 1.0)),
+        ];
+
+        for (_name, origin, direction) in examples.iter() {
+            let r = ray(&origin, &direction);
+            assert!(b.intersects(&r));
+        }
+    }
+
+    #[test]
+    fn a_ray_misses_a_bounding_box() {
+        let b = default_bounding_box();
+
+        let examples = vec![
+            (point(-2.0, 0.0, 0.0), vector(0.2673, 0.5345, 0.8018)),
+            (point(0.0, -2.0, 0.0), vector(0.8018, 0.2673, 0.5345)),
+            (point(0.0, 0.0, -2.0), vector(0.5345, 0.8018, 0.2673)),
+            (point(2.0, 0.0, 2.0), vector(0.0, 0.0, -1.0)),
+            (point(0.0, 2.0, 2.0), vector(0.0, -1.0, 0.0)),
+            (point(2.0, 2.0, 0.0), vector(-1.0, 0.0, 0.0)),
+        ];
+
+        for (origin, direction) in examples.iter() {
+            let r = ray(&origin, &direction);
+            assert_eq!(b.intersects(&r), false);
+        }
     }
 }
