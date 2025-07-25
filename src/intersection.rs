@@ -35,9 +35,11 @@ impl Intersection {
         let over_point = point + normalv * EPSILON;
         let under_point = point - normalv * EPSILON;
         let reflectv = ray.direction.reflect(&normalv);
+        let cos_i = eyev.dot(&normalv);
 
         let mut n1: Float = 1.0;
         let mut n2: Float = 1.0;
+
         let mut containers: Vec<Object> = vec![];
         for i in xs.inner().iter() {
             if i == self {
@@ -61,6 +63,8 @@ impl Intersection {
                 break;
             }
         }
+        let n_ratio = n1 / n2;
+        let sin2_t = n_ratio.powf(2.0) * (1.0 - cos_i.powf(2.0));
 
         Ok(PreparedComputations {
             t: self.t,
@@ -71,9 +75,12 @@ impl Intersection {
             eyev,
             normalv,
             reflectv,
+            cos_i,
+            sin2_t,
             inside,
             n1,
             n2,
+            n_ratio,
         })
     }
 }
@@ -141,37 +148,27 @@ pub struct PreparedComputations {
     pub eyev: Vector,
     pub normalv: Vector,
     pub reflectv: Vector,
+    pub cos_i: Float,
+    pub sin2_t: Float,
     pub inside: bool,
     pub n1: Float,
     pub n2: Float,
+    pub n_ratio: Float,
 }
 
 impl PreparedComputations {
-    pub fn n_ratio(&self) -> Float {
-        self.n1 / self.n2
-    }
-
-    pub fn cos_i(&self) -> Float {
-        self.eyev.dot(&self.normalv)
-    }
-
-    pub fn sin2_t(&self) -> Float {
-        self.n_ratio().powf(2.0) * (1.0 - self.cos_i().powf(2.0))
-    }
-
     pub fn schlick(&self) -> Float {
         // Find the cosine of the angle between the eye and normal vectors.
-        let mut cos = self.cos_i();
+        let mut cos = self.cos_i;
 
         // Total internal reflection can only occur if n1 > n2
         if self.n1 > self.n2 {
-            let sin2_t = self.n_ratio().powf(2.0) * (1.0 - cos.powf(2.0));
-            if sin2_t > 1.0 {
+            if self.sin2_t > 1.0 {
                 return 1.0;
             }
 
             // Compute cosine of theta_t using trig identity.
-            cos = f64::sqrt(1.0 - sin2_t);
+            cos = f64::sqrt(1.0 - self.sin2_t);
         }
 
         let r0 = ((self.n1 - self.n2) / (self.n1 + self.n2)).powf(2.0);

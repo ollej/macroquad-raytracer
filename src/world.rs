@@ -92,8 +92,7 @@ impl World {
         let shadowed = self.is_shadowed(&comps.over_point);
 
         let surface_color = match &self.light {
-            Some(light) => comps.object.material.lighting(
-                &comps.object,
+            Some(light) => comps.object.lighting(
                 light,
                 &comps.over_point,
                 &comps.eyev,
@@ -106,8 +105,7 @@ impl World {
         let reflected_color = self.reflected_color(&comps, remaining)?;
         let refracted_color = self.refracted_color(&comps, remaining)?;
 
-        let material = comps.object.material;
-        if material.reflective > 0.0 && material.transparency > 0.0 {
+        if comps.object.is_reflective() && !comps.object.is_transparent() {
             let reflectance = comps.schlick();
             return Ok(surface_color
                 + reflected_color * reflectance
@@ -150,9 +148,7 @@ impl World {
         comps: &PreparedComputations,
         remaining: usize,
     ) -> Result<Color, String> {
-        if remaining < 1 {
-            Ok(BLACK)
-        } else if comps.object.material.reflective == 0.0 {
+        if remaining < 1 || !comps.object.is_reflective() {
             Ok(BLACK)
         } else {
             let reflect_ray = ray(&comps.over_point, &comps.reflectv);
@@ -166,22 +162,19 @@ impl World {
         comps: &PreparedComputations,
         remaining: usize,
     ) -> Result<Color, String> {
-        if remaining == 0 || comps.object.material.transparency == 0.0 {
+        if remaining == 0 || comps.object.is_transparent() {
             return Ok(BLACK);
         }
 
-        let n_ratio = comps.n_ratio();
-        let cos_i = comps.cos_i();
-        let sin2_t = n_ratio * n_ratio * (1.0 - cos_i * cos_i);
-
-        if sin2_t > 1.0 {
+        if comps.sin2_t > 1.0 {
             return Ok(BLACK);
         }
 
         // Find cos(theta_t) via trigonometric identity
-        let cos_t = f64::sqrt(1.0 - sin2_t);
+        let cos_t = f64::sqrt(1.0 - comps.sin2_t);
         // Compute the direction of the refracted ray
-        let direction = comps.normalv * (n_ratio * cos_i - cos_t) - comps.eyev * n_ratio;
+        let direction =
+            comps.normalv * (comps.n_ratio * comps.cos_i - cos_t) - comps.eyev * comps.n_ratio;
         // Create the refracted ray
         let refract_ray = Ray::new(comps.under_point, direction);
         // Find the color of the refracted ray, making sure to multiply

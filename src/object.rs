@@ -1,6 +1,6 @@
 use crate::{
-    bounds::*, cone::*, cube::*, cylinder::*, float::*, group::*, intersection::*, material::*,
-    matrix::*, plane::*, ray::*, shape::*, sphere::*, tuple::*,
+    bounds::*, color::*, cone::*, cube::*, cylinder::*, float::*, group::*, intersection::*,
+    light::*, material::*, matrix::*, plane::*, ray::*, shape::*, sphere::*, tuple::*,
 };
 
 use std::sync::Arc;
@@ -149,6 +149,26 @@ impl Object {
         child.parent = Some(Arc::new(self.to_owned()));
         self.shape.add_child(child);
         self.bounding_box = self.shape.bounding_box();
+    }
+
+    pub fn is_transparent(&self) -> bool {
+        self.material.transparency == 0.0
+    }
+
+    pub fn is_reflective(&self) -> bool {
+        self.material.reflective > 0.0
+    }
+
+    pub fn lighting(
+        &self,
+        light: &Light,
+        point: &Point,
+        eyev: &Vector,
+        normalv: &Vector,
+        in_shadow: bool,
+    ) -> Result<Color, String> {
+        self.material
+            .lighting(self, light, point, eyev, normalv, in_shadow)
     }
 }
 
