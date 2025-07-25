@@ -1,4 +1,8 @@
-use std::{cmp::Ordering, mem, ops::Index};
+use std::{
+    cmp::Ordering,
+    mem,
+    ops::{Add, Index},
+};
 
 use crate::{float::*, object::*, ray::*, tuple::*};
 
@@ -127,6 +131,16 @@ impl Intersections {
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+impl Add for Intersections {
+    type Output = Intersections;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut xs = self.0.clone();
+        xs.append(&mut rhs.inner().clone());
+        Intersections::new(xs)
     }
 }
 

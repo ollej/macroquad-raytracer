@@ -574,7 +574,7 @@ fn hexagon_corner() -> Object {
 }
 
 fn hexagon_edge() -> Object {
-    let mut edge = cylinder(0.0, 1.0, false);
+    let mut edge = cylinder(0.0, 1.0, true);
     edge.set_transform(
         translation(0.0, 0.0, -1.0)
             * rotation_y(-PI / 6.0)
