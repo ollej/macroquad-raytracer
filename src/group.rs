@@ -118,9 +118,9 @@ mod test_chapter_14_group {
     fn intersecting_a_ray_with_a_nonempty_group() {
         let mut s1 = sphere();
         let mut s2 = sphere();
-        s2.set_transform(&translation(0.0, 0.0, -3.0));
+        s2.set_transform(translation(0.0, 0.0, -3.0));
         let mut s3 = sphere();
-        s3.set_transform(&translation(5.0, 0.0, 0.0));
+        s3.set_transform(translation(5.0, 0.0, 0.0));
         let mut g = empty_group();
         g.add_child(&mut s1);
         g.add_child(&mut s2);
@@ -139,10 +139,10 @@ mod test_chapter_14_group {
     #[test]
     fn intersecting_a_transformed_group() {
         let mut s = sphere();
-        s.set_transform(&translation(5.0, 0.0, 0.0));
+        s.set_transform(translation(5.0, 0.0, 0.0));
 
         let mut g = empty_group();
-        g.set_transform(&scaling(2.0, 2.0, 2.0));
+        g.set_transform(scaling(2.0, 2.0, 2.0));
         g.add_child(&mut s);
 
         let r = ray(&point(10.0, 0.0, -10.0), &vector(0.0, 0.0, 1.0));
@@ -154,14 +154,14 @@ mod test_chapter_14_group {
     #[test]
     fn converting_a_point_from_world_to_object_space() {
         let g1 = &mut empty_group();
-        g1.set_transform(&rotation_y(PI / 2.0));
+        g1.set_transform(rotation_y(PI / 2.0));
 
         let g2 = &mut empty_group();
-        g2.set_transform(&scaling(2.0, 2.0, 2.0));
+        g2.set_transform(scaling(2.0, 2.0, 2.0));
         g1.add_child(g2);
 
         let s = &mut sphere();
-        s.set_transform(&translation(5.0, 0.0, 0.0));
+        s.set_transform(translation(5.0, 0.0, 0.0));
         g2.add_child(s);
 
         let p = s.world_to_object(&point(-2.0, 0.0, -10.0)).unwrap();
@@ -171,12 +171,12 @@ mod test_chapter_14_group {
     #[test]
     fn converting_a_normal_from_object_to_world_space() {
         let g1 = &mut empty_group();
-        g1.set_transform(&rotation_y(PI / 2.0));
+        g1.set_transform(rotation_y(PI / 2.0));
         let g2 = &mut empty_group();
-        g2.set_transform(&scaling(1.0, 2.0, 3.0));
+        g2.set_transform(scaling(1.0, 2.0, 3.0));
         g1.add_child(g2);
         let s = &mut sphere();
-        s.set_transform(&translation(5.0, 0.0, 0.0));
+        s.set_transform(translation(5.0, 0.0, 0.0));
         g2.add_child(s);
         let n = s
             .normal_to_world(&vector(
@@ -191,12 +191,12 @@ mod test_chapter_14_group {
     #[test]
     fn finding_the_normal_on_a_child_object() {
         let g1 = &mut empty_group();
-        g1.set_transform(&rotation_y(PI / 2.0));
+        g1.set_transform(rotation_y(PI / 2.0));
         let g2 = &mut empty_group();
-        g2.set_transform(&scaling(1.0, 2.0, 3.0));
+        g2.set_transform(scaling(1.0, 2.0, 3.0));
         g1.add_child(g2);
         let s = &mut sphere();
-        s.set_transform(&translation(5.0, 0.0, 0.0));
+        s.set_transform(translation(5.0, 0.0, 0.0));
         g2.add_child(s);
         let n = s.normal_at(&point(1.7321, 1.1547, -5.5774)).unwrap();
         assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
@@ -213,9 +213,9 @@ mod test_chapter_14_group_bounds {
     fn groups_have_a_bounding_box_containing_all_children() {
         let mut g = empty_group();
         let c1 = &mut cube();
-        c1.set_transform(&translation(-1.0, -1.0, -1.0));
+        c1.set_transform(translation(-1.0, -1.0, -1.0));
         let c2 = &mut cube();
-        c2.set_transform(&translation(1.0, 1.0, 1.0));
+        c2.set_transform(translation(1.0, 1.0, 1.0));
         g.add_child(c1);
         g.add_child(c2);
         assert_eq!(

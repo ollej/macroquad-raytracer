@@ -48,7 +48,7 @@ impl Default for World {
         };
         s1.set_material(&m);
         let mut s2 = sphere();
-        s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
+        s2.set_transform(scaling(0.5, 0.5, 0.5));
         World {
             objects: vec![s1, s2],
             light: Some(point_light(
@@ -213,7 +213,7 @@ mod test_chapter_7_world {
         );
         s1.set_material(&m);
         let mut s2 = sphere();
-        s2.set_transform(&Matrix::scaling(0.5, 0.5, 0.5));
+        s2.set_transform(scaling(0.5, 0.5, 0.5));
         let w = default_world();
         assert_eq!(w.light, Some(light));
         assert!(w.contains(&s1));
@@ -377,7 +377,7 @@ mod test_chapter_11_reflection {
         let mut w = default_world();
         let mut shape = plane();
         shape.material.reflective = 0.5;
-        shape.set_transform(&translation(0.0, -1.0, 0.0));
+        shape.set_transform(translation(0.0, -1.0, 0.0));
         w.objects.push(shape.clone());
         let r = ray(
             &point(0.0, 0.0, -3.0),
@@ -396,7 +396,7 @@ mod test_chapter_11_reflection {
         let mut w = default_world();
         let mut shape = plane();
         shape.material.reflective = 0.5;
-        shape.set_transform(&translation(0.0, -1.0, 0.0));
+        shape.set_transform(translation(0.0, -1.0, 0.0));
         w.objects.push(shape.clone());
         let r = ray(
             &point(0.0, 0.0, -3.0),
@@ -416,11 +416,11 @@ mod test_chapter_11_reflection {
         w.set_light(&point_light(&point(0.0, 0.0, 0.0), &color(1.0, 1.0, 1.0)));
         let mut lower = plane();
         lower.material.reflective = 1.0;
-        lower.set_transform(&translation(0.0, -1.0, 0.0));
+        lower.set_transform(translation(0.0, -1.0, 0.0));
         w.objects.push(lower);
         let mut upper = plane();
         upper.material.reflective = 1.0;
-        upper.set_transform(&translation(0.0, 1.0, 0.0));
+        upper.set_transform(translation(0.0, 1.0, 0.0));
         w.objects.push(upper);
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 1.0, 0.0));
         let c = w.color_at(&r, 1).unwrap();
@@ -432,7 +432,7 @@ mod test_chapter_11_reflection {
         let mut w = default_world();
         let mut shape = plane();
         shape.material.reflective = 0.5;
-        shape.set_transform(&translation(0.0, -1.0, 0.0));
+        shape.set_transform(translation(0.0, -1.0, 0.0));
         w.objects.push(shape.clone());
         let r = ray(
             &point(0.0, 0.0, -3.0),
@@ -526,14 +526,14 @@ mod test_chapter_11_reflection {
     fn shade_hit_with_a_transparent_material() {
         let mut w = default_world();
         let mut floor = plane();
-        floor.set_transform(&translation(0.0, -1.0, 0.0));
+        floor.set_transform(translation(0.0, -1.0, 0.0));
         floor.material.transparency = 0.5;
         floor.material.refractive_index = 1.5;
         w.objects.push(floor.clone());
         let mut ball = sphere();
         ball.material.color = color(1.0, 0.0, 0.0);
         ball.material.ambient = 0.5;
-        ball.set_transform(&translation(0.0, -3.5, -0.5));
+        ball.set_transform(translation(0.0, -3.5, -0.5));
         w.objects.push(ball);
         let r = ray(
             &point(0.0, 0.0, -3.0),
@@ -550,7 +550,7 @@ mod test_chapter_11_reflection {
         let mut w = default_world();
 
         let mut floor = plane();
-        floor.set_transform(&translation(0.0, -1.0, 0.0));
+        floor.set_transform(translation(0.0, -1.0, 0.0));
         floor.material.reflective = 0.5;
         floor.material.transparency = 0.5;
         floor.material.refractive_index = 1.5;
@@ -558,7 +558,7 @@ mod test_chapter_11_reflection {
         let mut ball = sphere();
         ball.material.color = color(1.0, 0.0, 0.0);
         ball.material.ambient = 0.5;
-        ball.set_transform(&translation(0.0, -3.5, -0.5));
+        ball.set_transform(translation(0.0, -3.5, -0.5));
         w.objects.push(ball);
         let r = ray(
             &point(0.0, 0.0, -3.0),

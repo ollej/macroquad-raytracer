@@ -173,7 +173,7 @@ mod test_chapter_10_pattern {
     #[test]
     fn pattern_with_an_object_transformation() {
         let mut object = sphere();
-        object.set_transform(&scaling(2.0, 2.0, 2.0));
+        object.set_transform(scaling(2.0, 2.0, 2.0));
         let pattern = stripe_pattern(&WHITE, &BLACK);
         let c = pattern
             .pattern_at_object(&object, &point(1.5, 0.0, 0.0))
@@ -195,7 +195,7 @@ mod test_chapter_10_pattern {
     #[test]
     fn stripes_with_both_an_object_and_a_pattern_transformation() {
         let mut object = sphere();
-        object.set_transform(&scaling(2.0, 2.0, 2.0));
+        object.set_transform(scaling(2.0, 2.0, 2.0));
         let mut pattern = stripe_pattern(&WHITE, &BLACK);
         pattern.set_transform(translation(0.5, 0.0, 0.0));
         let c = pattern
@@ -221,7 +221,7 @@ mod test_chapter_10_pattern {
     #[test]
     fn a_pattern_with_an_object_transformation() {
         let mut shape = sphere();
-        shape.set_transform(&scaling(2.0, 2.0, 2.0));
+        shape.set_transform(scaling(2.0, 2.0, 2.0));
         let pattern = test_pattern();
         let c = pattern
             .pattern_at_object(&shape, &point(2.0, 3.0, 4.0))
@@ -241,7 +241,7 @@ mod test_chapter_10_pattern {
     #[test]
     fn a_pattern_with_both_an_object_and_a_pattern_transformation() {
         let mut shape = sphere();
-        shape.set_transform(&scaling(2.0, 2.0, 2.0));
+        shape.set_transform(scaling(2.0, 2.0, 2.0));
         let mut p = test_pattern();
         p.set_transform(translation(0.5, 1.0, 1.5));
         let c = p.pattern_at_object(&shape, &point(2.5, 3.0, 3.5)).unwrap();
@@ -310,7 +310,7 @@ mod test_chapter_14_group {
     #[test]
     fn a_pattern_with_parent_transformation() {
         let g1 = &mut empty_group();
-        g1.set_transform(&translation(3.0, 2.0, 1.0));
+        g1.set_transform(translation(3.0, 2.0, 1.0));
 
         let s = &mut sphere();
         let mut m = Material::default();

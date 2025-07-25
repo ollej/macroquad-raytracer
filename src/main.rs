@@ -555,8 +555,54 @@ fn generate_scene_cone(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
+fn generate_scene_group(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.push(build_floor_plane());
+
+    let mut hex = hexagon();
+    hex.set_transform(translation(0.0, 1.0, 0.0) * rotation_x(-PI / 6.0));
+    world.objects.push(hex);
+
+    camera.render(&world)
+}
+
+fn hexagon_corner() -> Object {
+    let mut corner = sphere();
+    corner.set_transform(translation(0.0, 0.0, -1.0) * scaling(0.25, 0.25, 0.25));
+    corner
+}
+
+fn hexagon_edge() -> Object {
+    let mut edge = cylinder(0.0, 1.0, false);
+    edge.set_transform(
+        translation(0.0, 0.0, -1.0)
+            * rotation_y(-PI / 6.0)
+            * rotation_z(-PI / 2.0)
+            * scaling(0.25, 1.0, 0.25),
+    );
+    edge
+}
+
+fn hexagon_side() -> Object {
+    let mut side = empty_group();
+    side.add_child(&mut hexagon_corner());
+    side.add_child(&mut hexagon_edge());
+    side
+}
+
+fn hexagon() -> Object {
+    let mut hex = empty_group();
+    for n in 0..=5 {
+        let mut side = hexagon_side();
+        side.set_transform(rotation_y(n as Float * PI / 3.0));
+        hex.add_child(&mut side);
+    }
+    hex
+}
+
 fn setup_scene(canvas_size: usize) -> (Camera, World) {
-    let light_source = point_light(&point(-10.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
+    let light_source = point_light(&point(-0.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
         objects: vec![],
         light: Some(light_source),
@@ -656,6 +702,7 @@ async fn main() -> Result<(), String> {
         Image::SceneCube => generate_scene_cube(options.size)?,
         Image::SceneCylinder => generate_scene_cylinder(options.size)?,
         Image::SceneCone => generate_scene_cone(options.size)?,
+        Image::SceneGroup => generate_scene_group(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();

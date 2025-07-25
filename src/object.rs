@@ -101,8 +101,8 @@ impl Object {
         }
     }
 
-    pub fn set_transform(&mut self, matrix: &Matrix) {
-        self.transform = matrix.to_owned();
+    pub fn set_transform(&mut self, matrix: Matrix) {
+        self.transform = matrix;
     }
 
     pub fn set_material(&mut self, material: &Material) {
@@ -205,7 +205,7 @@ mod test_chapter_9_shapes {
     fn assigning_a_transformation() {
         let mut s = test_shape();
         let t = translation(2., 3., 4.);
-        s.set_transform(&t);
+        s.set_transform(t);
         assert_eq!(s.transform, t);
     }
 
@@ -229,7 +229,7 @@ mod test_chapter_9_shapes {
     fn intersecting_a_scaled_shape_with_a_ray() {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let mut s = test_shape();
-        s.set_transform(&scaling(2.0, 2.0, 2.0));
+        s.set_transform(scaling(2.0, 2.0, 2.0));
         s.intersect(&r).unwrap();
         let transformed_ray = s.transformed_ray(&r).unwrap();
         assert_eq!(transformed_ray.origin, point(0.0, 0.0, -2.5));
@@ -240,7 +240,7 @@ mod test_chapter_9_shapes {
     fn intersecting_a_translated_shape_with_a_ray() {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let mut s = test_shape();
-        s.set_transform(&translation(5.0, 0.0, 0.0));
+        s.set_transform(translation(5.0, 0.0, 0.0));
         s.intersect(&r).unwrap();
         let transformed_ray = s.transformed_ray(&r).unwrap();
         assert_eq!(transformed_ray.origin, point(-5.0, 0.0, -5.0));
@@ -250,7 +250,7 @@ mod test_chapter_9_shapes {
     #[test]
     fn computing_the_normal_on_a_translated_shape() {
         let mut s = test_shape();
-        s.set_transform(&translation(0.0, 1.0, 0.0));
+        s.set_transform(translation(0.0, 1.0, 0.0));
         let n = s.normal_at(&point(0.0, 1.70711, -0.70711)).unwrap();
         assert_eq!(n, vector(0.0, 0.70711, -0.70711));
     }
@@ -259,7 +259,7 @@ mod test_chapter_9_shapes {
     fn computing_the_normal_on_a_transformed_shape() {
         let mut s = test_shape();
         let m = scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0);
-        s.set_transform(&m);
+        s.set_transform(m);
         let n = s
             .normal_at(&point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0))
             .unwrap();

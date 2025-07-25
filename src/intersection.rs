@@ -448,13 +448,13 @@ mod test_chapter_11_reflection {
     #[test]
     fn finding_n1_and_n2_at_various_intersections() {
         let mut A = glass_sphere();
-        A.set_transform(&scaling(2.0, 2.0, 2.0));
+        A.set_transform(scaling(2.0, 2.0, 2.0));
         A.material.refractive_index = 1.5;
         let mut B = glass_sphere();
-        B.set_transform(&translation(0.0, 0.0, -0.25));
+        B.set_transform(translation(0.0, 0.0, -0.25));
         B.material.refractive_index = 2.0;
         let mut C = glass_sphere();
-        C.set_transform(&translation(0.0, 0.0, 0.25));
+        C.set_transform(translation(0.0, 0.0, 0.25));
         C.material.refractive_index = 2.5;
         let r = ray(&point(0.0, 0.0, -4.0), &vector(0.0, 0.0, 1.0));
         let xs = intersections(vec![
@@ -485,7 +485,7 @@ mod test_chapter_11_reflection {
     fn the_under_point_is_offset_below_the_surface() {
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let mut shape = glass_sphere();
-        shape.set_transform(&translation(0.0, 0.0, 1.0));
+        shape.set_transform(translation(0.0, 0.0, 1.0));
         let i = intersection(5.0, &shape);
         let xs = intersections(vec![i.clone()]);
         let comps = i.prepare_computations(&r, &xs).unwrap();

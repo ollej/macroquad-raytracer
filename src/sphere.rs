@@ -127,7 +127,7 @@ mod test_chapter_5_intersections {
     fn changing_a_spheres_transformation() {
         let mut s = sphere();
         let t = translation(2., 3., 4.);
-        s.set_transform(&t);
+        s.set_transform(t);
         assert_eq!(s.transform, t);
     }
 
@@ -135,7 +135,7 @@ mod test_chapter_5_intersections {
     fn intersecting_a_scaled_sphere_with_a_ray() {
         let r = ray(&point(0., 0., -5.), &vector(0., 0., 1.));
         let mut s = sphere();
-        s.set_transform(&scaling(2., 2., 2.));
+        s.set_transform(scaling(2., 2., 2.));
         let xs = s.intersect(&r).unwrap();
         assert_eq!(xs.len(), 2);
         assert_eq_float!(xs[0].t, 3.0);
@@ -146,7 +146,7 @@ mod test_chapter_5_intersections {
     fn intersecting_a_translated_sphere_with_a_ray() {
         let r = ray(&point(0., 0., -5.), &vector(0., 0., 1.));
         let mut s = sphere();
-        s.set_transform(&translation(5., 0., 0.));
+        s.set_transform(translation(5., 0., 0.));
         let xs = s.intersect(&r).unwrap();
         assert_eq!(xs.len(), 0);
     }
@@ -214,7 +214,7 @@ mod test_chapter_6_normals {
     #[test]
     fn computing_the_normal_on_a_translated_sphere() {
         let mut s = sphere();
-        s.set_transform(&translation(0., 1., 0.));
+        s.set_transform(translation(0., 1., 0.));
         let n = s.normal_at(&point(0., 1.70711, -0.70711));
         assert_eq!(n, Ok(vector(0., 0.70711, -0.70711)));
     }
@@ -223,7 +223,7 @@ mod test_chapter_6_normals {
     fn computing_the_normal_on_a_transformed_sphere() {
         let mut s = sphere();
         let m = scaling(1., 0.5, 1.) * rotation_z(PI / 5.);
-        s.set_transform(&m);
+        s.set_transform(m);
         let n = s.normal_at(&point(0., 2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.));
         assert_eq!(n, Ok(vector(0., 0.97014, -0.24254)));
     }
