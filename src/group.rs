@@ -1,17 +1,13 @@
 use crate::{bounds::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
-use std::sync::Arc;
-
 #[derive(PartialEq, Clone, Debug)]
 pub struct Group {
-    pub children: Vec<Arc<Object>>,
+    pub children: Vec<Object>,
 }
 
 impl Group {
     pub fn new(children: Vec<Object>) -> Self {
-        Self {
-            children: children.iter().map(|i| Arc::new(i.to_owned())).collect(),
-        }
+        Self { children }
     }
 
     pub fn empty() -> Self {
@@ -40,7 +36,7 @@ impl Group {
     }
 
     pub fn add_child(&mut self, child: &mut Object) {
-        self.children.push(Arc::new(child.to_owned()));
+        self.children.push(child.to_owned());
     }
 }
 
@@ -99,7 +95,7 @@ mod test_chapter_14_group {
         match g.shape {
             Shape::Group(group) => {
                 assert_eq!(group.children.len(), 1);
-                assert!(group.children.contains(&Arc::new(s)));
+                assert!(group.children.contains(&s));
                 // assert group.parent = g
             }
             _ => panic!("Shape should be a group"),
