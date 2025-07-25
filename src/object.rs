@@ -5,7 +5,7 @@ use crate::{
 
 use std::sync::Arc;
 
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct Object {
     pub transform: Matrix,
     pub material: Material,
@@ -178,16 +178,6 @@ impl Default for Object {
     }
 }
 
-impl PartialEq for Object {
-    fn eq(&self, other: &Self) -> bool {
-        self.transform == other.transform
-            && self.material == other.material
-            && self.shape == other.shape
-            && self.parent == other.parent
-        //&& self.bounding_box == other.bounding_box
-    }
-}
-
 #[cfg(test)]
 mod test_common {
     use super::*;
@@ -289,5 +279,14 @@ mod test_chapter_14_object_bounds {
             s.bounding_box,
             bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
         );
+    }
+
+    #[test]
+    fn objects_with_a_bounding_box_can_be_compared() {
+        let s1 = test_shape();
+        let s2 = test_shape();
+        assert!(s1 == s2);
+        assert!(s1.bounding_box == s2.bounding_box);
+        assert_eq!(s1.bounding_box, s2.bounding_box);
     }
 }

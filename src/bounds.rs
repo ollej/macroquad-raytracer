@@ -104,6 +104,8 @@ fn default_bounding_box() -> BoundingBox {
 
 #[cfg(test)]
 mod test_chapter_14_bounds {
+    use core::f64;
+
     use super::*;
 
     #[test]
@@ -117,6 +119,16 @@ mod test_chapter_14_bounds {
     fn bounds_can_be_compared() {
         let b = default_bounding_box();
         assert_eq!(b, default_bounding_box());
+    }
+
+    #[test]
+    fn infinite_bounds_can_be_compared() {
+        let b1 = bounding_box(
+            &point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
+            &point(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+        );
+        let b2 = b1.clone();
+        assert_eq!(b1, b2);
     }
 
     #[test]

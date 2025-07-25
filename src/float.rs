@@ -8,7 +8,8 @@ pub trait FloatExt {
 
 impl FloatExt for Float {
     fn equals(&self, other: &Float) -> bool {
-        (self - other).abs() < EPSILON
+        (self.is_infinite() && other.is_infinite() && self.signum() == other.signum())
+            || (self - other).abs() < EPSILON
     }
 }
 
