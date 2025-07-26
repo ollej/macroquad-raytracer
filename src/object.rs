@@ -96,10 +96,12 @@ impl Object {
 
     pub fn set_transform(&mut self, matrix: Matrix) {
         self.transform = matrix;
+        self.shape.update_parents(&mut self.clone());
     }
 
     pub fn set_material(&mut self, material: &Material) {
         self.material = material.to_owned();
+        self.shape.update_parents(&mut self.clone());
     }
 
     pub fn transformed_ray(&self, ray: &Ray) -> Result<Ray, String> {

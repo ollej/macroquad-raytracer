@@ -569,12 +569,14 @@ fn generate_scene_group(canvas_size: usize) -> Result<Canvas, String> {
 
 fn hexagon_corner() -> Object {
     let mut corner = sphere();
+    corner.set_material(&colored_material(1.0, 0.0, 0.0));
     corner.set_transform(translation(0.0, 0.0, -1.0) * scaling(0.25, 0.25, 0.25));
     corner
 }
 
 fn hexagon_edge() -> Object {
     let mut edge = cylinder(0.0, 1.0, true);
+    edge.set_material(&colored_material(1.0, 0.0, 0.0));
     edge.set_transform(
         translation(0.0, 0.0, -1.0)
             * rotation_y(-PI / 6.0)

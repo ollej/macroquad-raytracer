@@ -1,5 +1,7 @@
 use crate::{bounds::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*};
 
+use std::sync::Arc;
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct Group {
     pub children: Vec<Object>,
@@ -34,6 +36,12 @@ impl Group {
 
     pub fn add_child(&mut self, child: &mut Object) {
         self.children.push(child.to_owned());
+    }
+
+    pub fn update_parents(&mut self, parent: &Object) {
+        for child in self.children.iter_mut() {
+            child.parent = Some(Arc::new(parent.to_owned()));
+        }
     }
 }
 

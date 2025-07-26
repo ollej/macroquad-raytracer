@@ -43,6 +43,13 @@ impl Shape {
         }
     }
 
+    pub fn update_parents(&mut self, parent: &mut Object) {
+        match self {
+            Shape::Group(group) => group.update_parents(parent),
+            _ => (),
+        }
+    }
+
     pub fn bounding_box(&self) -> BoundingBox {
         match self {
             Shape::Sphere(sphere) => sphere.bounding_box(),
