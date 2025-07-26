@@ -275,7 +275,7 @@ mod test_chapter_14_sphere_bounds {
     fn spheres_have_a_default_bounding_box() {
         let s = sphere();
         assert_eq!(
-            s.bounding_box,
+            s.bounding_box(),
             bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
         );
     }

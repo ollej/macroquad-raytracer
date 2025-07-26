@@ -127,7 +127,7 @@ mod test_chapter_14_cubes_bounds {
     #[test]
     fn cubes_have_a_default_bounding_box() {
         let s = cube();
-        let b = s.bounding_box;
+        let b = s.bounding_box();
         assert_eq!(b.minimum, point(-1.0, -1.0, -1.0));
         assert_eq!(b.maximum, point(1.0, 1.0, 1.0));
     }

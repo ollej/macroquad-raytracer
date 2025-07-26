@@ -255,7 +255,7 @@ mod test_chapter_14_cylinder_bounds {
     #[test]
     fn an_unbounded_cylinder_has_a_bounding_box() {
         let cyl = infinite_cylinder(IDENTITY_MATRIX, Material::default());
-        let b = cyl.bounding_box;
+        let b = cyl.bounding_box();
         assert_eq!(b.minimum, point(-1.0, f64::NEG_INFINITY, -1.0));
         assert_eq!(b.maximum, point(1.0, f64::INFINITY, 1.0));
     }
@@ -263,7 +263,7 @@ mod test_chapter_14_cylinder_bounds {
     #[test]
     fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
         let cyl = cylinder(-5.0, 3.0, true);
-        let b = cyl.bounding_box;
+        let b = cyl.bounding_box();
         assert_eq!(b.minimum, point(-1.0, -5.0, -1.0));
         assert_eq!(b.maximum, point(1.0, 3.0, 1.0));
     }

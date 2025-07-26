@@ -98,7 +98,7 @@ mod test_chapter_14_planes_bounds {
     #[test]
     fn planes_have_a_bounding_box_to_infinity() {
         let p = plane();
-        let b = p.bounding_box;
+        let b = p.bounding_box();
         assert_eq!(b.minimum, point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY));
         assert_eq!(b.maximum, point(f64::INFINITY, 0.0, f64::INFINITY));
     }

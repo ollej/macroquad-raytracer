@@ -227,7 +227,7 @@ mod test_chapter_14_cone_bounds {
     #[test]
     fn an_unbounded_cylinder_has_a_bounding_box() {
         let c = infinite_cone(IDENTITY_MATRIX, Material::default());
-        let b = c.bounding_box;
+        let b = c.bounding_box();
         assert_eq!(
             b.minimum,
             point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY)
@@ -241,7 +241,7 @@ mod test_chapter_14_cone_bounds {
     #[test]
     fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
         let c = cone(-5.0, 3.0, true);
-        let b = c.bounding_box;
+        let b = c.bounding_box();
         assert_eq!(b.minimum, point(-5.0, -5.0, -5.0));
         assert_eq!(b.maximum, point(5.0, 3.0, 5.0));
     }

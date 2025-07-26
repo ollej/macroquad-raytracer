@@ -15,7 +15,7 @@ impl Group {
     }
 
     pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Result<Intersections, String> {
-        if !object.bounding_box.intersects(ray) {
+        if !object.bounding_box().intersects(ray) {
             return Ok(Intersections::empty());
         }
 
@@ -217,7 +217,7 @@ mod test_chapter_14_group_bounds {
         g.add_child(c1);
         g.add_child(c2);
         assert_eq!(
-            g.bounding_box,
+            g.bounding_box(),
             bounding_box(&point(-2.0, -2.0, -2.0), &point(2.0, 2.0, 2.0))
         );
     }
@@ -231,7 +231,7 @@ mod test_chapter_14_group_bounds {
         let mut shape = empty_group();
         shape.add_child(s);
         shape.add_child(c);
-        let b = shape.bounding_box;
+        let b = shape.bounding_box();
         assert_eq!(b.minimum, point(-4.5, -3.0, -5.0));
         assert_eq!(b.maximum, point(4.0, 7.0, 4.5));
     }

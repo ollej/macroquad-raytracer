@@ -9,7 +9,6 @@ use std::sync::Arc;
 pub struct Object {
     pub transform: Matrix,
     pub material: Material,
-    pub bounding_box: BoundingBox,
     pub shape: Shape,
     pub parent: Option<Arc<Object>>,
 }
@@ -28,7 +27,6 @@ impl Object {
         Self {
             transform,
             material,
-            bounding_box: shape.bounding_box(),
             shape,
             parent: None,
         }
@@ -39,7 +37,6 @@ impl Object {
         Self {
             transform,
             material,
-            bounding_box: shape.bounding_box(),
             shape,
             parent: None,
         }
@@ -50,7 +47,6 @@ impl Object {
         Self {
             transform,
             material,
-            bounding_box: shape.bounding_box(),
             shape,
             parent: None,
         }
@@ -67,7 +63,6 @@ impl Object {
         Self {
             transform,
             material,
-            bounding_box: shape.bounding_box(),
             shape,
             parent: None,
         }
@@ -84,7 +79,6 @@ impl Object {
         Self {
             transform,
             material,
-            bounding_box: shape.bounding_box(),
             shape,
             parent: None,
         }
@@ -95,7 +89,6 @@ impl Object {
         Self {
             transform,
             material,
-            bounding_box: shape.bounding_box(),
             shape,
             parent: None,
         }
@@ -147,7 +140,6 @@ impl Object {
     pub fn add_child(&mut self, child: &mut Object) {
         child.parent = Some(Arc::new(self.to_owned()));
         self.shape.add_child(child);
-        self.bounding_box = self.shape.bounding_box();
     }
 
     pub fn is_transparent(&self) -> bool {
@@ -170,8 +162,12 @@ impl Object {
             .lighting(self, light, point, eyev, normalv, in_shadow)
     }
 
+    pub fn bounding_box(&self) -> BoundingBox {
+        self.shape.bounding_box()
+    }
+
     pub fn bounding_box_in_parent_space(&self) -> BoundingBox {
-        self.bounding_box.transform(self.transform)
+        self.bounding_box().transform(self.transform)
     }
 }
 
@@ -270,7 +266,7 @@ mod test_chapter_14_object_bounds {
     fn objects_have_a_bounding_box_field_set_to_the_default_bounding_box() {
         let s = test_shape();
         assert_eq!(
-            s.bounding_box,
+            s.bounding_box(),
             bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
         );
     }
@@ -280,8 +276,8 @@ mod test_chapter_14_object_bounds {
         let s1 = test_shape();
         let s2 = test_shape();
         assert!(s1 == s2);
-        assert!(s1.bounding_box == s2.bounding_box);
-        assert_eq!(s1.bounding_box, s2.bounding_box);
+        assert!(s1.bounding_box() == s2.bounding_box());
+        assert_eq!(s1.bounding_box(), s2.bounding_box());
     }
 
     #[test]
