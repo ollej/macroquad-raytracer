@@ -555,7 +555,7 @@ fn generate_scene_cone(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
-fn generate_scene_group(canvas_size: usize) -> Result<Canvas, String> {
+fn generate_scene_hexagon(canvas_size: usize) -> Result<Canvas, String> {
     let (camera, mut world) = setup_scene(canvas_size);
 
     world.objects.push(build_floor_plane());
@@ -563,6 +563,55 @@ fn generate_scene_group(canvas_size: usize) -> Result<Canvas, String> {
     let mut hex = hexagon();
     hex.set_transform(translation(0.0, 1.0, 0.0) * rotation_x(-PI / 6.0));
     world.objects.push(hex);
+
+    camera.render(&world)
+}
+
+fn generate_scene_grouped_spheres(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    let plane = Object::new_plane(
+        translation(0.0, 0.0, 20.0) * rotation_x(PI / 2.0),
+        colored_material(1.0, 1.0, 1.0),
+    );
+    world.objects.push(plane);
+
+    let all_spheres = &mut empty_group();
+    all_spheres.set_transform(translation(-1.0, 0.0, 0.0) * rotation_y(PI / 6.0));
+    for i in 1..=2 {
+        for j in 1..=2 {
+            for k in 1..=2 {
+                let g = &mut empty_group();
+                g.set_transform(translation(
+                    i as Float * 1.5 - 1.75,
+                    j as Float * 1.5 - 1.75,
+                    k as Float * 1.5 - 1.0,
+                ));
+                for z in 0..5 {
+                    for y in 0..5 {
+                        for x in 0..5 {
+                            let s = &mut sphere();
+                            s.set_material(&colored_material(
+                                i as Float * x as Float / 10.0,
+                                y as Float * j as Float / 10.0,
+                                z as Float * k as Float / 10.0,
+                            ));
+                            s.set_transform(
+                                translation(
+                                    x as Float * 0.3 - 1.0,
+                                    y as Float * 0.3 + 0.2,
+                                    z as Float * 0.3,
+                                ) * scaling(0.1, 0.1, 0.1),
+                            );
+                            g.add_child(s);
+                        }
+                    }
+                }
+                all_spheres.add_child(g);
+            }
+        }
+    }
+    world.objects.push(all_spheres.to_owned());
 
     camera.render(&world)
 }
@@ -704,7 +753,8 @@ async fn main() -> Result<(), String> {
         Image::SceneCube => generate_scene_cube(options.size)?,
         Image::SceneCylinder => generate_scene_cylinder(options.size)?,
         Image::SceneCone => generate_scene_cone(options.size)?,
-        Image::SceneGroup => generate_scene_group(options.size)?,
+        Image::SceneHexagon => generate_scene_hexagon(options.size)?,
+        Image::SceneGroupedSpheres => generate_scene_grouped_spheres(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();
