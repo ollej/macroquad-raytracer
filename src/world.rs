@@ -353,9 +353,7 @@ mod test_chapter_11_reflection {
 
     use super::*;
 
-    use crate::plane::*;
-
-    use crate::pattern::test_pattern;
+    use crate::{pattern::test_pattern, plane::*};
 
     #[test]
     fn the_reflected_color_for_a_nonreflective_material() {

@@ -52,7 +52,7 @@ mod test_chapter_12_cube {
     fn a_ray_intersects_a_cube() {
         let c = cube();
 
-        let examples = vec![
+        let examples = [
             // ( name , origin , direction , t1 , t2 )
             ("+x", point(5.0, 0.5, 0.0), vector(-1.0, 0.0, 0.0), 4.0, 6.0),
             ("-x", point(-5.0, 0.5, 0.0), vector(1.0, 0.0, 0.0), 4.0, 6.0),
@@ -80,7 +80,7 @@ mod test_chapter_12_cube {
 
     #[test]
     fn a_ray_misses_a_cube() {
-        let examples = vec![
+        let examples = [
             (point(-2.0, 0.0, 0.0), vector(0.2673, 0.5345, 0.8018)),
             (point(0.0, -2.0, 0.0), vector(0.8018, 0.2673, 0.5345)),
             (point(0.0, 0.0, -2.0), vector(0.5345, 0.8018, 0.2673)),
@@ -101,7 +101,7 @@ mod test_chapter_12_cube {
     #[test]
     fn the_normal_on_the_surface_of_a_cube() {
         let c = cube();
-        let examples = vec![
+        let examples = [
             (point(1.0, 0.5, -0.8), vector(1.0, 0.0, 0.0)),
             (point(-1.0, -0.2, 0.9), vector(-1.0, 0.0, 0.0)),
             (point(-0.4, 1.0, -0.1), vector(0.0, 1.0, 0.0)),
@@ -127,9 +127,8 @@ mod test_chapter_14_cubes_bounds {
     #[test]
     fn cubes_have_a_default_bounding_box() {
         let s = cube();
-        assert_eq!(
-            s.bounding_box,
-            bounding_box(&point(-1.0, -1.0, -1.0), &point(1.0, 1.0, 1.0))
-        );
+        let b = s.bounding_box;
+        assert_eq!(b.minimum, point(-1.0, -1.0, -1.0));
+        assert_eq!(b.maximum, point(1.0, 1.0, 1.0));
     }
 }

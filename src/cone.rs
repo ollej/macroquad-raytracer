@@ -86,9 +86,13 @@ impl CylinderIntersection for Cone {
 
 impl Bounds for Cone {
     fn bounding_box(&self) -> BoundingBox {
+        let a = self.minimum.abs();
+        let b = self.maximum.abs();
+        let limit = a.max(b);
+
         BoundingBox {
-            minimum: point(-1.0, self.minimum, -1.0),
-            maximum: point(1.0, self.maximum, 1.0),
+            minimum: point(-limit, self.minimum, -limit),
+            maximum: point(limit, self.maximum, limit),
         }
     }
 }
@@ -145,7 +149,7 @@ mod test_chapter_13_cone {
     fn intersecting_a_cone_with_a_ray() {
         let shape = test_cone();
 
-        let examples = vec![
+        let examples = [
             (point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0), 5.0, 5.0),
             (
                 point(0.0, 0.0, -5.0),
@@ -185,7 +189,7 @@ mod test_chapter_13_cone {
     fn intersecting_a_cones_end_caps() {
         let shape = cone(-0.5, 0.5, true);
 
-        let examples = vec![
+        let examples = [
             (point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0), 0),
             (point(0.0, 0.0, -0.25), vector(0.0, 1.0, 1.0), 2),
             (point(0.0, 0.0, -0.25), vector(0.0, 1.0, 0.0), 4),
@@ -203,7 +207,7 @@ mod test_chapter_13_cone {
     fn computing_the_normal_vector_on_a_cone() {
         let shape = Cone::infinite();
 
-        let examples = vec![
+        let examples = [
             (point(0.0, 0.0, 0.0), vector(0.0, 0.0, 0.0)),
             (point(1.0, 1.0, 1.0), vector(1.0, -f64::sqrt(2.0), 1.0)),
             (point(-1.0, -1.0, 0.0), vector(-1.0, 1.0, 0.0)),
@@ -221,11 +225,24 @@ mod test_chapter_14_cone_bounds {
     use super::*;
 
     #[test]
-    fn cone_have_a_bounding_box_matching_minimum_and_maximum() {
-        let c = cone(1.0, 2.0, true);
+    fn an_unbounded_cylinder_has_a_bounding_box() {
+        let c = infinite_cone(IDENTITY_MATRIX, Material::default());
+        let b = c.bounding_box;
         assert_eq!(
-            c.bounding_box,
-            bounding_box(&point(-1.0, 1.0, -1.0), &point(1.0, 2.0, 1.0))
+            b.minimum,
+            point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY)
         );
+        assert_eq!(
+            b.maximum,
+            point(f64::INFINITY, f64::INFINITY, f64::INFINITY)
+        );
+    }
+
+    #[test]
+    fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
+        let c = cone(-5.0, 3.0, true);
+        let b = c.bounding_box;
+        assert_eq!(b.minimum, point(-5.0, -5.0, -5.0));
+        assert_eq!(b.maximum, point(5.0, 3.0, 5.0));
     }
 }

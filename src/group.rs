@@ -39,10 +39,14 @@ impl Group {
 
 impl Bounds for Group {
     fn bounding_box(&self) -> BoundingBox {
-        self.children
-            .iter()
-            .map(|child| &child.bounding_box * child.transform)
-            .sum()
+        let mut bounding_box = BoundingBox::empty();
+
+        for child in self.children.iter() {
+            let cbox = child.bounding_box_in_parent_space();
+            bounding_box = bounding_box + cbox;
+        }
+
+        bounding_box
     }
 }
 
@@ -200,7 +204,8 @@ mod test_chapter_14_group {
 mod test_chapter_14_group_bounds {
     use super::*;
 
-    use crate::cube::*;
+    use crate::test_common::*;
+    use crate::{cube::*, cylinder::*, sphere::*};
 
     #[test]
     fn groups_have_a_bounding_box_containing_all_children() {
@@ -215,5 +220,39 @@ mod test_chapter_14_group_bounds {
             g.bounding_box,
             bounding_box(&point(-2.0, -2.0, -2.0), &point(2.0, 2.0, 2.0))
         );
+    }
+
+    #[test]
+    fn a_group_has_a_bounding_box_that_contains_its_children() {
+        let s = &mut sphere();
+        s.set_transform(translation(2.0, 5.0, -3.0) * scaling(2.0, 2.0, 2.0));
+        let c = &mut cylinder(-2.0, 2.0, true);
+        c.set_transform(translation(-4.0, -1.0, 4.0) * scaling(0.5, 1.0, 0.5));
+        let mut shape = empty_group();
+        shape.add_child(s);
+        shape.add_child(c);
+        let b = shape.bounding_box;
+        assert_eq!(b.minimum, point(-4.5, -3.0, -5.0));
+        assert_eq!(b.maximum, point(4.0, 7.0, 4.5));
+    }
+
+    #[test]
+    fn intersecting_ray_group_doesnt_test_children_if_box_is_missed() {
+        let child = &mut test_shape();
+        let mut shape = empty_group();
+        shape.add_child(child);
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 1.0, 0.0));
+        let xs = shape.intersect(&r).unwrap();
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn intersecting_ray_group_tests_children_if_box_is_hit() {
+        let child = &mut test_shape();
+        let mut shape = empty_group();
+        shape.add_child(child);
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
+        let xs = shape.intersect(&r).unwrap();
+        assert_eq!(xs.is_empty(), false);
     }
 }

@@ -117,7 +117,7 @@ mod test_chapter_13_cylinder {
     fn a_ray_misses_a_cylinder() {
         let cyl = test_cylinder();
 
-        let examples = vec![
+        let examples = [
             (point(1.0, 0.0, 0.0), vector(0.0, 1.0, 0.0)),
             (point(0.0, 0.0, 0.0), vector(0.0, 1.0, 0.0)),
             (point(0.0, 0.0, -5.0), vector(1.0, 1.0, 1.0)),
@@ -135,7 +135,7 @@ mod test_chapter_13_cylinder {
     fn a_ray_strikes_a_cylinder() {
         let cyl = test_cylinder();
 
-        let examples = vec![
+        let examples = [
             (point(1.0, 0.0, -5.0), vector(0.0, 0.0, 1.0), 5.0, 5.0),
             (point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0), 4.0, 6.0),
             (
@@ -161,7 +161,7 @@ mod test_chapter_13_cylinder {
     fn normal_vector_on_a_cylinder() {
         let cyl = Cylinder::infinite();
 
-        let examples = vec![
+        let examples = [
             (point(1.0, 0.0, 0.0), vector(1.0, 0.0, 0.0)),
             (point(0.0, 5.0, -1.0), vector(0.0, 0.0, -1.0)),
             (point(0.0, -2.0, 1.0), vector(0.0, 0.0, 1.0)),
@@ -185,7 +185,7 @@ mod test_chapter_13_cylinder {
     fn intersecting_a_constrained_cylinder() {
         let cyl = cylinder(1.0, 2.0, false);
 
-        let examples = vec![
+        let examples = [
             (point(0.0, 1.5, 0.0), vector(0.1, 1.0, 0.0), 0),
             (point(0.0, 3.0, -5.0), vector(0.0, 0.0, 1.0), 0),
             (point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0), 0),
@@ -212,7 +212,7 @@ mod test_chapter_13_cylinder {
     fn intersecting_the_caps_of_a_closed_cylinder() {
         let cyl = cylinder(1.0, 2.0, true);
 
-        let examples = vec![
+        let examples = [
             (point(0.0, 3.0, 0.0), vector(0.0, -1.0, 0.0), 2),
             (point(0.0, 3.0, -2.0), vector(0.0, -1.0, 2.0), 2),
             (point(0.0, 4.0, -2.0), vector(0.0, -1.0, 1.0), 2), // corner case
@@ -232,7 +232,7 @@ mod test_chapter_13_cylinder {
     fn the_normal_vector_on_a_cylinders_end_caps() {
         let cyl = Cylinder::new(1.0, 2.0, true);
 
-        let examples = vec![
+        let examples = [
             (point(0.0, 1.0, 0.0), vector(0.0, -1.0, 0.0)),
             (point(0.5, 1.0, 0.0), vector(0.0, -1.0, 0.0)),
             (point(0.0, 1.0, 0.5), vector(0.0, -1.0, 0.0)),
@@ -253,11 +253,18 @@ mod test_chapter_14_cylinder_bounds {
     use super::*;
 
     #[test]
+    fn an_unbounded_cylinder_has_a_bounding_box() {
+        let cyl = infinite_cylinder(IDENTITY_MATRIX, Material::default());
+        let b = cyl.bounding_box;
+        assert_eq!(b.minimum, point(-1.0, f64::NEG_INFINITY, -1.0));
+        assert_eq!(b.maximum, point(1.0, f64::INFINITY, 1.0));
+    }
+
+    #[test]
     fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
-        let cyl = cylinder(1.0, 2.0, true);
-        assert_eq!(
-            cyl.bounding_box,
-            bounding_box(&point(-1.0, 1.0, -1.0), &point(1.0, 2.0, 1.0))
-        );
+        let cyl = cylinder(-5.0, 3.0, true);
+        let b = cyl.bounding_box;
+        assert_eq!(b.minimum, point(-1.0, -5.0, -1.0));
+        assert_eq!(b.maximum, point(1.0, 3.0, 1.0));
     }
 }

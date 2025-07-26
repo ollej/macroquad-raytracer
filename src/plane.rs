@@ -91,18 +91,15 @@ mod test_chapter_9_planes {
 
 #[cfg(test)]
 mod test_chapter_14_planes_bounds {
+    use core::f64;
+
     use super::*;
 
     #[test]
     fn planes_have_a_bounding_box_to_infinity() {
         let p = plane();
-        let min = p.bounding_box.minimum;
-        assert_eq!(min.x, f64::NEG_INFINITY);
-        assert_eq!(min.y, 0.0);
-        assert_eq!(min.z, f64::NEG_INFINITY);
-        let max = p.bounding_box.maximum;
-        assert_eq!(max.x, f64::INFINITY);
-        assert_eq!(max.y, 0.0);
-        assert_eq!(max.z, f64::INFINITY);
+        let b = p.bounding_box;
+        assert_eq!(b.minimum, point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY));
+        assert_eq!(b.maximum, point(f64::INFINITY, 0.0, f64::INFINITY));
     }
 }

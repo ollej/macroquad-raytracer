@@ -169,6 +169,10 @@ impl Object {
         self.material
             .lighting(self, light, point, eyev, normalv, in_shadow)
     }
+
+    pub fn bounding_box_in_parent_space(&self) -> BoundingBox {
+        self.bounding_box.transform(self.transform)
+    }
 }
 
 impl Default for Object {
@@ -178,20 +182,11 @@ impl Default for Object {
 }
 
 #[cfg(test)]
-mod test_common {
-    use super::*;
-
-    pub fn test_shape() -> Object {
-        Object::empty()
-    }
-}
-
-#[cfg(test)]
 mod test_chapter_9_shapes {
     #![allow(non_snake_case)]
 
-    use super::test_common::*;
     use super::*;
+    use crate::test_common::*;
     use std::f64::consts::PI;
 
     #[test]
@@ -268,8 +263,8 @@ mod test_chapter_9_shapes {
 
 #[cfg(test)]
 mod test_chapter_14_object_bounds {
-    use super::test_common::*;
     use super::*;
+    use crate::test_common::*;
 
     #[test]
     fn objects_have_a_bounding_box_field_set_to_the_default_bounding_box() {
@@ -287,5 +282,14 @@ mod test_chapter_14_object_bounds {
         assert!(s1 == s2);
         assert!(s1.bounding_box == s2.bounding_box);
         assert_eq!(s1.bounding_box, s2.bounding_box);
+    }
+
+    #[test]
+    fn querying_a_shapes_bounding_box_in_its_parents_space() {
+        let mut shape = sphere();
+        shape.set_transform(translation(1.0, -3.0, 5.0) * scaling(0.5, 2.0, 4.0));
+        let b = shape.bounding_box_in_parent_space();
+        assert_eq!(b.minimum, point(0.5, -5.0, 1.0));
+        assert_eq!(b.maximum, point(1.5, -1.0, 9.0));
     }
 }

@@ -496,7 +496,7 @@ mod test_chapter_11_reflection {
             Intersection::new(6.0, &A),
         ]);
 
-        let examples = vec![
+        let examples = [
             (1.0, 1.5),
             (1.5, 2.0),
             (2.0, 2.5),
