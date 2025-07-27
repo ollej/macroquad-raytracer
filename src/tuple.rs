@@ -101,6 +101,10 @@ impl Point {
 }
 
 impl Vector {
+    pub fn empty_vector() -> Vector {
+        Self::vector(0.0, 0.0, 0.0)
+    }
+
     pub fn vector(x: Float, y: Float, z: Float) -> Vector {
         Tuple { x, y, z, w: 0.0 }
     }
