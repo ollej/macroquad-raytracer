@@ -1,6 +1,6 @@
 use crate::{
     bounds::*, color::*, cone::*, cube::*, cylinder::*, float::*, group::*, intersection::*,
-    light::*, material::*, matrix::*, plane::*, ray::*, shape::*, sphere::*, tuple::*,
+    light::*, material::*, matrix::*, plane::*, ray::*, shape::*, sphere::*, triangle::*, tuple::*,
 };
 
 use std::sync::Arc;
@@ -76,6 +76,22 @@ impl Object {
         material: Material,
     ) -> Self {
         let shape = Shape::Cone(Cone::new(minimum, maximum, closed));
+        Self {
+            transform,
+            material,
+            shape,
+            parent: None,
+        }
+    }
+
+    pub fn new_triangle(
+        p1: Point,
+        p2: Point,
+        p3: Point,
+        transform: Matrix,
+        material: Material,
+    ) -> Self {
+        let shape = Shape::Triangle(Triangle::new(p1, p2, p3));
         Self {
             transform,
             material,

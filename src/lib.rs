@@ -22,5 +22,6 @@ pub mod ray;
 pub mod shape;
 pub mod sphere;
 pub mod test_common;
+pub mod triangle;
 pub mod tuple;
 pub mod world;

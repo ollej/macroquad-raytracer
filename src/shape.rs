@@ -1,6 +1,6 @@
 use crate::{
     bounds::*, cone::*, cube::*, cylinder::*, group::*, intersection::*, object::*, plane::*,
-    ray::*, sphere::*, tuple::*,
+    ray::*, sphere::*, triangle::*, tuple::*,
 };
 
 #[derive(PartialEq, Clone, Debug)]
@@ -11,6 +11,7 @@ pub enum Shape {
     Cylinder(Cylinder),
     Cone(Cone),
     Group(Group),
+    Triangle(Triangle),
 }
 
 impl Shape {
@@ -22,6 +23,7 @@ impl Shape {
             Shape::Cylinder(cylinder) => cylinder.local_normal_at(p),
             Shape::Cone(cone) => cone.local_normal_at(p),
             Shape::Group(group) => group.local_normal_at(p),
+            Shape::Triangle(triangle) => triangle.local_normal_at(p),
         }
     }
 
@@ -33,6 +35,7 @@ impl Shape {
             Shape::Cylinder(cylinder) => Ok(cylinder.local_intersect(ray, object)),
             Shape::Cone(cone) => Ok(cone.local_intersect(ray, object)),
             Shape::Group(group) => group.local_intersect(ray, object),
+            Shape::Triangle(triangle) => Ok(triangle.local_intersect(ray, object)),
         }
     }
 
@@ -58,6 +61,7 @@ impl Shape {
             Shape::Cylinder(cylinder) => cylinder.bounding_box(),
             Shape::Cone(cone) => cone.bounding_box(),
             Shape::Group(group) => group.bounding_box(),
+            Shape::Triangle(triangle) => triangle.bounding_box(),
         }
     }
 }
