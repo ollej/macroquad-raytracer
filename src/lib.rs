@@ -13,6 +13,7 @@ pub mod light;
 pub mod macroquad;
 pub mod material;
 pub mod matrix;
+pub mod obj_parser;
 pub mod object;
 pub mod pattern;
 pub mod plane;
