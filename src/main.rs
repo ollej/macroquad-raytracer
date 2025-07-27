@@ -616,6 +616,55 @@ fn generate_scene_grouped_spheres(canvas_size: usize) -> Result<Canvas, String> 
     camera.render(&world)
 }
 
+fn generate_scene_triangle(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.push(build_floor_plane());
+
+    let mut g = empty_group();
+    g.set_transform(translation(0.0, 1.0, 0.0) * rotation_z(PI / 6.0) * rotation_x(PI / 6.0));
+    g.add_child(&mut build_triangle(
+        point(0.0, 1.0, 0.0),
+        point(-1.0, 0.0, 0.0),
+        point(1.0, 0.0, 0.0),
+    ));
+    g.add_child(&mut build_triangle(
+        point(0.0, 1.0, 0.0),
+        point(-1.0, 0.0, 0.0),
+        point(0.0, 0.0, 1.0),
+    ));
+    g.add_child(&mut build_triangle(
+        point(0.0, 1.0, 0.0),
+        point(1.0, 0.0, 0.0),
+        point(0.0, 0.0, 1.0),
+    ));
+    g.add_child(&mut build_triangle(
+        point(-1.0, 0.0, 0.0),
+        point(0.0, 0.0, 1.0),
+        point(1.0, 0.0, 0.0),
+    ));
+    world.objects.push(g);
+
+    camera.render(&world)
+}
+
+fn build_triangle(p1: Point, p2: Point, p3: Point) -> Object {
+    Object::new_triangle(
+        p1,
+        p2,
+        p3,
+        IDENTITY_MATRIX,
+        Material {
+            color: color(0.8, 0.3, 0.3),
+            diffuse: 0.6,
+            reflective: 0.1,
+            specular: 0.3,
+            shininess: 5.0,
+            ..Default::default()
+        },
+    )
+}
+
 fn hexagon_corner() -> Object {
     let mut corner = sphere();
     corner.set_material(&colored_material(1.0, 0.0, 0.0));
@@ -747,14 +796,15 @@ async fn main() -> Result<(), String> {
         Image::Sphere => generate_sphere(options.size)?,
         Image::SphereRayon => generate_sphere_rayon(options.size)?,
         Image::Scene => generate_scene(options.size)?,
-        Image::ScenePlane => generate_scene_plane(options.size)?,
-        Image::ScenePattern => generate_scene_pattern(options.size)?,
-        Image::SceneReflection => generate_scene_reflection(options.size)?,
-        Image::SceneCube => generate_scene_cube(options.size)?,
-        Image::SceneCylinder => generate_scene_cylinder(options.size)?,
-        Image::SceneCone => generate_scene_cone(options.size)?,
-        Image::SceneHexagon => generate_scene_hexagon(options.size)?,
-        Image::SceneGroupedSpheres => generate_scene_grouped_spheres(options.size)?,
+        Image::Plane => generate_scene_plane(options.size)?,
+        Image::Pattern => generate_scene_pattern(options.size)?,
+        Image::Reflection => generate_scene_reflection(options.size)?,
+        Image::Cube => generate_scene_cube(options.size)?,
+        Image::Cylinder => generate_scene_cylinder(options.size)?,
+        Image::Cone => generate_scene_cone(options.size)?,
+        Image::Hexagon => generate_scene_hexagon(options.size)?,
+        Image::GroupedSpheres => generate_scene_grouped_spheres(options.size)?,
+        Image::Triangle => generate_scene_triangle(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();

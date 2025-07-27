@@ -28,14 +28,15 @@ pub enum Image {
     Sphere,
     SphereRayon,
     Scene,
-    ScenePlane,
-    ScenePattern,
-    SceneReflection,
-    SceneCube,
-    SceneCylinder,
-    SceneCone,
-    SceneHexagon,
-    SceneGroupedSpheres,
+    Plane,
+    Pattern,
+    Reflection,
+    Cube,
+    Cylinder,
+    Cone,
+    Hexagon,
+    GroupedSpheres,
+    Triangle,
 }
 
 impl clap::ValueEnum for Image {
@@ -46,14 +47,15 @@ impl clap::ValueEnum for Image {
             Self::Sphere,
             Self::SphereRayon,
             Self::Scene,
-            Self::ScenePlane,
-            Self::ScenePattern,
-            Self::SceneReflection,
-            Self::SceneCube,
-            Self::SceneCylinder,
-            Self::SceneCone,
-            Self::SceneHexagon,
-            Self::SceneGroupedSpheres,
+            Self::Plane,
+            Self::Pattern,
+            Self::Reflection,
+            Self::Cube,
+            Self::Cylinder,
+            Self::Cone,
+            Self::Hexagon,
+            Self::GroupedSpheres,
+            Self::Triangle,
         ]
     }
 
@@ -64,16 +66,15 @@ impl clap::ValueEnum for Image {
             Self::Sphere => Some(clap::builder::PossibleValue::new("sphere")),
             Self::SphereRayon => Some(clap::builder::PossibleValue::new("sphere-rayon")),
             Self::Scene => Some(clap::builder::PossibleValue::new("scene")),
-            Self::ScenePlane => Some(clap::builder::PossibleValue::new("scene-plane")),
-            Self::ScenePattern => Some(clap::builder::PossibleValue::new("scene-pattern")),
-            Self::SceneReflection => Some(clap::builder::PossibleValue::new("scene-reflection")),
-            Self::SceneCube => Some(clap::builder::PossibleValue::new("scene-cube")),
-            Self::SceneCylinder => Some(clap::builder::PossibleValue::new("scene-cylinder")),
-            Self::SceneCone => Some(clap::builder::PossibleValue::new("scene-cone")),
-            Self::SceneHexagon => Some(clap::builder::PossibleValue::new("scene-hexagon")),
-            Self::SceneGroupedSpheres => {
-                Some(clap::builder::PossibleValue::new("scene-grouped-spheres"))
-            }
+            Self::Plane => Some(clap::builder::PossibleValue::new("plane")),
+            Self::Pattern => Some(clap::builder::PossibleValue::new("pattern")),
+            Self::Reflection => Some(clap::builder::PossibleValue::new("reflection")),
+            Self::Cube => Some(clap::builder::PossibleValue::new("cube")),
+            Self::Cylinder => Some(clap::builder::PossibleValue::new("cylinder")),
+            Self::Cone => Some(clap::builder::PossibleValue::new("cone")),
+            Self::Hexagon => Some(clap::builder::PossibleValue::new("hexagon")),
+            Self::GroupedSpheres => Some(clap::builder::PossibleValue::new("grouped-spheres")),
+            Self::Triangle => Some(clap::builder::PossibleValue::new("triangle")),
         }
     }
 }
@@ -86,7 +87,7 @@ pub struct AppOptions {
     pub directory: PathBuf,
 
     /// Generate this image
-    #[arg(short, long, default_value = "scene-grouped-spheres")]
+    #[arg(short, long, default_value = "triangle")]
     pub image: Image,
 
     /// Save output as an image of this type
