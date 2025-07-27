@@ -34,6 +34,15 @@ impl<'a> ObjParser<'a> {
         self.groups.get(Self::DEFAULT_GROUP)
     }
 
+    pub fn obj_to_group(&self) -> Object {
+        let mut object = Object::new_group(IDENTITY_MATRIX, Material::default());
+        for (_name, group) in self.groups.iter() {
+            object.add_child(&mut group.clone());
+        }
+
+        object
+    }
+
     fn parse_line(&mut self, line: &'a str) {
         let values = line.split(" ").collect::<Vec<&'a str>>();
         match values.split_first() {
@@ -254,5 +263,17 @@ f 1 2 3 4 5"##;
             parser.vertices[3],
             parser.vertices[4],
         );
+    }
+
+    #[test]
+    fn converting_an_OBJ_file_to_a_group() {
+        let file = fs::read_to_string("triangles.obj").unwrap();
+        let parser = parse_obj_file(file.as_str());
+        let g = parser.obj_to_group();
+        let children = &group_children(&g);
+        let g1 = parser.groups.get("FirstGroup").unwrap();
+        let g2 = parser.groups.get("SecondGroup").unwrap();
+        assert!(children.contains(g1));
+        assert!(children.contains(g2));
     }
 }

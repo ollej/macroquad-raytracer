@@ -5,7 +5,7 @@ use crate::{
 
 use std::sync::Arc;
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Object {
     pub transform: Matrix,
     pub material: Material,
@@ -192,6 +192,15 @@ impl Object {
 impl Default for Object {
     fn default() -> Self {
         Object::empty()
+    }
+}
+
+impl PartialEq for Object {
+    // Ignore parent when comparing
+    fn eq(&self, other: &Self) -> bool {
+        self.transform == other.transform
+            && self.material == other.material
+            && self.shape == other.shape
     }
 }
 
