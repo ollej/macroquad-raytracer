@@ -1,19 +1,28 @@
-use crate::{float::*, material::*, matrix::IDENTITY_MATRIX, object::*, shape::*, tuple::*};
+use crate::{float::*, material::*, matrix::IDENTITY_MATRIX, object::*, tuple::*};
 
-pub struct ObjParser {
-    content: &'static str,
+use std::collections::HashMap;
+
+pub struct ObjParser<'a> {
+    content: &'a str,
     pub ignored: usize,
     pub vertices: Vec<Point>,
-    pub default_group: Object,
+    pub groups: HashMap<&'a str, Object>,
+    latest_group: &'a str,
 }
 
-impl ObjParser {
-    pub fn new(content: &'static str) -> Self {
+impl<'a> ObjParser<'a> {
+    const DEFAULT_GROUP: &'a str = "__DefaultGroup__";
+
+    pub fn new(content: &'a str) -> Self {
         Self {
             content,
             ignored: 0,
             vertices: vec![Point::empty_point()],
-            default_group: Object::new_group(IDENTITY_MATRIX, Material::default()),
+            groups: HashMap::from([(
+                Self::DEFAULT_GROUP,
+                Object::new_group(IDENTITY_MATRIX, Material::default()),
+            )]),
+            latest_group: Self::DEFAULT_GROUP,
         }
     }
 
@@ -21,16 +30,21 @@ impl ObjParser {
         self.content.lines().for_each(|line| self.parse_line(line));
     }
 
-    fn parse_line(&mut self, line: &'static str) {
-        let values = line.split(" ").collect::<Vec<&'static str>>();
+    pub fn default_group(&self) -> Option<&Object> {
+        self.groups.get(Self::DEFAULT_GROUP)
+    }
+
+    fn parse_line(&mut self, line: &'a str) {
+        let values = line.split(" ").collect::<Vec<&'a str>>();
         match values.split_first() {
             Some((&"v", arguments)) => self.parse_vertice(arguments),
             Some((&"f", arguments)) => self.parse_face(arguments),
+            Some((&"g", arguments)) => self.create_group(arguments),
             _ => self.ignored += 1,
         }
     }
 
-    fn parse_vertice(&mut self, arguments: &[&'static str]) {
+    fn parse_vertice(&mut self, arguments: &[&'a str]) {
         let numbers: Option<Vec<Float>> =
             arguments.iter().map(|f| f.parse::<Float>().ok()).collect();
         if let Some(p) = numbers {
@@ -42,7 +56,7 @@ impl ObjParser {
         self.ignored += 1;
     }
 
-    fn parse_face(&mut self, arguments: &[&'static str]) {
+    fn parse_face(&mut self, arguments: &[&'a str]) {
         let points: Vec<&Point> = arguments
             .iter()
             .flat_map(|f| f.parse::<usize>().ok())
@@ -51,10 +65,30 @@ impl ObjParser {
         if points.len() >= 3 {
             let mut triangles = self.fan_triangulation(points);
             for triangle in triangles.iter_mut() {
-                self.default_group.add_child(triangle);
+                self.add_face(triangle);
             }
         } else {
             self.ignored += 1;
+        }
+    }
+
+    fn create_group(&mut self, arguments: &[&'a str]) {
+        if let Some(group_name) = arguments.first() {
+            if !self.groups.contains_key(group_name) {
+                self.groups.insert(
+                    group_name,
+                    Object::new_group(IDENTITY_MATRIX, Material::default()),
+                );
+            }
+            self.latest_group = group_name;
+        } else {
+            self.ignored += 1;
+        }
+    }
+
+    fn add_face(&mut self, face: &mut Object) {
+        if let Some(group) = self.groups.get_mut(self.latest_group) {
+            group.add_child(face);
         }
     }
 
@@ -78,7 +112,7 @@ impl ObjParser {
     }
 }
 
-pub fn parse_obj_file(content: &'static str) -> ObjParser {
+pub fn parse_obj_file<'a>(content: &'a str) -> ObjParser<'a> {
     let mut parser = ObjParser::new(content);
     parser.parse();
     parser
@@ -89,6 +123,28 @@ mod test_chapter_15_obj_parser {
     #![allow(non_snake_case)]
 
     use super::*;
+
+    use crate::shape::*;
+
+    use std::fs;
+
+    fn assert_triangle(t: &Object, vertice1: Point, vertice2: Point, vertice3: Point) {
+        match &t.shape {
+            Shape::Triangle(triangle) => {
+                assert_eq!(triangle.p1, vertice1);
+                assert_eq!(triangle.p2, vertice2);
+                assert_eq!(triangle.p3, vertice3);
+            }
+            _ => panic!("Object is not a Triangle!"),
+        }
+    }
+
+    fn group_children(g: &Object) -> Vec<Object> {
+        match &g.shape {
+            Shape::Group(group) => group.children.clone(),
+            _ => panic!("Object is not a group!"),
+        }
+    }
 
     #[test]
     fn ignoring_unrecognized_lines() {
@@ -124,30 +180,23 @@ v 1 1 0
 f 1 2 3
 f 1 3 4"##;
         let parser = parse_obj_file(file);
-        let g = parser.default_group;
-        let children = match g.shape {
-            Shape::Group(group) => group.children,
-            _ => panic!("Object is not a group!"),
-        };
-        let t1 = children.get(0).unwrap();
-        let t2 = children.get(1).unwrap();
+        let g = parser.default_group().unwrap();
+        let children = group_children(g);
+        let t1 = &children[0];
+        let t2 = &children[1];
         assert_eq!(parser.ignored, 0);
-        match &t1.shape {
-            Shape::Triangle(triangle) => {
-                assert_eq!(triangle.p1, parser.vertices[1]);
-                assert_eq!(triangle.p2, parser.vertices[2]);
-                assert_eq!(triangle.p3, parser.vertices[3]);
-            }
-            _ => panic!("Object is not a Triangle!"),
-        }
-        match &t2.shape {
-            Shape::Triangle(triangle) => {
-                assert_eq!(triangle.p1, parser.vertices[1]);
-                assert_eq!(triangle.p2, parser.vertices[3]);
-                assert_eq!(triangle.p3, parser.vertices[4]);
-            }
-            _ => panic!("Object is not a Triangle!"),
-        }
+        assert_triangle(
+            t1,
+            parser.vertices[1],
+            parser.vertices[2],
+            parser.vertices[3],
+        );
+        assert_triangle(
+            t2,
+            parser.vertices[1],
+            parser.vertices[3],
+            parser.vertices[4],
+        );
     }
 
     #[test]
@@ -159,38 +208,51 @@ v 1 1 0
 v 0 2 0
 f 1 2 3 4 5"##;
         let parser = parse_obj_file(file);
-        let g = parser.default_group;
-        let children = match g.shape {
-            Shape::Group(group) => group.children,
-            _ => panic!("Object is not a group!"),
-        };
-        let t1 = children.get(0).unwrap();
-        let t2 = children.get(1).unwrap();
-        let t3 = children.get(2).unwrap();
+        let g = parser.default_group().unwrap();
+        let children = group_children(g);
+        let t1 = &children[0];
+        let t2 = &children[1];
+        let t3 = &children[2];
         assert_eq!(parser.ignored, 0);
-        match &t1.shape {
-            Shape::Triangle(triangle) => {
-                assert_eq!(triangle.p1, parser.vertices[1]);
-                assert_eq!(triangle.p2, parser.vertices[2]);
-                assert_eq!(triangle.p3, parser.vertices[3]);
-            }
-            _ => panic!("Object is not a Triangle!"),
-        }
-        match &t2.shape {
-            Shape::Triangle(triangle) => {
-                assert_eq!(triangle.p1, parser.vertices[1]);
-                assert_eq!(triangle.p2, parser.vertices[3]);
-                assert_eq!(triangle.p3, parser.vertices[4]);
-            }
-            _ => panic!("Object is not a Triangle!"),
-        }
-        match &t3.shape {
-            Shape::Triangle(triangle) => {
-                assert_eq!(triangle.p1, parser.vertices[1]);
-                assert_eq!(triangle.p2, parser.vertices[4]);
-                assert_eq!(triangle.p3, parser.vertices[5]);
-            }
-            _ => panic!("Object is not a Triangle!"),
-        }
+        assert_triangle(
+            t1,
+            parser.vertices[1],
+            parser.vertices[2],
+            parser.vertices[3],
+        );
+        assert_triangle(
+            t2,
+            parser.vertices[1],
+            parser.vertices[3],
+            parser.vertices[4],
+        );
+        assert_triangle(
+            t3,
+            parser.vertices[1],
+            parser.vertices[4],
+            parser.vertices[5],
+        );
+    }
+
+    #[test]
+    fn triangles_in_groups() {
+        let file = fs::read_to_string("triangles.obj").unwrap();
+        let parser = parse_obj_file(file.as_str());
+        let g1 = parser.groups.get("FirstGroup").unwrap();
+        let g2 = parser.groups.get("SecondGroup").unwrap();
+        let t1 = &group_children(g1)[0];
+        let t2 = &group_children(g2)[0];
+        assert_triangle(
+            t1,
+            parser.vertices[1],
+            parser.vertices[2],
+            parser.vertices[3],
+        );
+        assert_triangle(
+            t2,
+            parser.vertices[1],
+            parser.vertices[3],
+            parser.vertices[4],
+        );
     }
 }
