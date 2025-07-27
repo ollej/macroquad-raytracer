@@ -48,18 +48,33 @@ impl ObjParser {
             .flat_map(|f| f.parse::<usize>().ok())
             .flat_map(|index| self.vertices.get(index))
             .collect();
-        if points.len() == 3 {
-            let face = &mut Object::new_triangle(
-                *points[0],
-                *points[1],
-                *points[2],
-                IDENTITY_MATRIX,
-                Material::default(),
-            );
-            self.default_group.add_child(face);
+        if points.len() >= 3 {
+            let mut triangles = self.fan_triangulation(points);
+            for triangle in triangles.iter_mut() {
+                self.default_group.add_child(triangle);
+            }
         } else {
             self.ignored += 1;
         }
+    }
+
+    fn fan_triangulation(&self, vertices: Vec<&Point>) -> Vec<Object> {
+        let mut triangles = vec![];
+        for index in 1..vertices.len() - 1 {
+            let tri = self.triangle(vertices[0], vertices[index], vertices[index + 1]);
+            triangles.push(tri);
+        }
+        triangles
+    }
+
+    fn triangle(&self, p1: &Point, p2: &Point, p3: &Point) -> Object {
+        Object::new_triangle(
+            p1.clone(),
+            p2.clone(),
+            p3.clone(),
+            IDENTITY_MATRIX,
+            Material::default(),
+        )
     }
 }
 
@@ -130,6 +145,50 @@ f 1 3 4"##;
                 assert_eq!(triangle.p1, parser.vertices[1]);
                 assert_eq!(triangle.p2, parser.vertices[3]);
                 assert_eq!(triangle.p3, parser.vertices[4]);
+            }
+            _ => panic!("Object is not a Triangle!"),
+        }
+    }
+
+    #[test]
+    fn triangulating_polygons() {
+        let file = r##"v -1 1 0
+v -1 0 0
+v 1 0 0
+v 1 1 0
+v 0 2 0
+f 1 2 3 4 5"##;
+        let parser = parse_obj_file(file);
+        let g = parser.default_group;
+        let children = match g.shape {
+            Shape::Group(group) => group.children,
+            _ => panic!("Object is not a group!"),
+        };
+        let t1 = children.get(0).unwrap();
+        let t2 = children.get(1).unwrap();
+        let t3 = children.get(2).unwrap();
+        assert_eq!(parser.ignored, 0);
+        match &t1.shape {
+            Shape::Triangle(triangle) => {
+                assert_eq!(triangle.p1, parser.vertices[1]);
+                assert_eq!(triangle.p2, parser.vertices[2]);
+                assert_eq!(triangle.p3, parser.vertices[3]);
+            }
+            _ => panic!("Object is not a Triangle!"),
+        }
+        match &t2.shape {
+            Shape::Triangle(triangle) => {
+                assert_eq!(triangle.p1, parser.vertices[1]);
+                assert_eq!(triangle.p2, parser.vertices[3]);
+                assert_eq!(triangle.p3, parser.vertices[4]);
+            }
+            _ => panic!("Object is not a Triangle!"),
+        }
+        match &t3.shape {
+            Shape::Triangle(triangle) => {
+                assert_eq!(triangle.p1, parser.vertices[1]);
+                assert_eq!(triangle.p2, parser.vertices[4]);
+                assert_eq!(triangle.p3, parser.vertices[5]);
             }
             _ => panic!("Object is not a Triangle!"),
         }
