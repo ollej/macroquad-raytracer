@@ -37,6 +37,7 @@ pub enum Image {
     Hexagon,
     GroupedSpheres,
     Triangle,
+    Object,
 }
 
 impl clap::ValueEnum for Image {
@@ -56,6 +57,7 @@ impl clap::ValueEnum for Image {
             Self::Hexagon,
             Self::GroupedSpheres,
             Self::Triangle,
+            Self::Object,
         ]
     }
 
@@ -75,6 +77,7 @@ impl clap::ValueEnum for Image {
             Self::Hexagon => Some(clap::builder::PossibleValue::new("hexagon")),
             Self::GroupedSpheres => Some(clap::builder::PossibleValue::new("grouped-spheres")),
             Self::Triangle => Some(clap::builder::PossibleValue::new("triangle")),
+            Self::Object => Some(clap::builder::PossibleValue::new("object")),
         }
     }
 }
@@ -87,7 +90,7 @@ pub struct AppOptions {
     pub directory: PathBuf,
 
     /// Generate this image
-    #[arg(short, long, default_value = "triangle")]
+    #[arg(short, long, default_value = "object")]
     pub image: Image,
 
     /// Save output as an image of this type

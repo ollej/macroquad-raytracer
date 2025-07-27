@@ -2,8 +2,7 @@ use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
 use rayon::prelude::*;
-use std::f64::consts::PI;
-use std::time::Instant;
+use std::{f64::consts::PI, fs, time::Instant};
 
 fn generate_clock(canvas_size: usize) -> Result<Canvas, String> {
     let half_width = canvas_size as Float / 2.0;
@@ -648,6 +647,42 @@ fn generate_scene_triangle(canvas_size: usize) -> Result<Canvas, String> {
     camera.render(&world)
 }
 
+fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size);
+
+    world.objects.push(build_floor_plane());
+
+    let content =
+        fs::read_to_string("teapot-low.obj").map_err(|_e| format!("Couldn't read file"))?;
+    let mut parser = ObjParser::new(content.as_ref());
+    parser.parse();
+    let mut object = parser.obj_to_group();
+    object.set_material(&Material {
+        color: color(1.0, 0.84, 0.0),
+        diffuse: 0.6,
+        reflective: 0.1,
+        specular: 0.3,
+        shininess: 5.0,
+        ..Default::default()
+    });
+    object.set_transform(
+        translation(0.0, 0.5, 0.0)
+            * rotation_z(-PI / 8.0)
+            * rotation_y(PI / 6.0)
+            * rotation_x(-PI / 2.0)
+            * scaling(0.1, 0.1, 0.1),
+    );
+    println!(
+        "File read. Vertices: {} Ignored lines: {}",
+        parser.ignored,
+        parser.vertices.len()
+    );
+
+    world.objects.push(object);
+
+    camera.render(&world)
+}
+
 fn build_triangle(p1: Point, p2: Point, p3: Point) -> Object {
     Object::new_triangle(
         p1,
@@ -805,6 +840,7 @@ async fn main() -> Result<(), String> {
         Image::Hexagon => generate_scene_hexagon(options.size)?,
         Image::GroupedSpheres => generate_scene_grouped_spheres(options.size)?,
         Image::Triangle => generate_scene_triangle(options.size)?,
+        Image::Object => generate_scene_object(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();

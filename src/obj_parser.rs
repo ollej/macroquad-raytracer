@@ -1,6 +1,6 @@
 use crate::{float::*, material::*, matrix::IDENTITY_MATRIX, object::*, tuple::*};
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 pub struct ObjParser<'a> {
     content: &'a str,
@@ -44,16 +44,20 @@ impl<'a> ObjParser<'a> {
     }
 
     fn parse_line(&mut self, line: &'a str) {
-        let values = line.split(" ").collect::<Vec<&'a str>>();
+        let values = line.split_whitespace().collect::<Vec<&'a str>>();
         match values.split_first() {
             Some((&"v", arguments)) => self.parse_vertice(arguments),
             Some((&"f", arguments)) => self.parse_face(arguments),
             Some((&"g", arguments)) => self.create_group(arguments),
-            _ => self.ignored += 1,
+            _ => {
+                //println!("Ignored line: {:?}", values);
+                self.ignored += 1;
+            }
         }
     }
 
     fn parse_vertice(&mut self, arguments: &[&'a str]) {
+        //println!("vertice: {:?}", arguments);
         let numbers: Option<Vec<Float>> =
             arguments.iter().map(|f| f.parse::<Float>().ok()).collect();
         if let Some(p) = numbers {
@@ -66,8 +70,10 @@ impl<'a> ObjParser<'a> {
     }
 
     fn parse_face(&mut self, arguments: &[&'a str]) {
+        //println!("face: {:?}", arguments);
         let points: Vec<&Point> = arguments
             .iter()
+            .flat_map(|f| f.split("/").next())
             .flat_map(|f| f.parse::<usize>().ok())
             .flat_map(|index| self.vertices.get(index))
             .collect();
