@@ -26,7 +26,7 @@ impl Sphere {
         Intersections::from_object(xs, object)
     }
 
-    pub fn local_normal_at(&self, p: &Point) -> Vector {
+    pub fn local_normal_at(&self, p: &Point, _hit: Option<Intersection>) -> Vector {
         p - &point(0., 0., 0.)
     }
 }
@@ -53,7 +53,7 @@ pub fn intersect(object: &Object, ray: &Ray) -> Result<Intersections, String> {
 }
 
 pub fn normal_at(object: &Object, p: &Point) -> Result<Vector, String> {
-    object.normal_at(p)
+    object.normal_at(p, None)
 }
 
 #[cfg(test)]
@@ -162,32 +162,35 @@ mod test_chapter_6_normals {
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
         let s = sphere();
-        let n = s.normal_at(&point(1., 0., 0.));
+        let n = s.normal_at(&point(1., 0., 0.), None);
         assert_eq!(n, Ok(vector(1., 0., 0.)));
     }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
         let s = sphere();
-        let n = s.normal_at(&point(0., 1., 0.));
+        let n = s.normal_at(&point(0., 1., 0.), None);
         assert_eq!(n, Ok(vector(0., 1., 0.)));
     }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_z_axis() {
         let s = sphere();
-        let n = s.normal_at(&point(0., 0., 1.));
+        let n = s.normal_at(&point(0., 0., 1.), None);
         assert_eq!(n, Ok(vector(0., 0., 1.)));
     }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_nonaxial_point() {
         let s = sphere();
-        let n = s.normal_at(&point(
-            3.0_f64.sqrt() / 3.0,
-            3.0_f64.sqrt() / 3.0,
-            3.0_f64.sqrt() / 3.0,
-        ));
+        let n = s.normal_at(
+            &point(
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+            ),
+            None,
+        );
         assert_eq!(
             n,
             Ok(vector(
@@ -202,11 +205,14 @@ mod test_chapter_6_normals {
     fn the_normal_is_a_normalized_vector() {
         let s = sphere();
         let n = s
-            .normal_at(&point(
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-            ))
+            .normal_at(
+                &point(
+                    3.0_f64.sqrt() / 3.0,
+                    3.0_f64.sqrt() / 3.0,
+                    3.0_f64.sqrt() / 3.0,
+                ),
+                None,
+            )
             .unwrap();
         assert_eq!(n, n.normalize());
     }
@@ -215,7 +221,7 @@ mod test_chapter_6_normals {
     fn computing_the_normal_on_a_translated_sphere() {
         let mut s = sphere();
         s.set_transform(translation(0., 1., 0.));
-        let n = s.normal_at(&point(0., 1.70711, -0.70711));
+        let n = s.normal_at(&point(0., 1.70711, -0.70711), None);
         assert_eq!(n, Ok(vector(0., 0.70711, -0.70711)));
     }
 
@@ -224,7 +230,7 @@ mod test_chapter_6_normals {
         let mut s = sphere();
         let m = scaling(1., 0.5, 1.) * rotation_z(PI / 5.);
         s.set_transform(m);
-        let n = s.normal_at(&point(0., 2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.));
+        let n = s.normal_at(&point(0., 2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.), None);
         assert_eq!(n, Ok(vector(0., 0.97014, -0.24254)));
     }
 }

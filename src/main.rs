@@ -74,7 +74,7 @@ fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
             let xs = sphere.intersect(&r)?;
             if let Some(hit) = xs.hit() {
                 let point = r.position(hit.t);
-                let normal = hit.object.normal_at(&point)?;
+                let normal = hit.object.normal_at(&point, None)?;
                 let eye = -r.direction;
                 let color = hit.object.material.lighting(
                     &hit.object,
@@ -121,7 +121,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
                 let xs = sphere.intersect(&r)?;
                 if let Some(hit) = xs.hit() {
                     let point = r.position(hit.t);
-                    let normal = hit.object.normal_at(&point)?;
+                    let normal = hit.object.normal_at(&point, None)?;
                     let eye = -r.direction;
                     let color = hit.object.material.lighting(
                         &hit.object,
@@ -656,15 +656,15 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
         fs::read_to_string("teapot-low.obj").map_err(|_e| format!("Couldn't read file"))?;
     let mut parser = ObjParser::new(content.as_ref());
     parser.parse();
-    let mut object = parser.obj_to_group();
-    object.set_material(&Material {
+    let material = Material {
         color: color(1.0, 0.84, 0.0),
         diffuse: 0.6,
         reflective: 0.1,
         specular: 0.3,
         shininess: 5.0,
         ..Default::default()
-    });
+    };
+    let mut object = parser.obj_to_group();
     object.set_transform(
         translation(0.0, 0.5, 0.0)
             * rotation_z(-PI / 8.0)

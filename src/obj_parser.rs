@@ -1,6 +1,6 @@
-use crate::{float::*, material::*, matrix::IDENTITY_MATRIX, object::*, tuple::*};
+use crate::{color::*, float::*, material::*, matrix::IDENTITY_MATRIX, object::*, tuple::*};
 
-use std::{collections::HashMap, fs};
+use std::collections::HashMap;
 
 pub struct ObjParser<'a> {
     content: &'a str,
@@ -37,7 +37,8 @@ impl<'a> ObjParser<'a> {
     pub fn obj_to_group(&self) -> Object {
         let mut object = Object::new_group(IDENTITY_MATRIX, Material::default());
         for (_name, group) in self.groups.iter() {
-            object.add_child(&mut group.clone());
+            let group = &mut group.clone();
+            object.add_child(group);
         }
 
         object
@@ -122,7 +123,14 @@ impl<'a> ObjParser<'a> {
             p2.clone(),
             p3.clone(),
             IDENTITY_MATRIX,
-            Material::default(),
+            Material {
+                color: color(1.0, 0.84, 0.0),
+                diffuse: 0.6,
+                reflective: 0.1,
+                specular: 0.3,
+                shininess: 5.0,
+                ..Default::default()
+            },
         )
     }
 }

@@ -12,18 +12,20 @@ pub enum Shape {
     Cone(Cone),
     Group(Group),
     Triangle(Triangle),
+    SmoothTriangle(SmoothTriangle),
 }
 
 impl Shape {
-    pub fn local_normal_at(&self, p: &Point) -> Point {
+    pub fn local_normal_at(&self, p: &Point, hit: Option<Intersection>) -> Point {
         match self {
-            Shape::Sphere(sphere) => sphere.local_normal_at(p),
-            Shape::Plane(plane) => plane.local_normal_at(p),
-            Shape::Cube(cube) => cube.local_normal_at(p),
-            Shape::Cylinder(cylinder) => cylinder.local_normal_at(p),
-            Shape::Cone(cone) => cone.local_normal_at(p),
-            Shape::Group(group) => group.local_normal_at(p),
-            Shape::Triangle(triangle) => triangle.local_normal_at(p),
+            Shape::Sphere(sphere) => sphere.local_normal_at(p, hit),
+            Shape::Plane(plane) => plane.local_normal_at(p, hit),
+            Shape::Cube(cube) => cube.local_normal_at(p, hit),
+            Shape::Cylinder(cylinder) => cylinder.local_normal_at(p, hit),
+            Shape::Cone(cone) => cone.local_normal_at(p, hit),
+            Shape::Group(group) => group.local_normal_at(p, hit),
+            Shape::Triangle(triangle) => triangle.local_normal_at(p, hit),
+            Shape::SmoothTriangle(smooth_triangle) => smooth_triangle.local_normal_at(p, hit),
         }
     }
 
@@ -36,6 +38,9 @@ impl Shape {
             Shape::Cone(cone) => Ok(cone.local_intersect(ray, object)),
             Shape::Group(group) => group.local_intersect(ray, object),
             Shape::Triangle(triangle) => Ok(triangle.local_intersect(ray, object)),
+            Shape::SmoothTriangle(smooth_triangle) => {
+                Ok(smooth_triangle.local_intersect(ray, object))
+            }
         }
     }
 
@@ -62,6 +67,7 @@ impl Shape {
             Shape::Cone(cone) => cone.bounding_box(),
             Shape::Group(group) => group.bounding_box(),
             Shape::Triangle(triangle) => triangle.bounding_box(),
+            Shape::SmoothTriangle(smooth_triangle) => smooth_triangle.bounding_box(),
         }
     }
 }

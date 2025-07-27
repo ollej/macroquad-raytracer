@@ -28,7 +28,7 @@ impl Group {
         Ok(intersections)
     }
 
-    pub fn local_normal_at(&self, _p: &Point) -> Vector {
+    pub fn local_normal_at(&self, _p: &Point, _hit: Option<Intersection>) -> Vector {
         unreachable!(
             "Normals are always computed by calling the concrete shape’s local_normal_at() method."
         )
@@ -203,7 +203,7 @@ mod test_chapter_14_group {
         let s = &mut sphere();
         s.set_transform(translation(5.0, 0.0, 0.0));
         g2.add_child(s);
-        let n = s.normal_at(&point(1.7321, 1.1547, -5.5774)).unwrap();
+        let n = s.normal_at(&point(1.7321, 1.1547, -5.5774), None).unwrap();
         assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
     }
 }

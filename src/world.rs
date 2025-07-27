@@ -240,7 +240,7 @@ mod test_chapter_7_world {
         let w = default_world();
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.first().unwrap();
-        let i = intersection(4.0, &shape);
+        let i = intersection(4.0, shape.clone());
         let comps = i
             .prepare_computations(&r, &intersections(vec![i.clone()]))
             .unwrap();
@@ -257,7 +257,7 @@ mod test_chapter_7_world {
         w.set_light(&point_light(&point(0.0, 0.25, 0.0), &color(1.0, 1.0, 1.0)));
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.get(1).unwrap();
-        let i = intersection(0.5, &shape);
+        let i = intersection(0.5, shape.clone());
         let comps = i
             .prepare_computations(&r, &intersections(vec![i.clone()]))
             .unwrap();
@@ -340,7 +340,7 @@ mod test_chapter_8_shadows {
         let s2 = Object::new_sphere(translation(0.0, 0.0, 10.0), Material::default());
         w.objects.push(s2.clone());
         let r = ray(&point(0.0, 0.0, 5.0), &vector(0.0, 0.0, 1.0));
-        let i = intersection(4.0, &s2);
+        let i = intersection(4.0, s2);
         let comps = prepare_computations(&i, &r, &intersections(vec![i.clone()])).unwrap();
         let c = w.shade_hit(&comps, 0).unwrap();
         assert_eq!(c, color(0.1, 0.1, 0.1));
@@ -362,7 +362,7 @@ mod test_chapter_11_reflection {
         let mut shape = w.objects[1].clone();
         shape.material.ambient = 1.0;
         w.objects[1] = shape.clone();
-        let i = intersection(1.0, &shape);
+        let i = intersection(1.0, shape);
         let comps = i
             .prepare_computations(&r, &intersections(vec![i.clone()]))
             .unwrap();
@@ -381,7 +381,7 @@ mod test_chapter_11_reflection {
             &point(0.0, 0.0, -3.0),
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
-        let i = intersection(2.0_f64.sqrt(), &shape);
+        let i = intersection(2.0_f64.sqrt(), shape);
         let comps = i
             .prepare_computations(&r, &intersections(vec![i.clone()]))
             .unwrap();
@@ -400,7 +400,7 @@ mod test_chapter_11_reflection {
             &point(0.0, 0.0, -3.0),
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
-        let i = intersection(2.0_f64.sqrt(), &shape);
+        let i = intersection(2.0_f64.sqrt(), shape);
         let comps = i
             .prepare_computations(&r, &intersections(vec![i.clone()]))
             .unwrap();
@@ -436,7 +436,7 @@ mod test_chapter_11_reflection {
             &point(0.0, 0.0, -3.0),
             &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
         );
-        let i = intersection(2.0_f64.sqrt(), &shape);
+        let i = intersection(2.0_f64.sqrt(), shape);
         let comps = i
             .prepare_computations(&r, &intersections(vec![i.clone()]))
             .unwrap();
@@ -450,8 +450,8 @@ mod test_chapter_11_reflection {
         let shape = w.objects.first().unwrap();
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let xs = intersections(vec![
-            Intersection::new(4.0, shape),
-            Intersection::new(6.0, shape),
+            Intersection::new(4.0, shape.clone()),
+            Intersection::new(6.0, shape.clone()),
         ]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
         let c = w.refracted_color(&comps, 5).unwrap();
@@ -467,8 +467,8 @@ mod test_chapter_11_reflection {
         w.objects[0] = shape.clone();
         let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
         let xs = intersections(vec![
-            Intersection::new(4.0, &shape),
-            Intersection::new(6.0, &shape),
+            Intersection::new(4.0, shape.clone()),
+            Intersection::new(6.0, shape),
         ]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
         let c = w.refracted_color(&comps, 0).unwrap();
@@ -487,8 +487,8 @@ mod test_chapter_11_reflection {
             &vector(0.0, 1.0, 0.0),
         );
         let xs = intersections(vec![
-            Intersection::new(-2.0_f64.sqrt() / 2.0, &shape),
-            Intersection::new(2.0_f64.sqrt() / 2.0, &shape),
+            Intersection::new(-2.0_f64.sqrt() / 2.0, shape.clone()),
+            Intersection::new(2.0_f64.sqrt() / 2.0, shape),
         ]);
         // NOTE: this time you're inside the sphere, so you need;
         // to look at the second intersection, xs[1], not xs[0];
@@ -510,10 +510,10 @@ mod test_chapter_11_reflection {
         w.objects[1] = B.clone();
         let r = ray(&point(0.0, 0.0, 0.1), &vector(0.0, 1.0, 0.0));
         let xs = intersections(vec![
-            Intersection::new(-0.9899, &A),
-            Intersection::new(-0.4899, &B),
-            Intersection::new(0.4899, &B),
-            Intersection::new(0.9899, &A),
+            Intersection::new(-0.9899, A.clone()),
+            Intersection::new(-0.4899, B.clone()),
+            Intersection::new(0.4899, B),
+            Intersection::new(0.9899, A),
         ]);
         let comps = prepare_computations(&xs[2], &r, &xs).unwrap();
         let c = w.refracted_color(&comps, 5).unwrap();
@@ -537,7 +537,7 @@ mod test_chapter_11_reflection {
             &point(0.0, 0.0, -3.0),
             &vector(0.0, -f64::sqrt(2.0) / 2.0, f64::sqrt(2.0) / 2.0),
         );
-        let xs = intersections(vec![Intersection::new(f64::sqrt(2.0), &floor)]);
+        let xs = intersections(vec![Intersection::new(f64::sqrt(2.0), floor)]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
         let c = w.shade_hit(&comps, 5).unwrap();
         assert_eq!(c, color(0.93642, 0.68642, 0.68642));
@@ -562,7 +562,7 @@ mod test_chapter_11_reflection {
             &point(0.0, 0.0, -3.0),
             &vector(0.0, -f64::sqrt(2.0) / 2.0, f64::sqrt(2.0) / 2.0),
         );
-        let xs = intersections(vec![Intersection::new(f64::sqrt(2.0), &floor)]);
+        let xs = intersections(vec![Intersection::new(f64::sqrt(2.0), floor)]);
         let comps = prepare_computations(&xs[0], &r, &xs).unwrap();
         let c = w.shade_hit(&comps, 5).unwrap();
         assert_eq!(c, color(0.93391, 0.69643, 0.69243));

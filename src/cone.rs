@@ -26,7 +26,7 @@ impl Cone {
         }
     }
 
-    pub fn local_normal_at(&self, p: &Point) -> Vector {
+    pub fn local_normal_at(&self, p: &Point, _hit: Option<Intersection>) -> Vector {
         // Compute the square of the distance from the y axis
         let distance = p.x.powf(2.0) + p.z.powf(2.0);
 
@@ -214,7 +214,7 @@ mod test_chapter_13_cone {
         ];
 
         for (p, normal) in examples.iter() {
-            let n = shape.local_normal_at(p);
+            let n = shape.local_normal_at(p, None);
             assert_eq!(n, *normal);
         }
     }

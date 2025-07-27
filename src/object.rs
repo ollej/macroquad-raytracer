@@ -100,6 +100,25 @@ impl Object {
         }
     }
 
+    pub fn new_smooth_triangle(
+        p1: Point,
+        p2: Point,
+        p3: Point,
+        n1: Vector,
+        n2: Vector,
+        n3: Vector,
+        transform: Matrix,
+        material: Material,
+    ) -> Self {
+        let shape = Shape::SmoothTriangle(SmoothTriangle::new(p1, p2, p3, n1, n2, n3));
+        Self {
+            transform,
+            material,
+            shape,
+            parent: None,
+        }
+    }
+
     pub fn new_group(transform: Matrix, material: Material) -> Self {
         let shape = Shape::Group(Group::empty());
         Self {
@@ -129,9 +148,13 @@ impl Object {
         self.shape.local_intersect(&transformed_ray, self)
     }
 
-    pub fn normal_at(&self, world_point: &Point) -> Result<Vector, String> {
+    pub fn normal_at(
+        &self,
+        world_point: &Point,
+        hit: Option<Intersection>,
+    ) -> Result<Vector, String> {
         let local_point = self.world_to_object(world_point)?;
-        let local_normal = self.shape.local_normal_at(&local_point);
+        let local_normal = self.shape.local_normal_at(&local_point, hit);
         self.normal_to_world(&local_normal)
     }
 
@@ -268,7 +291,7 @@ mod test_chapter_9_shapes {
     fn computing_the_normal_on_a_translated_shape() {
         let mut s = test_shape();
         s.set_transform(translation(0.0, 1.0, 0.0));
-        let n = s.normal_at(&point(0.0, 1.70711, -0.70711)).unwrap();
+        let n = s.normal_at(&point(0.0, 1.70711, -0.70711), None).unwrap();
         assert_eq!(n, vector(0.0, 0.70711, -0.70711));
     }
 
@@ -278,7 +301,10 @@ mod test_chapter_9_shapes {
         let m = scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0);
         s.set_transform(m);
         let n = s
-            .normal_at(&point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0))
+            .normal_at(
+                &point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0),
+                None,
+            )
             .unwrap();
         assert_eq!(n, vector(0.0, 0.97014, -0.24254));
     }

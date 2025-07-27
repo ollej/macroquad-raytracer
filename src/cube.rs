@@ -23,7 +23,7 @@ impl Cube {
         }
     }
 
-    pub fn local_normal_at(&self, point: &Point) -> Vector {
+    pub fn local_normal_at(&self, point: &Point, _hit: Option<Intersection>) -> Vector {
         let maxc = point.x.abs().max(point.y.abs().max(point.z.abs()));
         if maxc == point.x.abs() {
             vector(point.x, 0.0, 0.0)
@@ -114,7 +114,7 @@ mod test_chapter_12_cube {
 
         for (point, expected_normal) in examples.iter() {
             let p = point;
-            let actual_normal = c.normal_at(&p).unwrap();
+            let actual_normal = c.normal_at(&p, None).unwrap();
             assert_eq!(actual_normal, *expected_normal);
         }
     }
