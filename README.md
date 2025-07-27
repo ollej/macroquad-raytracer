@@ -26,7 +26,7 @@ from Pragmatic Programmer.
 - [x] Chapter 12 - Cubes
 - [x] Chapter 13 - Cylinders
 - [x] Chapter 14 - Groups
-- [ ] Chapter 15 - Triangles
+- [x] Chapter 15 - Triangles
 - [ ] Chapter 16 - Constructive Solid Geometry
 - [ ] Chapter 17 - Next steps
 - [ ] Appendix 1 - Rendering the cover image

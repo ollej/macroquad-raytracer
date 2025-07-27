@@ -112,7 +112,7 @@ impl<'a> ObjParser<'a> {
         if arguments.len() >= 3 {
             let mut vertices_and_normals = vec![];
             for arg in arguments.iter() {
-                println!("Arguments: {arg}");
+                //println!("Arguments: {arg}");
                 let s: Vec<Option<usize>> = arg
                     .split("/")
                     .collect::<Vec<&str>>()
@@ -125,7 +125,7 @@ impl<'a> ObjParser<'a> {
                         let v = self.vertices.get(vidx);
                         let n = self.normals.get(nidx);
                         if v.is_some() && n.is_some() {
-                            println!("Vertice with normal: {vidx} : {v:?} / {nidx} : {n:?}");
+                            //println!("Vertice with normal: {vidx} : {v:?} / {nidx} : {n:?}");
                             vertices_and_normals.push(Face::with_normal(*v.unwrap(), *n.unwrap()));
                         }
                     }
@@ -133,7 +133,7 @@ impl<'a> ObjParser<'a> {
                     &[Some(v)] => {
                         let face = self.vertices.get(v).map(|v| Face::new(*v));
                         if face.is_some() {
-                            println!("Vertice without normal: {v:?}");
+                            //println!("Vertice without normal: {v:?}");
                             vertices_and_normals.push(face.unwrap());
                         }
                     }
