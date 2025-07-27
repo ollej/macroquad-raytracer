@@ -1,4 +1,6 @@
 /target
 *.ppm
 *.png
+*.obj
+*.txt
 /output
