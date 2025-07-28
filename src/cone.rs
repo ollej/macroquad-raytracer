@@ -97,7 +97,7 @@ impl Bounds for Cone {
     }
 }
 
-pub fn cone(minimum: Float, maximum: Float, closed: bool) -> Object {
+pub fn cone(minimum: Float, maximum: Float, closed: bool) -> Result<Object, String> {
     Object::new_cone(
         minimum,
         maximum,
@@ -107,7 +107,7 @@ pub fn cone(minimum: Float, maximum: Float, closed: bool) -> Object {
     )
 }
 
-pub fn infinite_cone(translation: Matrix, material: Material) -> Object {
+pub fn infinite_cone(translation: Matrix, material: Material) -> Result<Object, String> {
     Object::new_cone(
         f64::NEG_INFINITY,
         f64::INFINITY,
@@ -117,7 +117,7 @@ pub fn infinite_cone(translation: Matrix, material: Material) -> Object {
     )
 }
 
-pub fn unit_cone(closed: bool, transform: Matrix, material: Material) -> Object {
+pub fn unit_cone(closed: bool, transform: Matrix, material: Material) -> Result<Object, String> {
     Object::new_cone(
         -1.0,
         0.0,
@@ -127,7 +127,11 @@ pub fn unit_cone(closed: bool, transform: Matrix, material: Material) -> Object 
     )
 }
 
-pub fn unit_cone_upsidedown(closed: bool, transform: Matrix, material: Material) -> Object {
+pub fn unit_cone_upsidedown(
+    closed: bool,
+    transform: Matrix,
+    material: Material,
+) -> Result<Object, String> {
     Object::new_cone(
         0.0,
         1.0,
@@ -142,7 +146,7 @@ mod test_chapter_13_cone {
     use super::*;
 
     fn test_cone() -> Object {
-        infinite_cone(IDENTITY_MATRIX, Material::default())
+        infinite_cone(IDENTITY_MATRIX, Material::default()).unwrap()
     }
 
     #[test]
@@ -168,7 +172,7 @@ mod test_chapter_13_cone {
         for (origin, direction, t0, t1) in examples.iter() {
             let normalized_direction = direction.normalize();
             let r = ray(&origin, &normalized_direction);
-            let xs = shape.intersect(&r).unwrap();
+            let xs = shape.intersect(&r);
             assert_eq!(xs.len(), 2);
             assert_eq_float!(xs[0].t, t0);
             assert_eq_float!(xs[1].t, t1);
@@ -180,14 +184,14 @@ mod test_chapter_13_cone {
         let shape = test_cone();
         let direction = vector(0.0, 1.0, 1.0).normalize();
         let r = ray(&point(0.0, 0.0, -1.0), &direction);
-        let xs = shape.intersect(&r).unwrap();
+        let xs = shape.intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq_float!(xs[0].t, 0.35355);
     }
 
     #[test]
     fn intersecting_a_cones_end_caps() {
-        let shape = cone(-0.5, 0.5, true);
+        let shape = cone(-0.5, 0.5, true).unwrap();
 
         let examples = [
             (point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0), 0),
@@ -198,7 +202,7 @@ mod test_chapter_13_cone {
         for (origin, direction, count) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&origin, &direction);
-            let xs = shape.intersect(&r).unwrap();
+            let xs = shape.intersect(&r);
             assert_eq!(xs.len(), *count);
         }
     }
@@ -226,7 +230,7 @@ mod test_chapter_14_cone_bounds {
 
     #[test]
     fn an_unbounded_cylinder_has_a_bounding_box() {
-        let c = infinite_cone(IDENTITY_MATRIX, Material::default());
+        let c = infinite_cone(IDENTITY_MATRIX, Material::default()).unwrap();
         let b = c.bounding_box();
         assert_eq!(
             b.minimum,
@@ -240,7 +244,7 @@ mod test_chapter_14_cone_bounds {
 
     #[test]
     fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
-        let c = cone(-5.0, 3.0, true);
+        let c = cone(-5.0, 3.0, true).unwrap();
         let b = c.bounding_box();
         assert_eq!(b.minimum, point(-5.0, -5.0, -5.0));
         assert_eq!(b.maximum, point(5.0, 3.0, 5.0));

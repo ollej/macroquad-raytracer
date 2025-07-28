@@ -38,7 +38,7 @@ impl Cube {
 impl Axis for Cube {}
 impl Bounds for Cube {}
 
-pub fn cube() -> Object {
+pub fn cube() -> Result<Object, String> {
     Object::new_cube(IDENTITY_MATRIX, Material::default())
 }
 
@@ -50,7 +50,7 @@ mod test_chapter_12_cube {
 
     #[test]
     fn a_ray_intersects_a_cube() {
-        let c = cube();
+        let c = cube().unwrap();
 
         let examples = [
             // ( name , origin , direction , t1 , t2 )
@@ -71,7 +71,7 @@ mod test_chapter_12_cube {
 
         for (_name, origin, direction, t1, t2) in examples.iter() {
             let r = ray(&origin, &direction);
-            let xs = c.intersect(&r).unwrap();
+            let xs = c.intersect(&r);
             assert_eq!(xs.len(), 2);
             assert_eq_float!(xs[0].t, t1);
             assert_eq_float!(xs[1].t, t2);
@@ -90,17 +90,17 @@ mod test_chapter_12_cube {
             (point(0.0, 0.0, 2.0), vector(0.0, 0.0, 1.0)),
         ];
 
-        let c = cube();
+        let c = cube().unwrap();
         for (origin, direction) in examples.iter() {
             let r = ray(&origin, &direction);
-            let xs = c.intersect(&r).unwrap();
+            let xs = c.intersect(&r);
             assert_eq!(xs.len(), 0);
         }
     }
 
     #[test]
     fn the_normal_on_the_surface_of_a_cube() {
-        let c = cube();
+        let c = cube().unwrap();
         let examples = [
             (point(1.0, 0.5, -0.8), vector(1.0, 0.0, 0.0)),
             (point(-1.0, -0.2, 0.9), vector(-1.0, 0.0, 0.0)),
@@ -114,7 +114,7 @@ mod test_chapter_12_cube {
 
         for (point, expected_normal) in examples.iter() {
             let p = point;
-            let actual_normal = c.normal_at(&p, None).unwrap();
+            let actual_normal = c.normal_at(&p, None);
             assert_eq!(actual_normal, *expected_normal);
         }
     }
@@ -126,7 +126,7 @@ mod test_chapter_14_cubes_bounds {
 
     #[test]
     fn cubes_have_a_default_bounding_box() {
-        let s = cube();
+        let s = cube().unwrap();
         let b = s.bounding_box();
         assert_eq!(b.minimum, point(-1.0, -1.0, -1.0));
         assert_eq!(b.maximum, point(1.0, 1.0, 1.0));

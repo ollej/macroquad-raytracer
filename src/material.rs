@@ -14,7 +14,7 @@ pub fn lighting(
     eyev: &Vector,
     normalv: &Vector,
     in_shadow: bool,
-) -> Result<Color, String> {
+) -> Color {
     material.lighting(object, light, point, eyev, normalv, in_shadow)
 }
 
@@ -68,10 +68,10 @@ impl Material {
         eyev: &Vector,
         normalv: &Vector,
         in_shadow: bool,
-    ) -> Result<Color, String> {
+    ) -> Color {
         // Use color from pattern if available
         let color = if let Some(pattern) = self.pattern {
-            pattern.pattern_at_object(object, point)?
+            pattern.pattern_at_object(object, point)
         } else {
             self.color
         };
@@ -84,7 +84,7 @@ impl Material {
 
         // Only return ambient light if point is in shadow
         if in_shadow {
-            return Ok(ambient);
+            return ambient;
         }
 
         // Find the direction to the light source
@@ -118,7 +118,7 @@ impl Material {
         };
 
         // Add the three contributions together to get the final shading
-        Ok(ambient + diffuse + specular)
+        ambient + diffuse + specular
     }
 }
 
@@ -169,8 +169,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
-        let sphere = sphere();
-        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
+        let sphere = sphere().unwrap();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(1.9, 1.9, 1.9));
     }
 
@@ -180,8 +180,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
-        let sphere = sphere();
-        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
+        let sphere = sphere().unwrap();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(1.0, 1.0, 1.0));
     }
 
@@ -191,8 +191,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
-        let sphere = sphere();
-        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
+        let sphere = sphere().unwrap();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(0.7364, 0.7364, 0.7364));
     }
 
@@ -202,8 +202,8 @@ mod test_chapter_6_material {
         let eyev = vector(0., -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
-        let sphere = sphere();
-        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false).unwrap();
+        let sphere = sphere().unwrap();
+        let result = lighting(&m, &sphere, &light, &position, &eyev, &normalv, false);
         assert_eq!(result, color(1.6364, 1.6364, 1.6364));
     }
 }
@@ -221,10 +221,8 @@ mod test_chapter_8_shadows {
         let normalv = vector(0.0, 0.0, -1.0);
         let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
         let in_shadow = true;
-        let sphere = sphere();
-        let result = m
-            .lighting(&sphere, &light, &position, &eyev, &normalv, in_shadow)
-            .unwrap();
+        let sphere = sphere().unwrap();
+        let result = m.lighting(&sphere, &light, &position, &eyev, &normalv, in_shadow);
         assert_eq!(result, color(0.1, 0.1, 0.1));
     }
 }
@@ -240,14 +238,15 @@ mod test_chapter_10_material_pattern {
     #[test]
     fn lighting_with_a_pattern_applied() {
         let mut m = Material::default();
-        m.set_pattern(stripe_pattern(&color(1.0, 1.0, 1.0), &color(0.0, 0.0, 0.0)));
+        let pattern = stripe_pattern(&color(1.0, 1.0, 1.0), &color(0.0, 0.0, 0.0)).unwrap();
+        m.set_pattern(pattern);
         m.ambient = 1.0;
         m.diffuse = 0.0;
         m.specular = 0.0;
         let eyev = vector(0.0, 0.0, -1.0);
         let normalv = vector(0.0, 0.0, -1.0);
         let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
-        let sphere = sphere();
+        let sphere = sphere().unwrap();
         let c1 = lighting(
             &m,
             &sphere,
@@ -256,8 +255,7 @@ mod test_chapter_10_material_pattern {
             &eyev,
             &normalv,
             false,
-        )
-        .unwrap();
+        );
         let c2 = lighting(
             &m,
             &sphere,
@@ -266,8 +264,7 @@ mod test_chapter_10_material_pattern {
             &eyev,
             &normalv,
             false,
-        )
-        .unwrap();
+        );
         assert_eq!(c1, color(1.0, 1.0, 1.0));
         assert_eq!(c2, color(0.0, 0.0, 0.0));
     }

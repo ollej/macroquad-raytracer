@@ -33,7 +33,7 @@ impl Bounds for Plane {
     }
 }
 
-pub fn plane() -> Object {
+pub fn plane() -> Result<Object, String> {
     Object::new_plane(IDENTITY_MATRIX, Material::default())
 }
 
@@ -56,34 +56,34 @@ mod test_chapter_9_planes {
 
     #[test]
     fn local_intersect_with_a_ray_parallel_to_the_plane() {
-        let p = plane();
+        let p = plane().unwrap();
         let r = ray(&point(0.0, 10.0, 0.0), &vector(0.0, 0.0, 1.0));
-        let xs = p.intersect(&r).unwrap();
+        let xs = p.intersect(&r);
         assert!(xs.is_empty());
     }
 
     #[test]
     fn local_intersect_with_a_coplanar_ray() {
-        let p = plane();
+        let p = plane().unwrap();
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
-        let xs = p.intersect(&r).unwrap();
+        let xs = p.intersect(&r);
         assert!(xs.is_empty());
     }
 
     #[test]
     fn a_ray_intersecting_a_plane_from_above() {
-        let p = plane();
+        let p = plane().unwrap();
         let r = ray(&point(0.0, 1.0, 0.0), &vector(0.0, -1.0, 0.0));
-        let xs = p.intersect(&r).unwrap();
+        let xs = p.intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].t, 1.0);
     }
 
     #[test]
     fn a_ray_intersecting_a_plane_from_below() {
-        let p = plane();
+        let p = plane().unwrap();
         let r = ray(&point(0.0, -1.0, 0.0), &vector(0.0, 1.0, 0.0));
-        let xs = p.intersect(&r).unwrap();
+        let xs = p.intersect(&r);
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].t, 1.0);
     }
@@ -97,7 +97,7 @@ mod test_chapter_14_planes_bounds {
 
     #[test]
     fn planes_have_a_bounding_box_to_infinity() {
-        let p = plane();
+        let p = plane().unwrap();
         let b = p.bounding_box();
         assert_eq!(b.minimum, point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY));
         assert_eq!(b.maximum, point(f64::INFINITY, 0.0, f64::INFINITY));

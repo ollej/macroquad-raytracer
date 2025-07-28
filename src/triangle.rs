@@ -148,7 +148,7 @@ impl Bounds for SmoothTriangle {
     }
 }
 
-pub fn triangle(p1: Point, p2: Point, p3: Point) -> Object {
+pub fn triangle(p1: Point, p2: Point, p3: Point) -> Result<Object, String> {
     Object::new_triangle(p1, p2, p3, IDENTITY_MATRIX, Material::default())
 }
 
@@ -159,7 +159,7 @@ pub fn smooth_triangle(
     n1: Vector,
     n2: Vector,
     n3: Vector,
-) -> Object {
+) -> Result<Object, String> {
     Object::new_smooth_triangle(p1, p2, p3, n1, n2, n3, IDENTITY_MATRIX, Material::default())
 }
 
@@ -167,7 +167,7 @@ pub fn smooth_triangle(
 mod test_chapter_15_triangles {
     use super::*;
 
-    use crate::{float::*, shape::*};
+    use crate::{float::*, shape::*, test_common::*};
 
     fn test_triangle() -> Triangle {
         Triangle::new(
@@ -184,7 +184,7 @@ mod test_chapter_15_triangles {
         let n1 = vector(0.0, 1.0, 0.0);
         let n2 = vector(-1.0, 0.0, 0.0);
         let n3 = vector(1.0, 0.0, 0.0);
-        smooth_triangle(p1, p2, p3, n1, n2, n3)
+        smooth_triangle(p1, p2, p3, n1, n2, n3).unwrap()
     }
 
     #[test]
@@ -216,7 +216,7 @@ mod test_chapter_15_triangles {
     fn intersecting_a_ray_parallel_to_the_triangle() {
         let t = test_triangle();
         let r = ray(&point(0.0, -1.0, -2.0), &vector(0.0, 1.0, 0.0));
-        let xs = t.local_intersect(&r, &Object::empty());
+        let xs = t.local_intersect(&r, &test_shape());
         assert!(xs.is_empty());
     }
 
@@ -224,7 +224,7 @@ mod test_chapter_15_triangles {
     fn a_ray_misses_the_p1_p3_edge() {
         let t = test_triangle();
         let r = ray(&point(1.0, 1.0, -2.0), &vector(0.0, 0.0, 1.0));
-        let xs = t.local_intersect(&r, &Object::empty());
+        let xs = t.local_intersect(&r, &test_shape());
         assert!(xs.is_empty());
     }
 
@@ -232,7 +232,7 @@ mod test_chapter_15_triangles {
     fn a_ray_misses_the_p1_p2_edge() {
         let t = test_triangle();
         let r = ray(&point(-1.0, 1.0, -2.0), &vector(0.0, 0.0, 1.0));
-        let xs = t.local_intersect(&r, &Object::empty());
+        let xs = t.local_intersect(&r, &test_shape());
         assert!(xs.is_empty());
     }
 
@@ -240,7 +240,7 @@ mod test_chapter_15_triangles {
     fn a_ray_misses_the_p2_p3_edge() {
         let t = test_triangle();
         let r = ray(&point(0.0, -1.0, -2.0), &vector(0.0, 0.0, 1.0));
-        let xs = t.local_intersect(&r, &Object::empty());
+        let xs = t.local_intersect(&r, &test_shape());
         assert!(xs.is_empty());
     }
 
@@ -248,7 +248,7 @@ mod test_chapter_15_triangles {
     fn a_ray_strikes_a_triangle() {
         let t = test_triangle();
         let r = ray(&point(0.0, 0.5, -2.0), &vector(0.0, 0.0, 1.0));
-        let xs = t.local_intersect(&r, &Object::empty());
+        let xs = t.local_intersect(&r, &test_shape());
         assert_eq!(xs.len(), 1);
         assert_eq!(xs[0].t, 2.0);
     }
@@ -269,7 +269,7 @@ mod test_chapter_15_triangles {
         let p1 = point(0.0, 1.0, 0.0);
         let p2 = point(-1.0, 0.0, 0.0);
         let p3 = point(1.0, 0.0, 0.0);
-        let t = Object::new_triangle(p1, p2, p3, IDENTITY_MATRIX, Material::default());
+        let t = Object::new_triangle(p1, p2, p3, IDENTITY_MATRIX, Material::default()).unwrap();
         match t.shape {
             Shape::Triangle(triangle) => {
                 assert_eq!(triangle.p1, p1);
@@ -301,7 +301,7 @@ mod test_chapter_15_triangles {
     fn an_intersection_with_a_smooth_triangle_stores_u_and_v() {
         let tri = test_smooth_triangle();
         let r = ray(&point(-0.2, 0.3, -2.0), &vector(0.0, 0.0, 1.0));
-        let xs = tri.intersect(&r).unwrap();
+        let xs = tri.intersect(&r);
         assert_eq_float!(xs[0].u, 0.45);
         assert_eq_float!(xs[0].v, 0.25);
     }
@@ -310,7 +310,7 @@ mod test_chapter_15_triangles {
     fn a_smooth_triangle_uses_u_v_to_interpolate_the_normal() {
         let tri = test_smooth_triangle();
         let i = intersection_with_uv(1.0, tri.clone(), 0.45, 0.25);
-        let n = tri.normal_at(&point(0.0, 0.0, 0.0), Some(i)).unwrap();
+        let n = tri.normal_at(&point(0.0, 0.0, 0.0), Some(i));
         assert_eq!(n, vector(-0.5547, 0.83205, 0.0));
     }
 
@@ -320,7 +320,7 @@ mod test_chapter_15_triangles {
         let i = intersection_with_uv(1.0, tri, 0.45, 0.25);
         let r = ray(&point(-0.2, 0.3, -2.0), &vector(0.0, 0.0, 1.0));
         let xs = intersections(vec![i.clone()]);
-        let comps = i.prepare_computations(&r, &xs).unwrap();
+        let comps = i.prepare_computations(&r, &xs);
         assert_eq!(comps.normalv, vector(-0.5547, 0.83205, 0.0));
     }
 }

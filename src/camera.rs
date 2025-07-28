@@ -11,6 +11,7 @@ pub struct Camera {
     pub half_width: Float,
     pub half_height: Float,
     pub transform: Matrix,
+    pub inverse_transform: Matrix,
     pub reflective_depth: usize,
 }
 
@@ -32,11 +33,18 @@ impl Camera {
             half_width,
             half_height,
             transform: IDENTITY_MATRIX,
+            inverse_transform: IDENTITY_MATRIX.inverse().unwrap(),
             reflective_depth,
         }
     }
 
-    pub fn ray_for_pixel(&self, px: usize, py: usize) -> Result<Ray, String> {
+    pub fn set_transform(&mut self, transform: Matrix) -> Result<(), String> {
+        self.transform = transform;
+        self.inverse_transform = transform.inverse()?;
+        Ok(())
+    }
+
+    pub fn ray_for_pixel(&self, px: usize, py: usize) -> Ray {
         // The offset from the edge of the canvas to the pixel's center.
         let xoffset = (px as Float + 0.5) * self.pixel_size;
         let yoffset = (py as Float + 0.5) * self.pixel_size;
@@ -49,31 +57,31 @@ impl Camera {
         // Using the camera matrix, transform the canvas point and the origin,
         // and then compute the ray's direction vector.
         // (remember that the canvas is at z = -1)
-        let pixel = self.transform.inverse()? * point(world_x, world_y, -1.0);
-        let origin = self.transform.inverse()? * point(0.0, 0.0, 0.0);
+        let pixel = self.inverse_transform * point(world_x, world_y, -1.0);
+        let origin = self.inverse_transform * point(0.0, 0.0, 0.0);
         let direction = (pixel - origin).normalize();
 
-        Ok(ray(&origin, &direction))
+        ray(&origin, &direction)
     }
 
-    pub fn render(&self, world: &World) -> Result<Canvas, String> {
+    pub fn render(&self, world: &World) -> Canvas {
         let mut image = canvas(self.hsize, self.vsize);
 
         (0..self.vsize)
             .into_par_iter()
             .flat_map(|y| {
                 (0..self.hsize).into_par_iter().map(move |x| {
-                    let ray = self.ray_for_pixel(x, y)?;
-                    let color = world.color_at(&ray, self.reflective_depth)?;
+                    let ray = self.ray_for_pixel(x, y);
+                    let color = world.color_at(&ray, self.reflective_depth);
 
-                    Ok((x, y, color))
+                    (x, y, color)
                 })
             })
-            .collect::<Result<Vec<(usize, usize, Color)>, String>>()?
+            .collect::<Vec<(usize, usize, Color)>>()
             .iter()
             .for_each(|(x, y, color)| image.write_pixel(*x, *y, color));
 
-        Ok(image)
+        image
     }
 }
 
@@ -81,11 +89,11 @@ pub fn camera(px: usize, py: usize, field_of_view: Float, reflective_depth: usiz
     Camera::new(px, py, field_of_view, reflective_depth)
 }
 
-pub fn ray_for_pixel(camera: &Camera, hsize: usize, vsize: usize) -> Result<Ray, String> {
+pub fn ray_for_pixel(camera: &Camera, hsize: usize, vsize: usize) -> Ray {
     camera.ray_for_pixel(hsize, vsize)
 }
 
-pub fn render(camera: &Camera, world: &World) -> Result<Canvas, String> {
+pub fn render(camera: &Camera, world: &World) -> Canvas {
     camera.render(world)
 }
 
@@ -125,18 +133,18 @@ mod test_chapter_7_camera {
     #[test]
     fn constructing_a_ray_through_the_center_of_the_canvas() {
         let c = camera(201, 101, PI / 2.0, 0);
-        let r = ray_for_pixel(&c, 100, 50).unwrap();
+        let r = ray_for_pixel(&c, 100, 50);
         assert_eq!(r.origin, point(0.0, 0.0, 0.0));
         assert_eq!(r.direction, vector(0.0, 0.0, -1.0));
 
-        let r2 = c.ray_for_pixel(100, 50).unwrap();
+        let r2 = c.ray_for_pixel(100, 50);
         assert_eq!(r, r2);
     }
 
     #[test]
     fn constructing_a_ray_through_a_corner_of_the_canvas() {
         let c = camera(201, 101, PI / 2.0, 0);
-        let r = ray_for_pixel(&c, 0, 0).unwrap();
+        let r = ray_for_pixel(&c, 0, 0);
         assert_eq!(r.origin, point(0.0, 0.0, 0.0));
         assert_eq!(r.direction, vector(0.66519, 0.33259, -0.66851));
     }
@@ -144,8 +152,9 @@ mod test_chapter_7_camera {
     #[test]
     fn constructing_a_ray_when_the_camera_is_transformed() {
         let mut c = camera(201, 101, PI / 2.0, 0);
-        c.transform = rotation_y(PI / 4.0) * translation(0.0, -2.0, 5.0);
-        let r = ray_for_pixel(&c, 100, 50).unwrap();
+        c.set_transform(rotation_y(PI / 4.0) * translation(0.0, -2.0, 5.0))
+            .unwrap();
+        let r = ray_for_pixel(&c, 100, 50);
         assert_eq!(r.origin, point(0.0, 2.0, -5.0));
         assert_eq!(
             r.direction,
@@ -160,12 +169,12 @@ mod test_chapter_7_camera {
         let from = point(0.0, 0.0, -5.0);
         let to = point(0.0, 0.0, 0.0);
         let up = vector(0.0, 1.0, 0.0);
-        c.transform = view_transform(&from, &to, &up);
-        let image = render(&c, &w).unwrap();
+        c.set_transform(view_transform(&from, &to, &up)).unwrap();
+        let image = render(&c, &w);
         assert_eq!(pixel_at(&image, 5, 5), color(0.38066, 0.47583, 0.2855));
         assert_eq!(image.pixel_at(5, 5), color(0.38066, 0.47583, 0.2855));
 
-        let image2 = c.render(&w).unwrap();
+        let image2 = c.render(&w);
         assert_eq!(image, image2);
     }
 }

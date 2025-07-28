@@ -46,52 +46,59 @@ impl Texture {
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Pattern {
     pub transform: Matrix,
+    pub inverse_transform: Matrix,
     pub texture: Texture,
 }
 
 impl Pattern {
-    pub fn new(transform: Matrix, texture: Texture) -> Pattern {
-        Pattern { transform, texture }
+    pub fn new(transform: Matrix, texture: Texture) -> Result<Pattern, String> {
+        Ok(Pattern {
+            transform,
+            inverse_transform: transform.inverse()?,
+            texture,
+        })
     }
 
-    pub fn set_transform(&mut self, transform: Matrix) {
+    pub fn set_transform(&mut self, transform: Matrix) -> Result<(), String> {
         self.transform = transform;
+        self.inverse_transform = transform.inverse()?;
+        Ok(())
     }
 
     pub fn set_texture(&mut self, texture: Texture) {
         self.texture = texture;
     }
 
-    pub fn pattern_at_object(&self, object: &Object, point: &Point) -> Result<Color, String> {
-        let object_point = object.world_to_object(point)?;
-        let pattern_point = self.transform.inverse()? * object_point;
-        Ok(self.texture.color_at(&pattern_point))
+    pub fn pattern_at_object(&self, object: &Object, point: &Point) -> Color {
+        let object_point = object.world_to_object(point);
+        let pattern_point = self.inverse_transform * object_point;
+        self.texture.color_at(&pattern_point)
     }
 }
 
 pub fn test_pattern() -> Pattern {
-    Pattern::new(IDENTITY_MATRIX, Texture::Test)
+    Pattern::new(IDENTITY_MATRIX, Texture::Test).unwrap()
 }
 
-pub fn stripe_pattern(a: &Color, b: &Color) -> Pattern {
+pub fn stripe_pattern(a: &Color, b: &Color) -> Result<Pattern, String> {
     Pattern::new(
         IDENTITY_MATRIX,
         Texture::Striped(a.to_owned(), b.to_owned()),
     )
 }
 
-pub fn gradient_pattern(a: &Color, b: &Color) -> Pattern {
+pub fn gradient_pattern(a: &Color, b: &Color) -> Result<Pattern, String> {
     Pattern::new(
         IDENTITY_MATRIX,
         Texture::Gradient(a.to_owned(), b.to_owned()),
     )
 }
 
-pub fn ring_pattern(a: &Color, b: &Color) -> Pattern {
+pub fn ring_pattern(a: &Color, b: &Color) -> Result<Pattern, String> {
     Pattern::new(IDENTITY_MATRIX, Texture::Ring(a.to_owned(), b.to_owned()))
 }
 
-pub fn checkers_pattern(a: &Color, b: &Color) -> Pattern {
+pub fn checkers_pattern(a: &Color, b: &Color) -> Result<Pattern, String> {
     Pattern::new(
         IDENTITY_MATRIX,
         Texture::Checkers(a.to_owned(), b.to_owned()),
@@ -129,6 +136,10 @@ mod test_chapter_10_pattern {
     use super::*;
 
     use crate::sphere::*;
+
+    fn test_stripe_pattern() -> Pattern {
+        stripe_pattern(&WHITE, &BLACK).unwrap()
+    }
 
     #[test]
     fn creating_a_stripe_texture() {
@@ -172,35 +183,29 @@ mod test_chapter_10_pattern {
 
     #[test]
     fn pattern_with_an_object_transformation() {
-        let mut object = sphere();
-        object.set_transform(scaling(2.0, 2.0, 2.0));
-        let pattern = stripe_pattern(&WHITE, &BLACK);
-        let c = pattern
-            .pattern_at_object(&object, &point(1.5, 0.0, 0.0))
-            .unwrap();
+        let mut object = sphere().unwrap();
+        object.set_transform(scaling(2.0, 2.0, 2.0)).unwrap();
+        let pattern = test_stripe_pattern();
+        let c = pattern.pattern_at_object(&object, &point(1.5, 0.0, 0.0));
         assert_eq!(c, WHITE);
     }
 
     #[test]
     fn stripes_with_a_pattern_transformation() {
-        let object = sphere();
-        let mut pattern = stripe_pattern(&WHITE, &BLACK);
-        pattern.set_transform(scaling(2.0, 2.0, 2.0));
-        let c = pattern
-            .pattern_at_object(&object, &point(1.5, 0.0, 0.0))
-            .unwrap();
+        let object = sphere().unwrap();
+        let mut pattern = test_stripe_pattern();
+        pattern.set_transform(scaling(2.0, 2.0, 2.0)).unwrap();
+        let c = pattern.pattern_at_object(&object, &point(1.5, 0.0, 0.0));
         assert_eq!(c, WHITE);
     }
 
     #[test]
     fn stripes_with_both_an_object_and_a_pattern_transformation() {
-        let mut object = sphere();
-        object.set_transform(scaling(2.0, 2.0, 2.0));
-        let mut pattern = stripe_pattern(&WHITE, &BLACK);
-        pattern.set_transform(translation(0.5, 0.0, 0.0));
-        let c = pattern
-            .pattern_at_object(&object, &point(2.5, 0.0, 0.0))
-            .unwrap();
+        let mut object = sphere().unwrap();
+        object.set_transform(scaling(2.0, 2.0, 2.0)).unwrap();
+        let mut pattern = test_stripe_pattern();
+        pattern.set_transform(translation(0.5, 0.0, 0.0)).unwrap();
+        let c = pattern.pattern_at_object(&object, &point(2.5, 0.0, 0.0));
         assert_eq!(c, WHITE);
     }
 
@@ -214,37 +219,35 @@ mod test_chapter_10_pattern {
     fn assigning_a_transformation() {
         let mut p = test_pattern();
         let t = translation(2., 3., 4.);
-        p.set_transform(t);
+        p.set_transform(t).unwrap();
         assert_eq!(p.transform, t);
     }
 
     #[test]
     fn a_pattern_with_an_object_transformation() {
-        let mut shape = sphere();
-        shape.set_transform(scaling(2.0, 2.0, 2.0));
+        let mut shape = sphere().unwrap();
+        shape.set_transform(scaling(2.0, 2.0, 2.0)).unwrap();
         let pattern = test_pattern();
-        let c = pattern
-            .pattern_at_object(&shape, &point(2.0, 3.0, 4.0))
-            .unwrap();
+        let c = pattern.pattern_at_object(&shape, &point(2.0, 3.0, 4.0));
         assert_eq!(c, color(1.0, 1.5, 2.0));
     }
 
     #[test]
     fn a_pattern_with_a_transformation() {
-        let shape = sphere();
+        let shape = sphere().unwrap();
         let mut p = test_pattern();
-        p.set_transform(scaling(2.0, 2.0, 2.0));
-        let c = p.pattern_at_object(&shape, &point(2.0, 3.0, 4.0)).unwrap();
+        p.set_transform(scaling(2.0, 2.0, 2.0)).unwrap();
+        let c = p.pattern_at_object(&shape, &point(2.0, 3.0, 4.0));
         assert_eq!(c, color(1.0, 1.5, 2.0));
     }
 
     #[test]
     fn a_pattern_with_both_an_object_and_a_pattern_transformation() {
-        let mut shape = sphere();
-        shape.set_transform(scaling(2.0, 2.0, 2.0));
+        let mut shape = sphere().unwrap();
+        shape.set_transform(scaling(2.0, 2.0, 2.0)).unwrap();
         let mut p = test_pattern();
-        p.set_transform(translation(0.5, 1.0, 1.5));
-        let c = p.pattern_at_object(&shape, &point(2.5, 3.0, 3.5)).unwrap();
+        p.set_transform(translation(0.5, 1.0, 1.5)).unwrap();
+        let c = p.pattern_at_object(&shape, &point(2.5, 3.0, 3.5));
         assert_eq!(c, color(0.75, 0.5, 0.25));
     }
 
@@ -309,16 +312,16 @@ mod test_chapter_14_group {
 
     #[test]
     fn a_pattern_with_parent_transformation() {
-        let g1 = &mut empty_group();
-        g1.set_transform(translation(3.0, 2.0, 1.0));
+        let g1 = &mut empty_group().unwrap();
+        g1.set_transform(translation(3.0, 2.0, 1.0)).unwrap();
 
-        let s = &mut sphere();
+        let s = &mut sphere().unwrap();
         let mut m = Material::default();
         let p = test_pattern();
         m.set_pattern(p);
         s.set_material(&m);
         g1.add_child(s);
-        let c = p.pattern_at_object(s, &point(1.0, 2.0, 3.0)).unwrap();
+        let c = p.pattern_at_object(s, &point(1.0, 2.0, 3.0));
 
         assert_eq!(c, color(-2.0, 0.0, 2.0));
     }

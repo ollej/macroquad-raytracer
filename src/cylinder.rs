@@ -85,7 +85,7 @@ impl Bounds for Cylinder {
     }
 }
 
-pub fn cylinder(minimum: Float, maximum: Float, closed: bool) -> Object {
+pub fn cylinder(minimum: Float, maximum: Float, closed: bool) -> Result<Object, String> {
     Object::new_cylinder(
         minimum,
         maximum,
@@ -95,7 +95,7 @@ pub fn cylinder(minimum: Float, maximum: Float, closed: bool) -> Object {
     )
 }
 
-pub fn infinite_cylinder(translation: Matrix, material: Material) -> Object {
+pub fn infinite_cylinder(translation: Matrix, material: Material) -> Result<Object, String> {
     Object::new_cylinder(
         f64::NEG_INFINITY,
         f64::INFINITY,
@@ -110,7 +110,7 @@ mod test_chapter_13_cylinder {
     use super::*;
 
     fn test_cylinder() -> Object {
-        infinite_cylinder(IDENTITY_MATRIX, Material::default())
+        infinite_cylinder(IDENTITY_MATRIX, Material::default()).unwrap()
     }
 
     #[test]
@@ -126,7 +126,7 @@ mod test_chapter_13_cylinder {
         for (origin, direction) in examples.iter() {
             let normalized_direction = direction.normalize();
             let r = ray(&origin, &normalized_direction);
-            let xs = cyl.intersect(&r).unwrap();
+            let xs = cyl.intersect(&r);
             assert_eq!(xs.len(), 0);
         }
     }
@@ -149,7 +149,7 @@ mod test_chapter_13_cylinder {
         for (origin, direction, t0, t1) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&origin, &direction);
-            let xs = cyl.intersect(&r).unwrap();
+            let xs = cyl.intersect(&r);
 
             assert_eq!(xs.len(), 2);
             assert_eq_float!(xs[0].t, t0);
@@ -183,7 +183,7 @@ mod test_chapter_13_cylinder {
 
     #[test]
     fn intersecting_a_constrained_cylinder() {
-        let cyl = cylinder(1.0, 2.0, false);
+        let cyl = cylinder(1.0, 2.0, false).unwrap();
 
         let examples = [
             (point(0.0, 1.5, 0.0), vector(0.1, 1.0, 0.0), 0),
@@ -197,7 +197,7 @@ mod test_chapter_13_cylinder {
         for (p, direction, count) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&p, &direction);
-            let xs = cyl.intersect(&r).unwrap();
+            let xs = cyl.intersect(&r);
             assert_eq!(xs.len(), *count);
         }
     }
@@ -210,7 +210,7 @@ mod test_chapter_13_cylinder {
 
     #[test]
     fn intersecting_the_caps_of_a_closed_cylinder() {
-        let cyl = cylinder(1.0, 2.0, true);
+        let cyl = cylinder(1.0, 2.0, true).unwrap();
 
         let examples = [
             (point(0.0, 3.0, 0.0), vector(0.0, -1.0, 0.0), 2),
@@ -223,7 +223,7 @@ mod test_chapter_13_cylinder {
         for (p, direction, count) in examples.iter() {
             let direction = direction.normalize();
             let r = ray(&p, &direction);
-            let xs = cyl.intersect(&r).unwrap();
+            let xs = cyl.intersect(&r);
             assert_eq!(xs.len(), *count);
         }
     }
@@ -254,7 +254,7 @@ mod test_chapter_14_cylinder_bounds {
 
     #[test]
     fn an_unbounded_cylinder_has_a_bounding_box() {
-        let cyl = infinite_cylinder(IDENTITY_MATRIX, Material::default());
+        let cyl = infinite_cylinder(IDENTITY_MATRIX, Material::default()).unwrap();
         let b = cyl.bounding_box();
         assert_eq!(b.minimum, point(-1.0, f64::NEG_INFINITY, -1.0));
         assert_eq!(b.maximum, point(1.0, f64::INFINITY, 1.0));
@@ -262,7 +262,7 @@ mod test_chapter_14_cylinder_bounds {
 
     #[test]
     fn cylinder_have_a_bounding_box_matching_minimum_and_maximum() {
-        let cyl = cylinder(-5.0, 3.0, true);
+        let cyl = cylinder(-5.0, 3.0, true).unwrap();
         let b = cyl.bounding_box();
         assert_eq!(b.minimum, point(-1.0, -5.0, -1.0));
         assert_eq!(b.maximum, point(1.0, 3.0, 1.0));

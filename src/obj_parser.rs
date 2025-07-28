@@ -1,4 +1,4 @@
-use crate::{color::*, float::*, material::*, matrix::IDENTITY_MATRIX, object::*, tuple::*};
+use crate::{float::*, material::*, matrix::IDENTITY_MATRIX, object::*, tuple::*};
 
 use std::collections::HashMap;
 
@@ -47,7 +47,7 @@ impl<'a> ObjParser<'a> {
             vertices: vec![Point::empty_point()],
             groups: HashMap::from([(
                 Self::DEFAULT_GROUP,
-                Object::new_group(IDENTITY_MATRIX, Material::default()),
+                Object::new_group(IDENTITY_MATRIX, Material::default()).unwrap(),
             )]),
             normals: vec![Vector::empty_vector()],
             material: Material::default(),
@@ -67,14 +67,14 @@ impl<'a> ObjParser<'a> {
         self.groups.get(Self::DEFAULT_GROUP)
     }
 
-    pub fn obj_to_group(&self) -> Object {
-        let mut object = Object::new_group(IDENTITY_MATRIX, Material::default());
+    pub fn obj_to_group(&self) -> Result<Object, String> {
+        let mut object = Object::new_group(IDENTITY_MATRIX, Material::default())?;
         for (_name, group) in self.groups.iter() {
             let group = &mut group.clone();
             object.add_child(group);
         }
 
-        object
+        Ok(object)
     }
 
     fn parse_line(&mut self, line: &'a str) {
@@ -152,7 +152,7 @@ impl<'a> ObjParser<'a> {
             if !self.groups.contains_key(group_name) {
                 self.groups.insert(
                     group_name,
-                    Object::new_group(IDENTITY_MATRIX, Material::default()),
+                    Object::new_group(IDENTITY_MATRIX, Material::default()).unwrap(),
                 );
             }
             self.latest_group = group_name;
@@ -208,7 +208,7 @@ impl<'a> ObjParser<'a> {
     }
 
     fn triangle(&self, p1: Point, p2: Point, p3: Point) -> Object {
-        Object::new_triangle(p1, p2, p3, IDENTITY_MATRIX, self.material)
+        Object::new_triangle(p1, p2, p3, IDENTITY_MATRIX, self.material).unwrap()
     }
 
     fn smooth_triangle(
@@ -220,7 +220,7 @@ impl<'a> ObjParser<'a> {
         n2: Vector,
         n3: Vector,
     ) -> Object {
-        Object::new_smooth_triangle(p1, p2, p3, n1, n2, n3, IDENTITY_MATRIX, self.material)
+        Object::new_smooth_triangle(p1, p2, p3, n1, n2, n3, IDENTITY_MATRIX, self.material).unwrap()
     }
 }
 
@@ -394,7 +394,7 @@ f 1 2 3 4 5"##;
     fn converting_an_OBJ_file_to_a_group() {
         let file = fs::read_to_string("triangles.obj").unwrap();
         let parser = parse_obj_file(file.as_str());
-        let g = parser.obj_to_group();
+        let g = parser.obj_to_group().unwrap();
         let children = &group_children(&g);
         let g1 = parser.groups.get("FirstGroup").unwrap();
         let g2 = parser.groups.get("SecondGroup").unwrap();

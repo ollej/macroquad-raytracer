@@ -29,18 +29,16 @@ impl Shape {
         }
     }
 
-    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Result<Intersections, String> {
+    pub fn local_intersect(&self, ray: &Ray, object: &Object) -> Intersections {
         match self {
-            Shape::Sphere(sphere) => Ok(sphere.local_intersect(ray, object)),
-            Shape::Plane(plane) => Ok(plane.local_intersect(ray, object)),
-            Shape::Cube(cube) => Ok(cube.local_intersect(ray, object)),
-            Shape::Cylinder(cylinder) => Ok(cylinder.local_intersect(ray, object)),
-            Shape::Cone(cone) => Ok(cone.local_intersect(ray, object)),
+            Shape::Sphere(sphere) => sphere.local_intersect(ray, object),
+            Shape::Plane(plane) => plane.local_intersect(ray, object),
+            Shape::Cube(cube) => cube.local_intersect(ray, object),
+            Shape::Cylinder(cylinder) => cylinder.local_intersect(ray, object),
+            Shape::Cone(cone) => cone.local_intersect(ray, object),
             Shape::Group(group) => group.local_intersect(ray, object),
-            Shape::Triangle(triangle) => Ok(triangle.local_intersect(ray, object)),
-            Shape::SmoothTriangle(smooth_triangle) => {
-                Ok(smooth_triangle.local_intersect(ray, object))
-            }
+            Shape::Triangle(triangle) => triangle.local_intersect(ray, object),
+            Shape::SmoothTriangle(smooth_triangle) => smooth_triangle.local_intersect(ray, object),
         }
     }
 
