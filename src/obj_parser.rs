@@ -33,6 +33,7 @@ pub struct ObjParser<'a> {
     pub vertices: Vec<Point>,
     pub groups: HashMap<&'a str, Object>,
     pub normals: Vec<Vector>,
+    pub face_count: usize,
     material: Material,
     latest_group: &'a str,
 }
@@ -50,6 +51,7 @@ impl<'a> ObjParser<'a> {
                 Object::new_group(IDENTITY_MATRIX, Material::default()).unwrap(),
             )]),
             normals: vec![Vector::empty_vector()],
+            face_count: 0,
             material: Material::default(),
             latest_group: Self::DEFAULT_GROUP,
         }
@@ -79,6 +81,7 @@ impl<'a> ObjParser<'a> {
 
     fn parse_line(&mut self, line: &'a str) {
         let values = line.split_whitespace().collect::<Vec<&'a str>>();
+        //println!("Parsing line: {values:?}");
         match values.split_first() {
             Some((&"v", arguments)) => self.parse_vertice(arguments),
             Some((&"f", arguments)) => self.parse_face(arguments),
@@ -95,12 +98,15 @@ impl<'a> ObjParser<'a> {
         //println!("vertice: {:?}", arguments);
         let numbers: Option<Vec<Float>> =
             arguments.iter().map(|f| f.parse::<Float>().ok()).collect();
+        //println!("  vertice numbers: {numbers:?}");
         if let Some(p) = numbers {
             if p.len() == 3 {
+                //println!("  adding vertice: {} {} {}", p[0], p[1], p[2]);
                 self.vertices.push(Point::point(p[0], p[1], p[2]));
                 return;
             }
         }
+        //println!("  ** ignored **");
         self.ignored += 1;
     }
 
@@ -177,6 +183,7 @@ impl<'a> ObjParser<'a> {
     fn add_face(&mut self, face: &mut Object) {
         if let Some(group) = self.groups.get_mut(self.latest_group) {
             group.add_child(face);
+            self.face_count += 1;
         }
     }
 

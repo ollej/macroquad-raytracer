@@ -1,3 +1,4 @@
+use macroquad::audio::{load_sound, play_sound_once};
 use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
@@ -649,8 +650,7 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
 
     world.objects.push(build_floor_plane()?);
 
-    let content =
-        fs::read_to_string("teapot-low.obj").map_err(|_e| format!("Couldn't read file"))?;
+    let content = fs::read_to_string("teapot.obj").map_err(|_e| format!("Couldn't read file"))?;
     let mut parser = ObjParser::new(content.as_ref());
     let material = Material {
         color: color(1.0, 0.84, 0.0),
@@ -665,17 +665,18 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
     parser.parse();
     let mut object = parser.obj_to_group()?;
     object.set_transform(
-        translation(-0.25, 0.5, 0.0)
+        translation(-0.25, 0.75, 0.0)
             * rotation_x(-PI / 8.0)
             * rotation_z(-PI / 8.0)
             * rotation_y(PI / 6.0)
-            * rotation_x(-PI / 2.0)
-            * scaling(0.1, 0.1, 0.1),
+            * scaling(0.5, 0.5, 0.5),
     )?;
+    //* rotation_x(-PI / 2.0)
     println!(
-        "File read. Vertices: {} Ignored lines: {}",
+        "File read. Vertices: {} Faces: {} Ignored lines: {}",
+        parser.vertices.len(),
+        parser.face_count,
         parser.ignored,
-        parser.vertices.len()
     );
 
     world.objects.push(object);
@@ -851,6 +852,13 @@ async fn main() -> Result<(), String> {
             elapsed.subsec_micros(),
             elapsed.subsec_nanos()
         );
+    }
+
+    if options.gong {
+        let sound = load_sound("gong.wav")
+            .await
+            .map_err(|_| "Failed to load sound")?;
+        play_sound_once(&sound);
     }
 
     let image = c.as_image();

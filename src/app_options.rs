@@ -106,12 +106,16 @@ pub struct AppOptions {
     pub hide: bool,
 
     /// Display elapsed time on stdout
-    #[arg(short = 't', long)]
+    #[arg(short, long)]
     pub time: bool,
 
     /// Size of canvas in pixels for both width and height
-    #[arg(short = 's', long, default_value = "100")]
+    #[arg(short, long, default_value = "100")]
     pub size: usize,
+
+    /// Play gong when render is complete
+    #[arg(short, long)]
+    pub gong: bool,
 }
 
 impl AppOptions {
