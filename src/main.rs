@@ -650,7 +650,8 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
 
     world.objects.push(build_floor_plane()?);
 
-    let content = fs::read_to_string("teapot.obj").map_err(|_e| format!("Couldn't read file"))?;
+    let content =
+        fs::read_to_string("teapot-hipoly.obj").map_err(|_e| format!("Couldn't read file"))?;
     let mut parser = ObjParser::new(content.as_ref());
     let material = Material {
         color: color(1.0, 0.84, 0.0),
@@ -669,9 +670,9 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
             * rotation_x(-PI / 8.0)
             * rotation_z(-PI / 8.0)
             * rotation_y(PI / 6.0)
-            * scaling(0.5, 0.5, 0.5),
+            * rotation_x(-PI / 2.0)
+            * scaling(0.1, 0.1, 0.1),
     )?;
-    //* rotation_x(-PI / 2.0)
     println!(
         "File read. Vertices: {} Faces: {} Ignored lines: {}",
         parser.vertices.len(),
