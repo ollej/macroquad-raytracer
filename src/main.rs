@@ -655,7 +655,6 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
     let content =
         fs::read_to_string("teapot-low.obj").map_err(|_e| format!("Couldn't read file"))?;
     let mut parser = ObjParser::new(content.as_ref());
-    parser.parse();
     let material = Material {
         color: color(1.0, 0.84, 0.0),
         diffuse: 0.6,
@@ -664,9 +663,12 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
         shininess: 5.0,
         ..Default::default()
     };
+    parser.set_material(material);
+    parser.parse();
     let mut object = parser.obj_to_group();
     object.set_transform(
-        translation(0.0, 0.5, 0.0)
+        translation(-0.25, 0.5, 0.0)
+            * rotation_x(-PI / 8.0)
             * rotation_z(-PI / 8.0)
             * rotation_y(PI / 6.0)
             * rotation_x(-PI / 2.0)
@@ -737,7 +739,7 @@ fn hexagon() -> Object {
 }
 
 fn setup_scene(canvas_size: usize) -> (Camera, World) {
-    let light_source = point_light(&point(-0.0, 10.0, -10.0), &color(1.0, 1.0, 1.0));
+    let light_source = point_light(&point(-2.0, 8.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
         objects: vec![],
         light: Some(light_source),

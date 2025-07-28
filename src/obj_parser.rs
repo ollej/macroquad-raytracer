@@ -50,16 +50,13 @@ impl<'a> ObjParser<'a> {
                 Object::new_group(IDENTITY_MATRIX, Material::default()),
             )]),
             normals: vec![Vector::empty_vector()],
-            material: Material {
-                color: color(1.0, 0.84, 0.0),
-                diffuse: 0.6,
-                reflective: 0.1,
-                specular: 0.3,
-                shininess: 5.0,
-                ..Default::default()
-            },
+            material: Material::default(),
             latest_group: Self::DEFAULT_GROUP,
         }
+    }
+
+    pub fn set_material(&mut self, material: Material) {
+        self.material = material;
     }
 
     pub fn parse(&mut self) {
