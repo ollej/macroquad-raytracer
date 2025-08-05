@@ -742,7 +742,7 @@ fn setup_scene(canvas_size: usize) -> Result<(Camera, World), String> {
     let light_source = point_light(&point(-2.0, 8.0, -10.0), &color(1.0, 1.0, 1.0));
     let world = World {
         objects: vec![],
-        light: Some(light_source),
+        lights: vec![light_source],
     };
 
     let mut camera = camera(canvas_size, canvas_size / 2, PI / 3.0, MAX_REFLECTIVE_DEPTH);

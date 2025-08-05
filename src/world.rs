@@ -27,14 +27,14 @@ pub fn color_at(world: &World, ray: &Ray, remaining: usize) -> Color {
     world.color_at(ray, remaining)
 }
 
-pub fn is_shadowed(world: &World, point: &Point) -> bool {
-    world.is_shadowed(point)
+pub fn is_shadowed(world: &World, point: &Point, light_position: &Point) -> bool {
+    world.is_shadowed(point, light_position)
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct World {
     pub objects: Vec<Object>,
-    pub light: Option<Light>,
+    pub lights: Vec<Light>,
 }
 
 impl Default for World {
@@ -51,10 +51,10 @@ impl Default for World {
         s2.set_transform(scaling(0.5, 0.5, 0.5)).unwrap();
         World {
             objects: vec![s1, s2],
-            light: Some(point_light(
+            lights: vec![point_light(
                 &point(-10.0, 10.0, -10.),
                 &color(1.0, 1.0, 1.0),
-            )),
+            )],
         }
     }
 }
@@ -63,12 +63,16 @@ impl World {
     pub fn new() -> Self {
         Self {
             objects: vec![],
-            light: None,
+            lights: vec![],
         }
     }
 
-    pub fn set_light(&mut self, light: &Light) {
-        self.light = Some(light.to_owned());
+    pub fn set_lights(&mut self, lights: Vec<Light>) {
+        self.lights = lights;
+    }
+
+    pub fn add_light(&mut self, light: &Light) {
+        self.lights.push(light.to_owned());
     }
 
     pub fn contains(&self, object: &Object) -> bool {
@@ -85,30 +89,31 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: &PreparedComputations, remaining: usize) -> Color {
-        let shadowed = self.is_shadowed(&comps.over_point);
-
-        let surface_color = match &self.light {
-            Some(light) => comps.object.lighting(
+        let mut acc_color = BLACK;
+        for light in self.lights.iter() {
+            let shadowed = self.is_shadowed(&comps.over_point, &light.position);
+            let surface_color = comps.object.lighting(
                 light,
                 &comps.over_point,
                 &comps.eyev,
                 &comps.normalv,
                 shadowed,
-            ),
-            None => BLACK,
-        };
+            );
 
-        let reflected_color = self.reflected_color(&comps, remaining);
-        let refracted_color = self.refracted_color(&comps, remaining);
+            let reflected_color = self.reflected_color(&comps, remaining);
+            let refracted_color = self.refracted_color(&comps, remaining);
 
-        if comps.object.is_reflective() && !comps.object.is_transparent() {
-            let reflectance = comps.schlick();
-            return surface_color
-                + reflected_color * reflectance
-                + refracted_color * (1.0 - reflectance);
+            if comps.object.is_reflective() && !comps.object.is_transparent() {
+                let reflectance = comps.schlick();
+                acc_color = acc_color
+                    + surface_color
+                    + reflected_color * reflectance
+                    + refracted_color * (1.0 - reflectance);
+            } else {
+                acc_color = acc_color + surface_color + reflected_color + refracted_color
+            }
         }
-
-        surface_color + reflected_color + refracted_color
+        acc_color
     }
 
     pub fn color_at(&self, ray: &Ray, remaining: usize) -> Color {
@@ -122,19 +127,15 @@ impl World {
         }
     }
 
-    pub fn is_shadowed(&self, point: &Point) -> bool {
-        if let Some(light) = &self.light {
-            let v = light.position - point;
-            let distance = v.magnitude();
-            let direction = v.normalize();
-            let r = ray(point, &direction);
-            self.intersect(&r)
-                .hit()
-                .map(|hit| hit.t < distance)
-                .unwrap_or(false)
-        } else {
-            false
-        }
+    pub fn is_shadowed(&self, point: &Point, light_position: &Point) -> bool {
+        let v = light_position - point;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+        let r = ray(point, &direction);
+        self.intersect(&r)
+            .hit()
+            .map(|hit| hit.t < distance)
+            .unwrap_or(false)
     }
 
     fn reflected_color(&self, comps: &PreparedComputations, remaining: usize) -> Color {
@@ -178,7 +179,7 @@ mod test_chapter_7_world {
     fn creating_a_world() {
         let w = world();
         assert_eq!(w.objects, vec![]);
-        assert_eq!(w.light, None);
+        assert_eq!(w.lights, vec![]);
     }
 
     #[test]
@@ -200,7 +201,7 @@ mod test_chapter_7_world {
         let mut s2 = sphere().unwrap();
         s2.set_transform(scaling(0.5, 0.5, 0.5)).unwrap();
         let w = default_world();
-        assert_eq!(w.light, Some(light));
+        assert_eq!(w.lights.first(), Some(&light));
         assert!(w.contains(&s1));
         assert!(w.contains(&s2));
 
@@ -237,7 +238,10 @@ mod test_chapter_7_world {
     #[test]
     fn shading_an_intersection_from_the_inside() {
         let mut w = default_world();
-        w.set_light(&point_light(&point(0.0, 0.25, 0.0), &color(1.0, 1.0, 1.0)));
+        w.set_lights(vec![point_light(
+            &point(0.0, 0.25, 0.0),
+            &color(1.0, 1.0, 1.0),
+        )]);
         let r = ray(&point(0.0, 0.0, 0.0), &vector(0.0, 0.0, 1.0));
         let shape = w.objects.get(1).unwrap();
         let i = intersection(0.5, shape.clone());
@@ -288,34 +292,39 @@ mod test_chapter_8_shadows {
     fn there_is_no_shadow_when_nothing_is_collinear_with_point_and_light() {
         let w = default_world();
         let p = point(0.0, 10.0, 0.0);
-        assert_eq!(is_shadowed(&w, &p), false);
+        let l = w.lights.first().unwrap().position;
+        assert_eq!(is_shadowed(&w, &p, &l), false);
+        assert_eq!(w.is_shadowed(&p, &l), false);
     }
 
     #[test]
     fn the_shadow_when_an_object_is_between_the_point_and_the_light() {
         let w = default_world();
         let p = point(10.0, -10.0, 10.0);
-        assert_eq!(is_shadowed(&w, &p), true);
+        let l = w.lights.first().unwrap().position;
+        assert_eq!(w.is_shadowed(&p, &l), true);
     }
 
     #[test]
     fn there_is_no_shadow_when_an_object_is_behind_the_light() {
         let w = default_world();
         let p = point(-20.0, 20.0, -20.0);
-        assert_eq!(is_shadowed(&w, &p), false);
+        let l = w.lights.first().unwrap().position;
+        assert_eq!(w.is_shadowed(&p, &l), false);
     }
 
     #[test]
     fn there_is_no_shadow_when_an_object_is_behind_the_point() {
         let w = default_world();
         let p = point(-2.0, 2.0, -2.0);
-        assert_eq!(is_shadowed(&w, &p), false);
+        let l = w.lights.first().unwrap().position;
+        assert_eq!(w.is_shadowed(&p, &l), false);
     }
 
     #[test]
     fn shade_hit_is_given_an_intersection_in_shadow() {
         let mut w = world();
-        w.set_light(&point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0)));
+        w.add_light(&point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0)));
         let s1 = sphere().unwrap();
         w.objects.push(s1);
         let s2 = Object::new_sphere(translation(0.0, 0.0, 10.0), Material::default()).unwrap();
@@ -386,7 +395,7 @@ mod test_chapter_11_reflection {
     #[test]
     fn color_at_with_mutually_reflective_surfaces() {
         let mut w = world();
-        w.set_light(&point_light(&point(0.0, 0.0, 0.0), &color(1.0, 1.0, 1.0)));
+        w.add_light(&point_light(&point(0.0, 0.0, 0.0), &color(1.0, 1.0, 1.0)));
         let mut lower = plane().unwrap();
         lower.material.reflective = 1.0;
         lower.set_transform(translation(0.0, -1.0, 0.0)).unwrap();
@@ -539,5 +548,33 @@ mod test_chapter_11_reflection {
         let comps = prepare_computations(&xs[0], &r, &xs);
         let c = w.shade_hit(&comps, 5);
         assert_eq!(c, color(0.93391, 0.69643, 0.69243));
+    }
+}
+
+#[cfg(test)]
+mod test_multiple_light_sources {
+    use super::*;
+
+    #[test]
+    fn world_can_have_multiple_light_sources() {
+        let mut w = world();
+        let l1 = point_light(&point(0.0, 0.0, 0.0), &color(1.0, 1.0, 1.0));
+        let l2 = point_light(&point(1.0, 1.0, 1.0), &color(1.0, 1.0, 1.0));
+        w.add_light(&l1);
+        w.add_light(&l2);
+        assert_eq!(w.lights, vec![l1, l2]);
+    }
+
+    #[test]
+    fn shade_hit_adds_color_from_all_lights() {
+        let mut w = default_world();
+        w.add_light(&point_light(&point(10.0, 10.0, 10.), &color(0.0, 1.0, 0.0)));
+        let r = ray(&point(0.0, 0.0, -5.0), &vector(0.0, 0.0, 1.0));
+        let shape = w.objects.first().unwrap();
+        let i = intersection(4.0, shape.clone());
+        let comps = i.prepare_computations(&r, &intersections(vec![i.clone()]));
+        let c = w.shade_hit(&comps, 0);
+
+        assert_eq!(c, color(0.38065, 0.57582, 0.28549));
     }
 }
