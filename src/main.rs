@@ -685,6 +685,47 @@ fn generate_scene_object(canvas_size: usize) -> Result<Canvas, String> {
     Ok(camera.render(&world))
 }
 
+fn generate_scene_lights(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size)?;
+    // Add multiple lights with less intensity to avoid blowout
+    let l1 = point_light(&point(-8.0, 8.0, -10.0), &color(0.3, 0.3, 0.3));
+    let l2 = point_light(&point(-2.0, 8.0, -10.0), &color(0.3, 0.3, 0.3));
+    let l3 = point_light(&point(2.0, 8.0, -10.0), &color(0.3, 0.3, 0.3));
+    let l4 = point_light(&point(8.0, 8.0, -10.0), &color(0.3, 0.3, 0.3));
+    world.set_lights(vec![l1, l2, l3, l4]);
+
+    world.objects.push(build_floor_plane()?);
+    world.objects.push(Object::new_sphere(
+        translation(-1.3, 0.4, 1.5) * scaling(0.4, 0.4, 0.4),
+        Material {
+            color: BLAZE_ORANGE,
+            diffuse: 0.8,
+            specular: 0.3,
+            ..Default::default()
+        },
+    )?);
+    world.objects.push(Object::new_sphere(
+        translation(0.0, 0.8, 2.5) * scaling(0.8, 0.8, 0.8),
+        Material {
+            color: BURNT_UMBER,
+            diffuse: 0.8,
+            specular: 0.3,
+            ..Default::default()
+        },
+    )?);
+    world.objects.push(Object::new_sphere(
+        translation(1.3, 0.6, 1.5) * scaling(0.6, 0.6, 0.6),
+        Material {
+            color: DEEP_CERULEAN,
+            diffuse: 0.8,
+            specular: 0.3,
+            ..Default::default()
+        },
+    )?);
+
+    Ok(camera.render(&world))
+}
+
 fn build_triangle(p1: Point, p2: Point, p3: Point) -> Result<Object, String> {
     Object::new_triangle(
         p1,
@@ -843,6 +884,7 @@ async fn main() -> Result<(), String> {
         Image::GroupedSpheres => generate_scene_grouped_spheres(options.size)?,
         Image::Triangle => generate_scene_triangle(options.size)?,
         Image::Object => generate_scene_object(options.size)?,
+        Image::Lights => generate_scene_lights(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();

@@ -8,23 +8,19 @@ pub fn color(red: Float, green: Float, blue: Float) -> Color {
 
 pub type Color = Tuple;
 
-pub const BLACK: Color = Color {
-    x: 0.,
-    y: 0.,
-    z: 0.,
-    w: 0.,
-};
-
-pub const WHITE: Color = Color {
-    x: 1.,
-    y: 1.,
-    z: 1.,
-    w: 0.,
-};
+pub const BLACK: Color = Color::color(0., 0., 0.);
+pub const WHITE: Color = Color::color(1., 1., 1.);
+pub const BANANA_MANIA: Color = Color::color(0.988, 0.89, 0.675);
+pub const BRIGHT_SUN: Color = Color::color(0.992, 0.82, 0.263);
+pub const BLAZE_ORANGE: Color = Color::color(0.973, 0.396, 0.024);
+pub const BURNT_UMBER: Color = Color::color(0.541, 0.145, 0.216);
+pub const TEAL_BLUE: Color = Color::color(0.02, 0.22, 0.373);
+pub const DEEP_CERULEAN: Color = Color::color(0.012, 0.494, 0.627);
+pub const PICTON_BLUE: Color = Color::color(0.298, 0.796, 0.933);
 
 impl Color {
-    pub fn color(red: Float, green: Float, blue: Float) -> Color {
-        Tuple {
+    pub const fn color(red: Float, green: Float, blue: Float) -> Color {
+        Color {
             x: red,
             y: green,
             z: blue,
@@ -49,6 +45,14 @@ impl Color {
 
     pub fn blue(&self) -> Float {
         self.z
+    }
+
+    pub fn lighten_only_blend(&self, other: Color) -> Color {
+        Color::color(
+            self.x.max(other.x),
+            self.y.max(other.y),
+            self.z.max(other.z),
+        )
     }
 }
 

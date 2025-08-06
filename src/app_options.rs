@@ -38,6 +38,7 @@ pub enum Image {
     GroupedSpheres,
     Triangle,
     Object,
+    Lights,
 }
 
 impl clap::ValueEnum for Image {
@@ -58,6 +59,7 @@ impl clap::ValueEnum for Image {
             Self::GroupedSpheres,
             Self::Triangle,
             Self::Object,
+            Self::Lights,
         ]
     }
 
@@ -78,6 +80,7 @@ impl clap::ValueEnum for Image {
             Self::GroupedSpheres => Some(clap::builder::PossibleValue::new("grouped-spheres")),
             Self::Triangle => Some(clap::builder::PossibleValue::new("triangle")),
             Self::Object => Some(clap::builder::PossibleValue::new("object")),
+            Self::Lights => Some(clap::builder::PossibleValue::new("lights")),
         }
     }
 }
