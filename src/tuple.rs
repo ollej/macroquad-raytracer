@@ -67,15 +67,6 @@ impl Tuple {
             self.x * other.y - self.y * other.x,
         )
     }
-
-    pub fn as_color(&self) -> macroquad::color::Color {
-        macroquad::color::Color {
-            r: self.x as f32,
-            g: self.y as f32,
-            b: self.z as f32,
-            a: 1.0,
-        }
-    }
 }
 
 impl Point {

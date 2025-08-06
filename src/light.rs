@@ -25,7 +25,7 @@ mod test_chapter_6_light {
 
     #[test]
     fn a_point_light_has_a_position_and_intensity() {
-        let intensity = Color::color(1., 1., 1.);
+        let intensity = Color::new(1., 1., 1.);
         let position = point(0., 0., 0.);
         let light = point_light(&position, &intensity);
         assert_eq!(light.position, position);
