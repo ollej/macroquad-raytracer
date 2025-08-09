@@ -6,9 +6,11 @@ from Pragmatic Programmer.
 
 ## Notable changes
 
+- CLI options
 - Display the generated images using Macroquad
 - Save PNG images using Macroquad
 - Uses the rayon crate for parallelization
+- Implemented multiple light sources
 
 ## Completed chapters
 
@@ -29,7 +31,16 @@ from Pragmatic Programmer.
 - [x] Chapter 15 - Triangles
 - [ ] Chapter 16 - Constructive Solid Geometry
 - [ ] Chapter 17 - Next steps
+  - [ ] Area Lights and Soft Shadows
+  - [ ] Spotlights
+  - [ ] Focal Blur
+  - [ ] Motion Blur
+  - [ ] Anti-aliasing
+  - [ ] Texture Maps
+  - [ ] Normal Perturbation
+  - [ ] Torus primitive
 - [ ] Appendix 1 - Rendering the cover image
 - [ ] Bonus chapter - Rendering soft shadows 
-- [ ] Bonus chapter - Bounding boxes and hierarchies
+- [X] Bonus chapter - Bounding boxes
+- [ ] Bonus chapter - Hierarchies
 - [ ] Bonus chapter - Texture mapping
