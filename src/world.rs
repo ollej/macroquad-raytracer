@@ -105,12 +105,11 @@ impl World {
 
             if comps.object.is_reflective() && !comps.object.is_transparent() {
                 let reflectance = comps.schlick();
-                acc_color = acc_color
-                    + surface_color
+                acc_color += surface_color
                     + reflected_color * reflectance
                     + refracted_color * (1.0 - reflectance);
             } else {
-                acc_color = acc_color + surface_color + reflected_color + refracted_color
+                acc_color += surface_color + reflected_color + refracted_color
             }
         }
         acc_color
