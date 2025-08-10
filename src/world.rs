@@ -599,6 +599,7 @@ mod test_soft_shadows {
         }
     }
 
+    #[test]
     fn point_lights_evaluate_the_light_intensity_at_a_given_point() {
         let w = default_world();
         let light = w.lights.first().unwrap();
@@ -619,6 +620,7 @@ mod test_soft_shadows {
         }
     }
 
+    #[test]
     fn lighting_uses_light_intensity_to_attenuate_color() {
         let mut w = default_world();
         let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));

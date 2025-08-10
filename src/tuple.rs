@@ -214,6 +214,14 @@ impl ops::Div<Float> for Tuple {
     }
 }
 
+impl ops::Div<Float> for &Tuple {
+    type Output = Tuple;
+
+    fn div(self, other: Float) -> Self::Output {
+        *self / other
+    }
+}
+
 impl ops::Mul<Matrix> for Tuple {
     type Output = Tuple;
 
