@@ -158,7 +158,6 @@ mod test_chapter_6_normals {
 
     use super::*;
     use crate::float::*;
-    use std::f64::consts::PI;
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {

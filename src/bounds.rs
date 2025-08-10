@@ -172,18 +172,22 @@ fn empty_bounding_box() -> BoundingBox {
 mod test_chapter_14_bounds {
     use super::*;
 
-    use std::f64::consts::PI;
+    use crate::float::*;
 
     #[test]
     fn an_empty_bounding_box_has_infinite_min_and_max() {
         let b = empty_bounding_box();
         assert_eq!(
             b.minimum,
-            point(f64::INFINITY, f64::INFINITY, f64::INFINITY)
+            point(Float::INFINITY, Float::INFINITY, Float::INFINITY)
         );
         assert_eq!(
             b.maximum,
-            point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY)
+            point(
+                Float::NEG_INFINITY,
+                Float::NEG_INFINITY,
+                Float::NEG_INFINITY
+            )
         );
     }
 

@@ -2,8 +2,6 @@ use crate::{
     bounds::*, float::*, intersection::*, material::*, matrix::*, object::*, ray::*, tuple::*,
 };
 
-use core::f64;
-
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Cylinder {
     minimum: Float,
@@ -22,8 +20,8 @@ impl Cylinder {
 
     pub fn infinite() -> Self {
         Self {
-            minimum: f64::NEG_INFINITY,
-            maximum: f64::INFINITY,
+            minimum: Float::NEG_INFINITY,
+            maximum: Float::INFINITY,
             closed: false,
         }
     }
@@ -97,8 +95,8 @@ pub fn cylinder(minimum: Float, maximum: Float, closed: bool) -> Result<Object, 
 
 pub fn infinite_cylinder(translation: Matrix, material: Material) -> Result<Object, String> {
     Object::new_cylinder(
-        f64::NEG_INFINITY,
-        f64::INFINITY,
+        Float::NEG_INFINITY,
+        Float::INFINITY,
         false,
         translation,
         material,
@@ -177,8 +175,8 @@ mod test_chapter_13_cylinder {
     #[test]
     fn the_default_minimum_and_maximum_for_a_cylinder() {
         let cyl = Cylinder::infinite();
-        assert_eq!(cyl.minimum, f64::NEG_INFINITY);
-        assert_eq!(cyl.maximum, f64::INFINITY);
+        assert_eq!(cyl.minimum, Float::NEG_INFINITY);
+        assert_eq!(cyl.maximum, Float::INFINITY);
     }
 
     #[test]
@@ -256,8 +254,8 @@ mod test_chapter_14_cylinder_bounds {
     fn an_unbounded_cylinder_has_a_bounding_box() {
         let cyl = infinite_cylinder(IDENTITY_MATRIX, Material::default()).unwrap();
         let b = cyl.bounding_box();
-        assert_eq!(b.minimum, point(-1.0, f64::NEG_INFINITY, -1.0));
-        assert_eq!(b.maximum, point(1.0, f64::INFINITY, 1.0));
+        assert_eq!(b.minimum, point(-1.0, Float::NEG_INFINITY, -1.0));
+        assert_eq!(b.maximum, point(1.0, Float::INFINITY, 1.0));
     }
 
     #[test]

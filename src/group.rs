@@ -84,8 +84,6 @@ mod test_chapter_14_group {
 
     use crate::{float::*, shape::*, sphere::*};
 
-    use std::f64::consts::PI;
-
     #[test]
     fn creating_a_new_group() {
         let g = empty_group().unwrap();

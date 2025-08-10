@@ -971,7 +971,7 @@ mod test_chapter_4_transformations {
     #![allow(non_snake_case)]
 
     use super::*;
-    use std::f64::consts::PI;
+    use crate::float::PI;
 
     #[test]
     fn multiplying_by_a_translation_matrix() {

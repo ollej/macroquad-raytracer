@@ -3,7 +3,7 @@ use macroquad_raytracer::prelude::*;
 
 use clap::Parser;
 use rayon::prelude::*;
-use std::{f64::consts::PI, fs, time::Instant};
+use std::{fs, time::Instant};
 
 fn generate_clock(canvas_size: usize) -> Result<Canvas, String> {
     let half_width = canvas_size as Float / 2.0;

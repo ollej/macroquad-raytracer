@@ -1,6 +1,9 @@
 pub const EPSILON: Float = 0.0001;
 
 pub type Float = f64;
+pub const PI: Float = std::f64::consts::PI;
+pub const INFINITY: Float = std::f64::INFINITY;
+pub const NEG_INFINITY: Float = std::f64::NEG_INFINITY;
 
 pub trait FloatExt {
     fn equals(&self, other: &Float) -> bool;

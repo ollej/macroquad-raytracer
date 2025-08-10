@@ -20,8 +20,8 @@ impl Cone {
 
     pub fn infinite() -> Self {
         Self {
-            minimum: f64::NEG_INFINITY,
-            maximum: f64::INFINITY,
+            minimum: Float::NEG_INFINITY,
+            maximum: Float::INFINITY,
             closed: false,
         }
     }
@@ -109,8 +109,8 @@ pub fn cone(minimum: Float, maximum: Float, closed: bool) -> Result<Object, Stri
 
 pub fn infinite_cone(translation: Matrix, material: Material) -> Result<Object, String> {
     Object::new_cone(
-        f64::NEG_INFINITY,
-        f64::INFINITY,
+        Float::NEG_INFINITY,
+        Float::INFINITY,
         false,
         translation,
         material,
@@ -234,11 +234,15 @@ mod test_chapter_14_cone_bounds {
         let b = c.bounding_box();
         assert_eq!(
             b.minimum,
-            point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY)
+            point(
+                Float::NEG_INFINITY,
+                Float::NEG_INFINITY,
+                Float::NEG_INFINITY
+            )
         );
         assert_eq!(
             b.maximum,
-            point(f64::INFINITY, f64::INFINITY, f64::INFINITY)
+            point(Float::INFINITY, Float::INFINITY, Float::INFINITY)
         );
     }
 

@@ -1,5 +1,3 @@
-use core::f64;
-
 use crate::{
     bounds::*, float::*, intersection::*, material::*, matrix::IDENTITY_MATRIX, object::*, ray::*,
     tuple::*,
@@ -27,8 +25,8 @@ impl Plane {
 impl Bounds for Plane {
     fn bounding_box(&self) -> BoundingBox {
         BoundingBox {
-            minimum: point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY),
-            maximum: point(f64::INFINITY, 0.0, f64::INFINITY),
+            minimum: point(Float::NEG_INFINITY, 0.0, Float::NEG_INFINITY),
+            maximum: point(Float::INFINITY, 0.0, Float::INFINITY),
         }
     }
 }
@@ -91,15 +89,16 @@ mod test_chapter_9_planes {
 
 #[cfg(test)]
 mod test_chapter_14_planes_bounds {
-    use core::f64;
-
     use super::*;
 
     #[test]
     fn planes_have_a_bounding_box_to_infinity() {
         let p = plane().unwrap();
         let b = p.bounding_box();
-        assert_eq!(b.minimum, point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY));
-        assert_eq!(b.maximum, point(f64::INFINITY, 0.0, f64::INFINITY));
+        assert_eq!(
+            b.minimum,
+            point(Float::NEG_INFINITY, 0.0, Float::NEG_INFINITY)
+        );
+        assert_eq!(b.maximum, point(Float::INFINITY, 0.0, Float::INFINITY));
     }
 }

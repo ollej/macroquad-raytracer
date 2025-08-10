@@ -238,8 +238,8 @@ mod test_chapter_9_shapes {
     #![allow(non_snake_case)]
 
     use super::*;
+    use crate::float::PI;
     use crate::test_common::*;
-    use std::f64::consts::PI;
 
     #[test]
     fn the_default_transformation() {

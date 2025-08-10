@@ -101,8 +101,6 @@ pub fn render(camera: &Camera, world: &World) -> Canvas {
 mod test_chapter_7_camera {
     use super::*;
 
-    use std::f64::consts::PI;
-
     #[test]
     fn constructing_a_camera() {
         let hsize = 160;
