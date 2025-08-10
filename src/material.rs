@@ -28,6 +28,7 @@ pub struct Material {
     pub reflective: Float,
     pub transparency: Float,
     pub refractive_index: Float,
+    pub shadow: bool,
     pub pattern: Option<Pattern>,
 }
 
@@ -41,6 +42,7 @@ impl Material {
         reflective: Float,
         transparency: Float,
         refractive_index: Float,
+        shadow: bool,
         pattern: Option<Pattern>,
     ) -> Self {
         Material {
@@ -52,6 +54,7 @@ impl Material {
             reflective,
             transparency,
             refractive_index,
+            shadow,
             pattern,
         }
     }
@@ -133,6 +136,7 @@ impl Default for Material {
             0.0,
             0.0,
             1.0,
+            true,
             None,
         )
     }

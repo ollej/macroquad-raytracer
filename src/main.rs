@@ -727,24 +727,65 @@ fn generate_scene_lights(canvas_size: usize) -> Result<Canvas, String> {
 }
 
 fn generate_scene_soft_shadows(canvas_size: usize) -> Result<Canvas, String> {
-    let (camera, mut world) = setup_scene(canvas_size)?;
-    // Add multiple lights with less intensity to avoid blowout
-    let l1 = point_light(&point(-8.0, 8.0, -10.0), &color(0.1, 0.1, 0.1));
-    let corner = point(9.5, 6.5, -5.0);
-    let v1 = vector(2.0, 0.0, 0.0);
-    let v2 = vector(0.0, 2.0, 0.0);
-    let area_light1 = area_light(&corner, &v1, 8, &v2, 8, &color(1.0, 1.0, 1.0));
-    let corner = point(5.5, 6.5, -5.0);
-    let area_light2 = area_light(&corner, &v1, 8, &v2, 8, &color(1.0, 1.0, 1.0));
-    world.set_lights(vec![area_light1, area_light2]);
+    let corner = point(-1.0, 2.0, 4.0);
+    let uvec = vector(2.0, 0.0, 0.0);
+    let vvec = vector(0.0, 2.0, 0.0);
+    let area_light1 = area_light(&corner, &uvec, 10, &vvec, 10, &color(1.5, 1.5, 1.5));
+    let mut world = World {
+        objects: vec![],
+        lights: vec![area_light1],
+    };
 
-    world.objects.push(build_floor_plane()?);
-    world.objects.push(Object::new_sphere(
-        translation(0.0, 0.6, 1.5) * scaling(0.6, 0.6, 0.6),
+    let mut camera = camera(canvas_size, canvas_size / 2, 0.7854, MAX_REFLECTIVE_DEPTH);
+    camera.set_transform(view_transform(
+        &point(-3.0, 1.0, 2.5),
+        &point(0.0, 0.5, 0.0),
+        &vector(0.0, 1.0, 0.0),
+    ))?;
+
+    world.objects.push(Object::new_cube(
+        translation(0.0, 3.0, 4.0) * scaling(1.0, 1.0, 0.01),
         Material {
-            color: BLAZE_ORANGE,
-            diffuse: 0.8,
-            specular: 0.3,
+            color: color(1.5, 1.5, 1.5),
+            ambient: 1.0,
+            diffuse: 0.0,
+            specular: 0.0,
+            shadow: false,
+            ..Default::default()
+        },
+    )?);
+
+    world.objects.push(Object::new_plane(
+        IDENTITY_MATRIX,
+        Material {
+            color: WHITE,
+            ambient: 0.025,
+            diffuse: 0.67,
+            specular: 0.0,
+            ..Default::default()
+        },
+    )?);
+
+    world.objects.push(Object::new_sphere(
+        translation(0.5, 0.5, 0.0) * scaling(0.5, 0.5, 0.5),
+        Material {
+            color: color(1.0, 0.0, 0.0),
+            ambient: 0.1,
+            specular: 0.0,
+            diffuse: 0.6,
+            reflective: 0.3,
+            ..Default::default()
+        },
+    )?);
+
+    world.objects.push(Object::new_sphere(
+        translation(-0.25, 0.33, 0.0) * scaling(0.33, 0.33, 0.33),
+        Material {
+            color: color(0.5, 0.5, 1.0),
+            ambient: 0.1,
+            specular: 0.0,
+            diffuse: 0.6,
+            reflective: 0.3,
             ..Default::default()
         },
     )?);

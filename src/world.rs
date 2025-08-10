@@ -133,7 +133,7 @@ impl World {
         let r = ray(point, &direction);
         self.intersect(&r)
             .hit()
-            .map(|hit| hit.t < distance)
+            .map(|hit| hit.object.has_shadow() && hit.t < distance)
             .unwrap_or(false)
     }
 

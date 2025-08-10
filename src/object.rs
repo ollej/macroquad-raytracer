@@ -197,6 +197,10 @@ impl Object {
         self.material.reflective > 0.0
     }
 
+    pub fn has_shadow(&self) -> bool {
+        self.material.shadow
+    }
+
     pub fn lighting(
         &self,
         light: &Light,
