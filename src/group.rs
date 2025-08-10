@@ -82,7 +82,7 @@ pub fn group(transform: Matrix, children: &mut Vec<Object>) -> Result<Object, St
 mod test_chapter_14_group {
     use super::*;
 
-    use crate::{shape::*, sphere::*};
+    use crate::{float::*, shape::*, sphere::*};
 
     use std::f64::consts::PI;
 
@@ -184,9 +184,9 @@ mod test_chapter_14_group {
         s.set_transform(translation(5.0, 0.0, 0.0)).unwrap();
         g2.add_child(s);
         let n = s.normal_to_world(&vector(
-            f64::sqrt(3.0) / 3.0,
-            f64::sqrt(3.0) / 3.0,
-            f64::sqrt(3.0) / 3.0,
+            Float::sqrt(3.0) / 3.0,
+            Float::sqrt(3.0) / 3.0,
+            Float::sqrt(3.0) / 3.0,
         ));
         assert_eq!(n, vector(0.2857, 0.4286, -0.8571));
     }

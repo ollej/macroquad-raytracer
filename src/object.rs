@@ -307,7 +307,7 @@ mod test_chapter_9_shapes {
         let m = scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0);
         s.set_transform(m).unwrap();
         let n = s.normal_at(
-            &point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0),
+            &point(0.0, Float::sqrt(2.0) / 2.0, -Float::sqrt(2.0) / 2.0),
             None,
         );
         assert_eq!(n, vector(0.0, 0.97014, -0.24254));

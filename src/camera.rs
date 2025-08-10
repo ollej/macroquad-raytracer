@@ -158,7 +158,7 @@ mod test_chapter_7_camera {
         assert_eq!(r.origin, point(0.0, 2.0, -5.0));
         assert_eq!(
             r.direction,
-            vector(2.0_f64.sqrt() / 2.0, 0.0, -2.0_f64.sqrt() / 2.0)
+            vector(Float::sqrt(2.0) / 2.0, 0.0, -Float::sqrt(2.0) / 2.0)
         );
     }
 

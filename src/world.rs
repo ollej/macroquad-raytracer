@@ -1,6 +1,6 @@
 use crate::{
-    color::*, intersection::*, light::*, material::*, matrix::*, object::*, ray::*, sphere::*,
-    tuple::*,
+    color::*, float::*, intersection::*, light::*, material::*, matrix::*, object::*, ray::*,
+    sphere::*, tuple::*,
 };
 
 pub fn world() -> World {
@@ -157,7 +157,7 @@ impl World {
         }
 
         // Find cos(theta_t) via trigonometric identity
-        let cos_t = f64::sqrt(1.0 - comps.sin2_t);
+        let cos_t = Float::sqrt(1.0 - comps.sin2_t);
         // Compute the direction of the refracted ray
         let direction =
             comps.normalv * (comps.n_ratio * comps.cos_i - cos_t) - comps.eyev * comps.n_ratio;
@@ -366,9 +366,9 @@ mod test_chapter_11_reflection {
         w.objects.push(shape.clone());
         let r = ray(
             &point(0.0, 0.0, -3.0),
-            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+            &vector(0.0, -Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0),
         );
-        let i = intersection(2.0_f64.sqrt(), shape);
+        let i = intersection(Float::sqrt(2.0), shape);
         let comps = i.prepare_computations(&r, &intersections(vec![i.clone()]));
         let c = w.reflected_color(&comps, 1);
         assert_eq!(c, color(0.1903322, 0.237915, 0.142749));
@@ -383,9 +383,9 @@ mod test_chapter_11_reflection {
         w.objects.push(shape.clone());
         let r = ray(
             &point(0.0, 0.0, -3.0),
-            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+            &vector(0.0, -Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0),
         );
-        let i = intersection(2.0_f64.sqrt(), shape);
+        let i = intersection(Float::sqrt(2.0), shape);
         let comps = i.prepare_computations(&r, &intersections(vec![i.clone()]));
         let c = w.shade_hit(&comps, 1);
         assert_eq!(c, color(0.876757, 0.924340, 0.829174));
@@ -417,9 +417,9 @@ mod test_chapter_11_reflection {
         w.objects.push(shape.clone());
         let r = ray(
             &point(0.0, 0.0, -3.0),
-            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+            &vector(0.0, -Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0),
         );
-        let i = intersection(2.0_f64.sqrt(), shape);
+        let i = intersection(Float::sqrt(2.0), shape);
         let comps = i.prepare_computations(&r, &intersections(vec![i.clone()]));
         let c = w.reflected_color(&comps, 0);
         assert_eq!(c, color(0.0, 0.0, 0.0));
@@ -464,12 +464,12 @@ mod test_chapter_11_reflection {
         shape.material.refractive_index = 1.5;
         w.objects[0] = shape.clone();
         let r = ray(
-            &point(0.0, 0.0, 2.0_f64.sqrt() / 2.0),
+            &point(0.0, 0.0, Float::sqrt(2.0) / 2.0),
             &vector(0.0, 1.0, 0.0),
         );
         let xs = intersections(vec![
-            Intersection::new(-2.0_f64.sqrt() / 2.0, shape.clone()),
-            Intersection::new(2.0_f64.sqrt() / 2.0, shape),
+            Intersection::new(-Float::sqrt(2.0) / 2.0, shape.clone()),
+            Intersection::new(Float::sqrt(2.0) / 2.0, shape),
         ]);
         // NOTE: this time you're inside the sphere, so you need;
         // to look at the second intersection, xs[1], not xs[0];
@@ -516,9 +516,9 @@ mod test_chapter_11_reflection {
         w.objects.push(ball);
         let r = ray(
             &point(0.0, 0.0, -3.0),
-            &vector(0.0, -f64::sqrt(2.0) / 2.0, f64::sqrt(2.0) / 2.0),
+            &vector(0.0, -Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0),
         );
-        let xs = intersections(vec![Intersection::new(f64::sqrt(2.0), floor)]);
+        let xs = intersections(vec![Intersection::new(Float::sqrt(2.0), floor)]);
         let comps = prepare_computations(&xs[0], &r, &xs);
         let c = w.shade_hit(&comps, 5);
         assert_eq!(c, color(0.93642, 0.68642, 0.68642));
@@ -541,9 +541,9 @@ mod test_chapter_11_reflection {
         w.objects.push(ball);
         let r = ray(
             &point(0.0, 0.0, -3.0),
-            &vector(0.0, -f64::sqrt(2.0) / 2.0, f64::sqrt(2.0) / 2.0),
+            &vector(0.0, -Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0),
         );
-        let xs = intersections(vec![Intersection::new(f64::sqrt(2.0), floor)]);
+        let xs = intersections(vec![Intersection::new(Float::sqrt(2.0), floor)]);
         let comps = prepare_computations(&xs[0], &r, &xs);
         let c = w.shade_hit(&comps, 5);
         assert_eq!(c, color(0.93391, 0.69643, 0.69243));

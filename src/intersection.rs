@@ -186,7 +186,7 @@ impl PreparedComputations {
             }
 
             // Compute cosine of theta_t using trig identity.
-            cos = f64::sqrt(1.0 - self.sin2_t);
+            cos = Float::sqrt(1.0 - self.sin2_t);
         }
 
         let r0 = ((self.n1 - self.n2) / (self.n1 + self.n2)).powf(2.0);
@@ -231,8 +231,8 @@ pub trait CylinderIntersection {
         }
 
         // Ray intersects with the cylinder
-        let t0 = &mut ((-b - f64::sqrt(discriminant)) / (2.0 * a));
-        let t1 = &mut ((-b + f64::sqrt(discriminant)) / (2.0 * a));
+        let t0 = &mut ((-b - discriminant.sqrt()) / (2.0 * a));
+        let t1 = &mut ((-b + discriminant.sqrt()) / (2.0 * a));
         if t0 > t1 {
             mem::swap(t0, t1);
         }
@@ -471,13 +471,13 @@ mod test_chapter_11_reflection {
         let shape = plane().unwrap();
         let r = ray(
             &point(0.0, 1.0, -1.0),
-            &vector(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+            &vector(0.0, -Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0),
         );
-        let i = intersection(2_f64.sqrt(), shape);
+        let i = intersection(Float::sqrt(2.0), shape);
         let comps = prepare_computations(&i, &r, &intersections(vec![i.clone()]));
         assert_eq!(
             comps.reflectv,
-            vector(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
+            vector(0.0, Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0)
         );
     }
 
@@ -533,12 +533,12 @@ mod test_chapter_11_reflection {
     fn the_schlick_approximation_under_total_internal_reflection() {
         let shape = glass_sphere().unwrap();
         let r = ray(
-            &point(0.0, 0.0, f64::sqrt(2.0) / 2.0),
+            &point(0.0, 0.0, Float::sqrt(2.0) / 2.0),
             &vector(0.0, 1.0, 0.0),
         );
         let xs = intersections(vec![
-            Intersection::new(-f64::sqrt(2.0) / 2.0, shape.clone()),
-            Intersection::new(f64::sqrt(2.0) / 2.0, shape),
+            Intersection::new(-Float::sqrt(2.0) / 2.0, shape.clone()),
+            Intersection::new(Float::sqrt(2.0) / 2.0, shape),
         ]);
         let comps = prepare_computations(&xs[1], &r, &xs);
         let reflectance = comps.schlick();

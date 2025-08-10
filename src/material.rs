@@ -177,7 +177,7 @@ mod test_chapter_6_material {
     #[test]
     fn lighting_with_the_eye_between_the_light_and_surface_eye_offset_45_degrees() {
         let (m, position) = test_common::setup();
-        let eyev = vector(0., 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
+        let eyev = vector(0., Float::sqrt(2.0) / 2.0, -Float::sqrt(2.0) / 2.0);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 0., -10.), &color(1., 1., 1.));
         let sphere = sphere().unwrap();
@@ -199,7 +199,7 @@ mod test_chapter_6_material {
     #[test]
     fn lighting_with_eye_in_the_path_of_the_reflection_vector() {
         let (m, position) = test_common::setup();
-        let eyev = vector(0., -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
+        let eyev = vector(0., -Float::sqrt(2.0) / 2.0, -Float::sqrt(2.0) / 2.0);
         let normalv = vector(0., 0., -1.);
         let light = point_light(&point(0., 10., -10.), &color(1., 1., 1.));
         let sphere = sphere().unwrap();

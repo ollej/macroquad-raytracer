@@ -4,12 +4,17 @@ pub type Float = f64;
 
 pub trait FloatExt {
     fn equals(&self, other: &Float) -> bool;
+    fn sqrt(value: Float) -> Float;
 }
 
 impl FloatExt for Float {
     fn equals(&self, other: &Float) -> bool {
         (self.is_infinite() && other.is_infinite() && self.signum() == other.signum())
             || (self - other).abs() < EPSILON
+    }
+
+    fn sqrt(value: Float) -> Float {
+        f64::sqrt(value)
     }
 }
 

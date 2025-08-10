@@ -35,7 +35,7 @@ impl Cone {
         } else if distance < 1.0 && p.y <= (self.minimum + EPSILON) {
             vector(0.0, -1.0, 0.0)
         } else {
-            let mut y = f64::sqrt(p.x.powf(2.0) + p.z.powf(2.0));
+            let mut y = Float::sqrt(p.x.powf(2.0) + p.z.powf(2.0));
             if p.y > 0.0 {
                 y = -y;
             }
@@ -213,7 +213,7 @@ mod test_chapter_13_cone {
 
         let examples = [
             (point(0.0, 0.0, 0.0), vector(0.0, 0.0, 0.0)),
-            (point(1.0, 1.0, 1.0), vector(1.0, -f64::sqrt(2.0), 1.0)),
+            (point(1.0, 1.0, 1.0), vector(1.0, -Float::sqrt(2.0), 1.0)),
             (point(-1.0, -1.0, 0.0), vector(-1.0, 1.0, 0.0)),
         ];
 

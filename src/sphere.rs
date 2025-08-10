@@ -157,6 +157,7 @@ mod test_chapter_6_normals {
     #![allow(non_snake_case)]
 
     use super::*;
+    use crate::float::*;
     use std::f64::consts::PI;
 
     #[test]
@@ -185,18 +186,18 @@ mod test_chapter_6_normals {
         let s = sphere().unwrap();
         let n = s.normal_at(
             &point(
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
+                Float::sqrt(3.0) / 3.0,
+                Float::sqrt(3.0) / 3.0,
+                Float::sqrt(3.0) / 3.0,
             ),
             None,
         );
         assert_eq!(
             n,
             vector(
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0
+                Float::sqrt(3.0) / 3.0,
+                Float::sqrt(3.0) / 3.0,
+                Float::sqrt(3.0) / 3.0
             )
         );
     }
@@ -206,9 +207,9 @@ mod test_chapter_6_normals {
         let s = sphere().unwrap();
         let n = s.normal_at(
             &point(
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
+                Float::sqrt(3.0) / 3.0,
+                Float::sqrt(3.0) / 3.0,
+                Float::sqrt(3.0) / 3.0,
             ),
             None,
         );
@@ -228,7 +229,10 @@ mod test_chapter_6_normals {
         let mut s = sphere().unwrap();
         let m = scaling(1., 0.5, 1.) * rotation_z(PI / 5.);
         s.set_transform(m).unwrap();
-        let n = s.normal_at(&point(0., 2.0_f64.sqrt() / 2., -2.0_f64.sqrt() / 2.), None);
+        let n = s.normal_at(
+            &point(0., Float::sqrt(2.0) / 2., -Float::sqrt(2.0) / 2.),
+            None,
+        );
         assert_eq!(n, vector(0., 0.97014, -0.24254));
     }
 }

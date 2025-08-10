@@ -1031,7 +1031,7 @@ mod test_chapter_4_transformations {
         let full_quarter = rotation_x(PI / 2.0);
         assert_eq!(
             half_quarter * p,
-            point(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
+            point(0.0, Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0)
         );
         assert_eq!(full_quarter * p, point(0.0, 0.0, 1.0));
     }
@@ -1043,7 +1043,7 @@ mod test_chapter_4_transformations {
         let inv = half_quarter.inverse().unwrap();
         assert_eq!(
             inv * p,
-            point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0)
+            point(0.0, Float::sqrt(2.0) / 2.0, -Float::sqrt(2.0) / 2.0)
         );
     }
 
@@ -1054,7 +1054,7 @@ mod test_chapter_4_transformations {
         let full_quarter = rotation_y(PI / 2.0);
         assert_eq!(
             half_quarter * p,
-            point(2.0_f64.sqrt() / 2.0, 0.0, 2.0_f64.sqrt() / 2.0)
+            point(Float::sqrt(2.0) / 2.0, 0.0, Float::sqrt(2.0) / 2.0)
         );
         assert_eq!(full_quarter * p, point(1.0, 0.0, 0.0));
     }
@@ -1066,7 +1066,7 @@ mod test_chapter_4_transformations {
         let full_quarter = rotation_z(PI / 2.0);
         assert_eq!(
             half_quarter * p,
-            point(-2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0)
+            point(-Float::sqrt(2.0) / 2.0, Float::sqrt(2.0) / 2.0, 0.0)
         );
         assert_eq!(full_quarter * p, point(-1.0, 0.0, 0.0));
     }
