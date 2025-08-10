@@ -27,8 +27,8 @@ pub fn color_at(world: &World, ray: &Ray, remaining: usize) -> Color {
     world.color_at(ray, remaining)
 }
 
-pub fn is_shadowed(world: &World, point: &Point, light_position: &Point) -> bool {
-    world.is_shadowed(point, light_position)
+pub fn is_shadowed(world: &World, light_position: &Point, point: &Point) -> bool {
+    world.is_shadowed(light_position, point)
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -91,13 +91,13 @@ impl World {
     pub fn shade_hit(&self, comps: &PreparedComputations, remaining: usize) -> Color {
         let mut acc_color = BLACK;
         for light in self.lights.iter() {
-            let shadowed = self.is_shadowed(&comps.over_point, &light.position);
+            let light_intensity = light.intensity_at(&comps.over_point, self);
             let surface_color = comps.object.lighting(
                 light,
                 &comps.over_point,
                 &comps.eyev,
                 &comps.normalv,
-                shadowed,
+                light_intensity,
             );
 
             let reflected_color = self.reflected_color(&comps, remaining);
@@ -126,7 +126,7 @@ impl World {
         }
     }
 
-    pub fn is_shadowed(&self, point: &Point, light_position: &Point) -> bool {
+    pub fn is_shadowed(&self, light_position: &Point, point: &Point) -> bool {
         let v = light_position - point;
         let distance = v.magnitude();
         let direction = v.normalize();
@@ -575,5 +575,73 @@ mod test_multiple_light_sources {
         let c = w.shade_hit(&comps, 0);
 
         assert_eq!(c, color(0.38065, 0.57582, 0.28549));
+    }
+}
+
+#[cfg(test)]
+mod test_soft_shadows {
+    use super::*;
+
+    #[test]
+    fn is_shadow_tests_for_occlusion_between_two_points() {
+        let w = default_world();
+        let light_position = point(-10., -10., -10.);
+
+        let examples = [
+            (point(-10., -10., 10.), false),
+            (point(10., 10., 10.), true),
+            (point(-20., -20., -20.), false),
+            (point(-5., -5., -5.), false),
+        ];
+
+        for (point, result) in examples {
+            assert_eq!(w.is_shadowed(&light_position, &point), result);
+        }
+    }
+
+    fn point_lights_evaluate_the_light_intensity_at_a_given_point() {
+        let w = default_world();
+        let light = w.lights.first().unwrap();
+
+        let examples = [
+            (point(0.0, 1.0001, 0.0), 1.0),
+            (point(-1.0001, 0.0, 0.0), 1.0),
+            (point(0.0, 0.0, -1.0001), 1.0),
+            (point(0.0, 0.0, 1.0001), 0.0),
+            (point(1.0001, 0.0, 0.0), 0.0),
+            (point(0.0, -1.0001, 0.0), 0.0),
+            (point(0.0, 0.0, 0.0), 0.0),
+        ];
+
+        for (pt, result) in examples {
+            let intensity = light.intensity_at(&pt, &w);
+            assert_eq!(intensity, result);
+        }
+    }
+
+    fn lighting_uses_light_intensity_to_attenuate_color() {
+        let mut w = default_world();
+        let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
+        w.set_lights(vec![light]);
+        let mut shape = w.objects.first().unwrap().clone();
+        shape.material.ambient = 0.1;
+        shape.material.diffuse = 0.9;
+        shape.material.specular = 0.0;
+        shape.material.color = color(1.0, 1.0, 1.0);
+        w.objects[0] = shape.clone();
+        let pt = point(0.0, 0.0, -1.0);
+        let eyev = vector(0.0, 0.0, -1.0);
+        let normalv = vector(0.0, 0.0, -1.0);
+
+        let examples = [
+            (1.0, color(1.0, 1.0, 1.0)),
+            (0.5, color(0.55, 0.55, 0.55)),
+            (0.0, color(0.1, 0.1, 0.1)),
+        ];
+
+        for (intensity, result) in examples {
+            let lighting = shape.lighting(&light, &pt, &eyev, &normalv, intensity);
+            assert_eq!(lighting, result);
+        }
     }
 }

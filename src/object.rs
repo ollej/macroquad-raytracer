@@ -203,10 +203,10 @@ impl Object {
         point: &Point,
         eyev: &Vector,
         normalv: &Vector,
-        in_shadow: bool,
+        light_intensity: Float,
     ) -> Color {
         self.material
-            .lighting(self, light, point, eyev, normalv, in_shadow)
+            .lighting(self, light, point, eyev, normalv, light_intensity)
     }
 
     pub fn bounding_box(&self) -> BoundingBox {

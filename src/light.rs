@@ -1,10 +1,10 @@
-use crate::{color::*, tuple::*};
+use crate::{color::*, float::*, tuple::*, world::*};
 
 pub fn point_light(origin: &Point, intensity: &Color) -> Light {
     Light::new(origin.to_owned(), intensity.to_owned())
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Light {
     pub position: Point,
     pub intensity: Color,
@@ -15,6 +15,14 @@ impl Light {
         Light {
             position,
             intensity,
+        }
+    }
+
+    pub fn intensity_at(&self, point: &Point, world: &World) -> Float {
+        if world.is_shadowed(&self.position, point) {
+            0.0
+        } else {
+            1.0
         }
     }
 }

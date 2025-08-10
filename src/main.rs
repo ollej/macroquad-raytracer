@@ -80,7 +80,7 @@ fn generate_sphere(canvas_size: usize) -> Result<Canvas, String> {
                 let color =
                     hit.object
                         .material
-                        .lighting(&hit.object, &light, &point, &eye, &normal, false);
+                        .lighting(&hit.object, &light, &point, &eye, &normal, 1.0);
 
                 canvas.write_pixel(x, y, &color);
             }
@@ -126,7 +126,7 @@ fn generate_sphere_rayon(canvas_size: usize) -> Result<Canvas, String> {
                         &point,
                         &eye,
                         &normal,
-                        false,
+                        1.0,
                     );
 
                     (x, y, color)
