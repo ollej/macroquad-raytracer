@@ -1,4 +1,5 @@
 use crate::{color::*, float::*, tuple::*, world::*};
+use macroquad::rand;
 
 pub fn point_light(origin: &Point, intensity: &Color) -> Light {
     Light::point_light(origin, intensity)
@@ -22,17 +23,31 @@ pub enum LightType {
 }
 
 impl LightType {
-    pub fn intensity_at(&self, light: &Light, point: &Point, world: &World) -> Float {
+    pub fn intensity_at(
+        &self,
+        light: &Light,
+        point: &Point,
+        world: &World,
+        jitter_by: impl FnMut() -> Float,
+    ) -> Float {
         match self {
             LightType::PointLight(point_light) => point_light.intensity_at(light, point, world),
-            LightType::AreaLight(area_light) => area_light.intensity_at(light, point, world),
+            LightType::AreaLight(area_light) => {
+                area_light.intensity_at(light, point, world, jitter_by)
+            }
         }
     }
 
-    pub fn point_on_light(&self, light: &Light, u: usize, v: usize) -> Point {
+    pub fn point_on_light(
+        &self,
+        light: &Light,
+        u: usize,
+        v: usize,
+        jitter_by: impl FnMut() -> Float,
+    ) -> Point {
         match self {
             LightType::PointLight(_point_light) => light.position,
-            LightType::AreaLight(area_light) => area_light.point_on_light(u, v),
+            LightType::AreaLight(area_light) => area_light.point_on_light(u, v, jitter_by),
         }
     }
 }
@@ -78,12 +93,21 @@ impl Light {
         )
     }
 
-    pub fn point_on_light(&self, u: usize, v: usize) -> Point {
-        self.light_type.point_on_light(self, u, v)
+    pub fn point_on_light(&self, u: usize, v: usize, jitter_by: impl FnMut() -> Float) -> Point {
+        self.light_type.point_on_light(self, u, v, jitter_by)
     }
 
     pub fn intensity_at(&self, point: &Point, world: &World) -> Float {
-        self.light_type.intensity_at(self, point, world)
+        self.intensity_at_jittered(point, world, || rand::gen_range(0.0, 1.0))
+    }
+
+    pub fn intensity_at_jittered(
+        &self,
+        point: &Point,
+        world: &World,
+        jitter_by: impl FnMut() -> Float,
+    ) -> Float {
+        self.light_type.intensity_at(self, point, world, jitter_by)
     }
 }
 
@@ -131,16 +155,29 @@ impl AreaLight {
         }
     }
 
-    pub fn point_on_light(&self, u: usize, v: usize) -> Point {
-        self.corner + self.uvec * (u as Float + 0.5) + self.vvec * (v as Float + 0.5)
+    pub fn point_on_light(
+        &self,
+        u: usize,
+        v: usize,
+        mut jitter_by: impl FnMut() -> Float,
+    ) -> Point {
+        self.corner
+            + self.uvec * (u as Float + jitter_by())
+            + self.vvec * (v as Float + jitter_by())
     }
 
-    pub fn intensity_at(&self, light: &Light, point: &Point, world: &World) -> Float {
+    pub fn intensity_at(
+        &self,
+        light: &Light,
+        point: &Point,
+        world: &World,
+        mut jitter_by: impl FnMut() -> Float,
+    ) -> Float {
         let mut total = 0.0;
 
         for v in 0..self.vsteps {
             for u in 0..self.usteps {
-                let light_position = light.point_on_light(u, v);
+                let light_position = light.point_on_light(u, v, &mut jitter_by);
                 if !world.is_shadowed(&light_position, point) {
                     total += 1.0;
                 }
@@ -168,6 +205,11 @@ mod test_chapter_6_light {
 #[cfg(test)]
 mod test_area_light {
     use super::*;
+
+    fn sequence(sequence: Vec<Float>) -> impl FnMut() -> Float {
+        let mut cycle = sequence.into_iter().cycle();
+        return move || cycle.next().unwrap();
+    }
 
     #[test]
     fn creating_an_area_light() {
@@ -205,7 +247,7 @@ mod test_area_light {
         ];
 
         for (u, v, result) in examples {
-            let pt = light.point_on_light(u, v);
+            let pt = light.point_on_light(u, v, || 0.5);
             assert_eq!(pt, result);
         }
     }
@@ -227,7 +269,61 @@ mod test_area_light {
         ];
 
         for (pt, result) in examples {
-            let intensity = light.intensity_at(&pt, &w);
+            let intensity = light.intensity_at_jittered(&pt, &w, || 0.5);
+            assert_eq!(intensity, result);
+        }
+    }
+
+    #[test]
+    fn a_number_generator_returns_a_cyclic_sequence_of_numbers() {
+        let mut genseq = sequence(vec![0.1, 0.5, 1.0]);
+        assert_eq!(genseq(), 0.1);
+        assert_eq!(genseq(), 0.5);
+        assert_eq!(genseq(), 1.0);
+        assert_eq!(genseq(), 0.1);
+    }
+
+    #[test]
+    fn finding_a_single_point_on_a_jittered_area_light() {
+        let corner = point(0.0, 0.0, 0.0);
+        let v1 = vector(2.0, 0.0, 0.0);
+        let v2 = vector(0.0, 0.0, 1.0);
+        let light = area_light(&corner, &v1, 4, &v2, 2, &color(1.0, 1.0, 1.0));
+        let mut jitter_by = sequence(vec![0.3, 0.7]);
+
+        let examples = [
+            (0, 0, point(0.15, 0.0, 0.35)),
+            (1, 0, point(0.65, 0.0, 0.35)),
+            (0, 1, point(0.15, 0.0, 0.85)),
+            (2, 0, point(1.15, 0.0, 0.35)),
+            (3, 1, point(1.65, 0.0, 0.85)),
+        ];
+
+        for (u, v, result) in examples {
+            let pt = light.point_on_light(u, v, &mut jitter_by);
+            assert_eq!(pt, result);
+        }
+    }
+
+    #[test]
+    fn the_area_light_with_jittered_samples() {
+        let w = default_world();
+        let corner = point(-0.5, -0.5, -5.0);
+        let v1 = vector(1.0, 0.0, 0.0);
+        let v2 = vector(0.0, 1.0, 0.0);
+        let light = area_light(&corner, &v1, 2, &v2, 2, &color(1.0, 1.0, 1.0));
+
+        let examples = [
+            (point(0.0, 0.0, 2.0), 0.0),
+            (point(1.0, -1.0, 2.0), 0.5),
+            (point(1.5, 0.0, 2.0), 0.75),
+            (point(1.25, 1.25, 3.0), 0.75),
+            (point(0.0, 0.0, -2.0), 1.0),
+        ];
+
+        for (pt, result) in examples {
+            let mut jitter_by = sequence(vec![0.7, 0.3, 0.9, 0.1, 0.5]);
+            let intensity = light.intensity_at_jittered(&pt, &w, &mut jitter_by);
             assert_eq!(intensity, result);
         }
     }
