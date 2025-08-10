@@ -726,6 +726,32 @@ fn generate_scene_lights(canvas_size: usize) -> Result<Canvas, String> {
     Ok(camera.render(&world))
 }
 
+fn generate_scene_soft_shadows(canvas_size: usize) -> Result<Canvas, String> {
+    let (camera, mut world) = setup_scene(canvas_size)?;
+    // Add multiple lights with less intensity to avoid blowout
+    let l1 = point_light(&point(-8.0, 8.0, -10.0), &color(0.1, 0.1, 0.1));
+    let corner = point(9.5, 6.5, -5.0);
+    let v1 = vector(2.0, 0.0, 0.0);
+    let v2 = vector(0.0, 2.0, 0.0);
+    let area_light1 = area_light(&corner, &v1, 8, &v2, 8, &color(1.0, 1.0, 1.0));
+    let corner = point(5.5, 6.5, -5.0);
+    let area_light2 = area_light(&corner, &v1, 8, &v2, 8, &color(1.0, 1.0, 1.0));
+    world.set_lights(vec![area_light1, area_light2]);
+
+    world.objects.push(build_floor_plane()?);
+    world.objects.push(Object::new_sphere(
+        translation(0.0, 0.6, 1.5) * scaling(0.6, 0.6, 0.6),
+        Material {
+            color: BLAZE_ORANGE,
+            diffuse: 0.8,
+            specular: 0.3,
+            ..Default::default()
+        },
+    )?);
+
+    Ok(camera.render(&world))
+}
+
 fn build_triangle(p1: Point, p2: Point, p3: Point) -> Result<Object, String> {
     Object::new_triangle(
         p1,
@@ -885,6 +911,7 @@ async fn main() -> Result<(), String> {
         Image::Triangle => generate_scene_triangle(options.size)?,
         Image::Object => generate_scene_object(options.size)?,
         Image::Lights => generate_scene_lights(options.size)?,
+        Image::SoftShadows => generate_scene_soft_shadows(options.size)?,
     };
     if options.time {
         let elapsed = before.elapsed();

@@ -39,6 +39,7 @@ pub enum Image {
     Triangle,
     Object,
     Lights,
+    SoftShadows,
 }
 
 impl clap::ValueEnum for Image {
@@ -60,6 +61,7 @@ impl clap::ValueEnum for Image {
             Self::Triangle,
             Self::Object,
             Self::Lights,
+            Self::SoftShadows,
         ]
     }
 
@@ -81,6 +83,7 @@ impl clap::ValueEnum for Image {
             Self::Triangle => Some(clap::builder::PossibleValue::new("triangle")),
             Self::Object => Some(clap::builder::PossibleValue::new("object")),
             Self::Lights => Some(clap::builder::PossibleValue::new("lights")),
+            Self::SoftShadows => Some(clap::builder::PossibleValue::new("soft-shadows")),
         }
     }
 }
