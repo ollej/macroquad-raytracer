@@ -90,6 +90,26 @@ impl Material {
             return ambient;
         }
 
+        let (diffuse, specular) = self.calculate_diffuse_and_specular_for_light(
+            light,
+            point,
+            normalv,
+            &effective_color,
+            eyev,
+        );
+
+        // Add the three contributions together to get the final shading
+        ambient + (diffuse * light_intensity) + (specular * light_intensity)
+    }
+
+    fn calculate_diffuse_and_specular_for_light(
+        &self,
+        light: &Light,
+        point: &Point,
+        normalv: &Vector,
+        effective_color: &Color,
+        eyev: &Vector,
+    ) -> (Color, Color) {
         // Find the direction to the light source
         let lightv = (light.position - point).normalize();
 
@@ -97,31 +117,28 @@ impl Material {
         // light vector and the normal vector. A negative number means the
         // light is on the other side of the surface.
         let light_dot_normal = lightv.dot(normalv);
-        let (diffuse, specular) = if light_dot_normal < 0. {
-            (BLACK, BLACK)
+        if light_dot_normal < 0. {
+            return (BLACK, BLACK);
+        }
+
+        // Compute the diffuse contribution
+        let diffuse = *effective_color * self.diffuse * light_dot_normal;
+
+        // reflect_dot_eye represents the cosine of the angle between the
+        // reflection vector and the eye vector. A negative number means the
+        // light reflects away from the eye.
+        let reflectv = (-lightv).reflect(normalv);
+        let reflect_dot_eye = reflectv.dot(eyev);
+
+        let specular: Color = if reflect_dot_eye <= 0. {
+            BLACK
         } else {
-            // Compute the diffuse contribution
-            let diffuse = effective_color * self.diffuse * light_dot_normal;
-
-            // reflect_dot_eye represents the cosine of the angle between the
-            // reflection vector and the eye vector. A negative number means the
-            // light reflects away from the eye.
-            let reflectv = (-lightv).reflect(normalv);
-            let reflect_dot_eye = reflectv.dot(eyev);
-
-            let specular: Color = if reflect_dot_eye <= 0. {
-                BLACK
-            } else {
-                // Compute the specular contribution
-                let factor = reflect_dot_eye.powf(self.shininess);
-                light.intensity * self.specular * factor
-            };
-
-            (diffuse, specular)
+            // Compute the specular contribution
+            let factor = reflect_dot_eye.powf(self.shininess);
+            light.intensity * self.specular * factor
         };
 
-        // Add the three contributions together to get the final shading
-        ambient + (diffuse * light_intensity) + (specular * light_intensity)
+        (diffuse, specular)
     }
 }
 
@@ -289,5 +306,40 @@ mod test_chapter_11_reflection {
         let m = material();
         assert_eq!(m.transparency, 0.0);
         assert_eq!(m.refractive_index, 1.0);
+    }
+}
+
+#[cfg(test)]
+mod test_soft_shadows {
+    use super::*;
+
+    use crate::sphere::*;
+
+    #[test]
+    fn lighting_samples_the_area_light() {
+        let corner = point(-0.5, -0.5, -5.0);
+        let v1 = vector(1.0, 0.0, 0.0);
+        let v2 = vector(0.0, 1.0, 0.0);
+        let light = area_light(&corner, &v1, 2, &v2, 2, &color(1.0, 1.0, 1.0));
+        let mut shape = sphere().unwrap();
+        shape.material.ambient = 0.1;
+        shape.material.diffuse = 0.9;
+        shape.material.specular = 0.0;
+        shape.material.color = color(1.0, 1.0, 1.0);
+        let eye = point(0.0, 0.0, -5.0);
+
+        let examples = [
+            (point(0.0, 0.0, -1.0), color(0.9965, 0.9965, 0.9965)),
+            (point(0.0, 0.7071, -0.7071), color(0.6232, 0.6232, 0.6232)),
+        ];
+
+        for (pt, result) in examples {
+            let eyev = (eye - pt).normalize();
+            let normalv = vector(pt.x, pt.y, pt.z);
+            let color = shape
+                .material
+                .lighting(&shape, &light, &pt, &eyev, &normalv, 1.0);
+            assert_eq!(color, result);
+        }
     }
 }

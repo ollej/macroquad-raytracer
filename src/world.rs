@@ -194,6 +194,7 @@ mod test_chapter_7_world {
             0.0,
             0.0,
             1.0,
+            true,
             None,
         );
         s1.set_material(&m);
