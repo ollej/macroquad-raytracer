@@ -303,7 +303,7 @@ mod test_soft_shadows {
         let corner = point(-0.5, -0.5, -5.0);
         let v1 = vector(1.0, 0.0, 0.0);
         let v2 = vector(0.0, 1.0, 0.0);
-        let light = area_light(&corner, &v1, 2, &v2, 2, &color(1.0, 1.0, 1.0));
+        let light = area_light_with_jitter(&corner, &v1, 2, &v2, 2, &color(1.0, 1.0, 1.0), || 0.5);
         let mut shape = sphere().unwrap();
         shape.material.ambient = 0.1;
         shape.material.diffuse = 0.9;
