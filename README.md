@@ -31,7 +31,7 @@ from Pragmatic Programmer.
 - [x] Chapter 15 - Triangles
 - [ ] Chapter 16 - Constructive Solid Geometry
 - [ ] Chapter 17 - Next steps
-  - [ ] Area Lights and Soft Shadows
+  - [X] Area Lights and Soft Shadows
   - [ ] Spotlights
   - [ ] Focal Blur
   - [ ] Motion Blur
@@ -40,7 +40,7 @@ from Pragmatic Programmer.
   - [ ] Normal Perturbation
   - [ ] Torus primitive
 - [ ] Appendix 1 - Rendering the cover image
-- [ ] Bonus chapter - Rendering soft shadows 
+- [X] Bonus chapter - Rendering soft shadows 
 - [X] Bonus chapter - Bounding boxes
 - [ ] Bonus chapter - Hierarchies
 - [ ] Bonus chapter - Texture mapping
