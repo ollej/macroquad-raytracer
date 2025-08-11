@@ -97,6 +97,18 @@ impl ops::Mul<Float> for Color {
     }
 }
 
+impl ops::Div<Float> for Color {
+    type Output = Color;
+
+    fn div(self, other: Float) -> Self::Output {
+        Color {
+            red: self.red / other,
+            green: self.green / other,
+            blue: self.blue / other,
+        }
+    }
+}
+
 impl ops::Add<&Color> for Color {
     type Output = Color;
 

@@ -16,7 +16,7 @@ pub fn area_light(
     Light::area_light(corner, full_uvec, usteps, full_vvec, vsteps, intensity)
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum LightType {
     PointLight(PointLight),
     AreaLight(AreaLight),
@@ -50,9 +50,16 @@ impl LightType {
             LightType::AreaLight(area_light) => area_light.point_on_light(u, v, jitter_by),
         }
     }
+
+    pub fn samples(&self) -> usize {
+        match self {
+            LightType::PointLight(_point_light) => 1,
+            LightType::AreaLight(area_light) => area_light.samples,
+        }
+    }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct Light {
     pub light_type: LightType,
     pub position: Point,
@@ -93,6 +100,17 @@ impl Light {
         )
     }
 
+    pub fn positions(&self) -> Vec<Point> {
+        match &self.light_type {
+            LightType::PointLight(_point_light) => vec![self.position],
+            LightType::AreaLight(area_light) => area_light.positions.clone(),
+        }
+    }
+
+    pub fn samples(&self) -> usize {
+        self.light_type.samples()
+    }
+
     pub fn point_on_light(&self, u: usize, v: usize, jitter_by: impl FnMut() -> Float) -> Point {
         self.light_type.point_on_light(self, u, v, jitter_by)
     }
@@ -124,7 +142,7 @@ impl PointLight {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct AreaLight {
     corner: Point,
     uvec: Vector,
@@ -133,6 +151,7 @@ pub struct AreaLight {
     vsteps: usize,
     intensity: Color,
     samples: usize,
+    positions: Vec<Point>,
 }
 
 impl AreaLight {
@@ -144,26 +163,40 @@ impl AreaLight {
         vsteps: usize,
         intensity: &Color,
     ) -> Self {
+        let uvec = full_uvec / usteps as Float;
+        let vvec = full_vvec / vsteps as Float;
+        let mut positions = vec![];
+        for v in 0..vsteps {
+            for u in 0..usteps {
+                let light_position = Self::point_on_light_impl(u, v, corner, &uvec, &vvec, || 0.5);
+                positions.push(light_position);
+            }
+        }
         Self {
             corner: corner.to_owned(),
-            uvec: full_uvec / usteps as Float,
+            uvec,
             usteps,
-            vvec: full_vvec / vsteps as Float,
+            vvec,
             vsteps,
             intensity: intensity.to_owned(),
             samples: usteps * vsteps,
+            positions,
         }
     }
 
-    pub fn point_on_light(
-        &self,
+    pub fn point_on_light(&self, u: usize, v: usize, jitter_by: impl FnMut() -> Float) -> Point {
+        Self::point_on_light_impl(u, v, &self.corner, &self.uvec, &self.vvec, jitter_by)
+    }
+
+    pub fn point_on_light_impl(
         u: usize,
         v: usize,
+        corner: &Point,
+        uvec: &Vector,
+        vvec: &Vector,
         mut jitter_by: impl FnMut() -> Float,
     ) -> Point {
-        self.corner
-            + self.uvec * (u as Float + jitter_by())
-            + self.vvec * (v as Float + jitter_by())
+        *corner + uvec * (u as Float + jitter_by()) + vvec * (v as Float + jitter_by())
     }
 
     pub fn intensity_at(

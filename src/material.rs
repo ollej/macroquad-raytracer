@@ -90,55 +90,38 @@ impl Material {
             return ambient;
         }
 
-        let (diffuse, specular) = self.calculate_diffuse_and_specular_for_light(
-            light,
-            point,
-            normalv,
-            &effective_color,
-            eyev,
-        );
+        let mut sum_color = BLACK;
+        for light_position in light.positions() {
+            // Find the direction to the light source
+            let lightv = (light_position - point).normalize();
 
-        // Add the three contributions together to get the final shading
-        ambient + (diffuse * light_intensity) + (specular * light_intensity)
-    }
+            // light_dot_normal represents the cosine of the angle between the
+            // light vector and the normal vector. A negative number means the
+            // light is on the other side of the surface.
+            let light_dot_normal = lightv.dot(normalv);
 
-    fn calculate_diffuse_and_specular_for_light(
-        &self,
-        light: &Light,
-        point: &Point,
-        normalv: &Vector,
-        effective_color: &Color,
-        eyev: &Vector,
-    ) -> (Color, Color) {
-        // Find the direction to the light source
-        let lightv = (light.position - point).normalize();
+            if light_dot_normal >= 0.0 {
+                // Compute the diffuse contribution
+                let diffuse = effective_color * self.diffuse * light_dot_normal;
+                sum_color += diffuse;
 
-        // light_dot_normal represents the cosine of the angle between the
-        // light vector and the normal vector. A negative number means the
-        // light is on the other side of the surface.
-        let light_dot_normal = lightv.dot(normalv);
-        if light_dot_normal < 0. {
-            return (BLACK, BLACK);
+                // reflect_dot_eye represents the cosine of the angle between the
+                // reflection vector and the eye vector. A negative number means the
+                // light reflects away from the eye.
+                let reflectv = (-lightv).reflect(normalv);
+                let reflect_dot_eye = reflectv.dot(eyev);
+
+                if reflect_dot_eye > 0. {
+                    // Compute the specular contribution
+                    let factor = reflect_dot_eye.powf(self.shininess);
+                    let specular = light.intensity * self.specular * factor;
+                    sum_color += specular;
+                };
+            }
         }
 
-        // Compute the diffuse contribution
-        let diffuse = *effective_color * self.diffuse * light_dot_normal;
-
-        // reflect_dot_eye represents the cosine of the angle between the
-        // reflection vector and the eye vector. A negative number means the
-        // light reflects away from the eye.
-        let reflectv = (-lightv).reflect(normalv);
-        let reflect_dot_eye = reflectv.dot(eyev);
-
-        let specular: Color = if reflect_dot_eye <= 0. {
-            BLACK
-        } else {
-            // Compute the specular contribution
-            let factor = reflect_dot_eye.powf(self.shininess);
-            light.intensity * self.specular * factor
-        };
-
-        (diffuse, specular)
+        // Add the three contributions together to get the final shading
+        ambient + (sum_color / light.samples() as Float) * light_intensity
     }
 }
 

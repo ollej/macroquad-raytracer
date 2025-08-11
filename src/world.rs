@@ -625,7 +625,7 @@ mod test_soft_shadows {
     fn lighting_uses_light_intensity_to_attenuate_color() {
         let mut w = default_world();
         let light = point_light(&point(0.0, 0.0, -10.0), &color(1.0, 1.0, 1.0));
-        w.set_lights(vec![light]);
+        w.set_lights(vec![light.clone()]);
         let mut shape = w.objects.first().unwrap().clone();
         shape.material.ambient = 0.1;
         shape.material.diffuse = 0.9;
